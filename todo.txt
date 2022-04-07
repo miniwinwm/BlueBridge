@@ -1,0 +1,58 @@
+Todo
+
+Finish fake data
+Finish sending data from app to broker
+Default to emqx broker in dropdown on webpage
+Rename function in util.c/h to start with util_
+Doxygen all code
+Add MIT license to source files
+Add standard headers to all files
+Try pre-sent SMS
+Modem SMS and TCP reads need buf lengths and checks
+Do a new board layout
+Get new boards made
+Use IMEI instead of hardcoded string for MQTT topic
+Rename hardware design files and project to BlueThing
+Update BOM
+Create a new website with BlueThing name
+Switch on/off sending of data via bluetooth if stale
+In Android app clear heading/pressure change items when watching stopped
+In Android app Windspeed label is misaligned
+Shorten MQTT topic names
+Hash the IMEI in webpage and app
+Test with OpenCPN
+The placement of the red square in the mapiator map is not quite right - top left corner of square is location. Investigate polygon instead
+Check all todo's in code
+
+
+Done
+
+Test different brokers.
+Remove loggy function from modem and serial code
+Try new power supply
+Move network connection code so that SMS works if no GPRS available
+Implement settings from SMS
+Reply to SMS settings message
+Test that Bluetooth/NMEA0183/NMEA2000 still works after adding IoT stuff
+Try removing printf.c/h
+Add project to git
+Add broker address choice to webpage
+Rename modem_init function
+Move SMS code into separate file
+Remove old C style data types
+Rationalize lengths of APN, username, password #defines
+Rename set sms pdu type function in modem.c/h
+Restart after SMS settings change
+Try new cheaper pressure sensor
+Test changing broker on webpage
+Test start/stop SMS messages
+Rename project to BlueThing
+Add IoT period to settings
+Add use IoT period
+Test IoT period
+Show start/stop and period in settings message
+Change MQTT password topic name to pass
+Change LED component on schematic to a PL2
+Use string capitalize function in SMS keys
+Test that no CR on end of a user sent SMS message works
+Add 32 bit has function to utils

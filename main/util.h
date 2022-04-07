@@ -13,6 +13,7 @@ void replace_char(char *s, char orig, char rep);
 char *capitalize_string(char *s);
 char *seconds_to_hms(uint32_t seconds);
 bool hms_to_seconds(const char *hms, uint32_t *result);
+uint32_t util_hash_djb2(uint8_t *str);
 
 #ifdef __cplusplus
 }

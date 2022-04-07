@@ -154,3 +154,16 @@ bool hms_to_seconds(const char *hms, uint32_t *result)
 	
 	return true;
 }
+
+uint32_t util_hash_djb2(uint8_t *str)
+{
+	uint32_t hash = 5381UL;
+	uint8_t c;
+
+	while ((c = *str++))
+	{
+		hash = ((hash << 5) + hash) + (uint32_t)c; 
+	}
+
+	return hash;
+}

@@ -13,16 +13,8 @@
 #include "settings.h"
 #include "sms.h"
 #include "util.h"
-
-#define NETWORK_REGISTRATION_WAIT_TIME_MS	30000UL					// time to wait for network registration before giving up
-// plusnet
-//#define ACCESS_POINT_NAME					"everywhere"			// SET YOUR OWN VALUE network settings
-//#define USER_NAME							"eesecure"				// SET YOUR OWN VALUE may be blank for some networks in which case change to NULL (not "NULL")
-//#define PASSWORD							"secure"				// SET YOUR OWN VALUE may be blank for some networks in which case change to NULL (not "NULL")
-// 1p
-//#define ACCESS_POINT_NAME					"data.uk"			// SET YOUR OWN VALUE network settings
-//#define USER_NAME							"user"				// SET YOUR OWN VALUE may be blank for some networks in which case change to NULL (not "NULL")
-//#define PASSWORD							"one2one"				// SET YOUR OWN VALUE may be blank for some networks in which case change to NULL (not "NULL")
+#include "blue_thing.h"
+#include "timer.h"
 
 #define MQTT_PUBLISH_TOPIC_ROOT				"BluePillDemo"			// SET YOUR OWN VALUE topic root for all published values
 
@@ -189,10 +181,7 @@ void boat_iot_task(void *parameters)
 	uint32_t sms_id;
 	uint32_t i;
 	uint16_t properties_parsed;
-
-float speed_over_ground_data = 0.0f;		// todo
-float heading_data = 0.0f;		// todo
-float boat_speed_data = 0.0f;		// todo
+	uint32_t time_ms;
 	
 	ESP_LOGI(pcTaskGetName(NULL), "Boat iot task started");
 	
@@ -265,56 +254,121 @@ float boat_speed_data = 0.0f;		// todo
 						loop_failed = true;
 					}					
 				}			
-			}	
-			
-			if (!loop_failed)
+			}				
+
+			// publish depth
+			time_ms = timer_get_time_ms();		
+			if (!loop_failed && 
+					ModemGetTcpConnectedState() && 
+					(time_ms - boat_data_reception_time.depth_received_time < DEPTH_MAX_DATA_AGE_MS || boat_data_reception_time.depth_received_time > time_ms))
 			{			
-	speed_over_ground_data += 0.1;
-				if (ModemGetTcpConnectedState())
+				snprintf(buf, sizeof(buf), "%.1f", depth_data);
+				mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/depth", (uint8_t *)buf, strlen(buf), false, 5000UL);	
+				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish depth %f %s", depth_data, MqttStatusToText(mqtt_status));		
+				
+				if (mqtt_status != MQTT_OK)
 				{
-					snprintf(buf, sizeof(buf), "%.1f", speed_over_ground_data);
-					mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/sog", (uint8_t *)buf, strlen(buf), false, 5000UL);	
-					ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish sog %f %s", speed_over_ground_data, MqttStatusToText(mqtt_status));		
-					
-					if (mqtt_status != MQTT_OK)
-					{
-						loop_failed = true;
-					}	
-				}				
-			}		
+					loop_failed = true;
+				}	
+			}					
 			
-			if (!loop_failed)
+			// publish heading
+			time_ms = timer_get_time_ms();		
+			if (!loop_failed && 
+					ModemGetTcpConnectedState() && 
+					(time_ms - boat_data_reception_time.heading_true_received_time < HEADING_TRUE_MAX_DATA_AGE_MS || boat_data_reception_time.heading_true_received_time > time_ms))
 			{			
-	boat_speed_data += 0.12;
-				if (ModemGetTcpConnectedState())
-				{		
-					snprintf(buf, sizeof(buf), "%.1f", boat_speed_data);		
-					mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/boatspeed", (uint8_t *)buf, strlen(buf), false, 5000UL);	
-					ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish boatspeed %f %s", boat_speed_data, MqttStatusToText(mqtt_status));	
-					
-					if (mqtt_status != MQTT_OK)
-					{
-						loop_failed = true;
-					}				
-				}			
+				snprintf(buf, sizeof(buf), "%.1f", heading_true_data);
+				mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/heading", (uint8_t *)buf, strlen(buf), false, 5000UL);	
+				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish heading %f %s", heading_true_data, MqttStatusToText(mqtt_status));		
+				
+				if (mqtt_status != MQTT_OK)
+				{
+					loop_failed = true;
+				}	
 			}		
-					
-			if (!loop_failed)
-			{	
-	heading_data +=7.0f;
-	if (heading_data >= 360.0f) heading_data = 0.0f;	
-				if (ModemGetTcpConnectedState())
-				{		
-					snprintf(buf, sizeof(buf), "%.1f", heading_data);
-					mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/heading", (uint8_t *)buf, strlen(buf), false, 5000UL);	
-					ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish heading %f %s", heading_data, MqttStatusToText(mqtt_status));	
-					
-					if (mqtt_status != MQTT_OK)
-					{
-						loop_failed = true;
-					}				
-				}			
-			}	
+
+			// publish trip
+			time_ms = timer_get_time_ms();			
+			if (!loop_failed && 
+					ModemGetTcpConnectedState() && 
+					(time_ms - boat_data_reception_time.trip_received_time < TRIP_MAX_DATA_AGE_MS || boat_data_reception_time.trip_received_time > time_ms))
+			{			
+				snprintf(buf, sizeof(buf), "%.1f", trip_data);
+				mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/trip", (uint8_t *)buf, strlen(buf), false, 5000UL);	
+				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish trip %f %s", trip_data, MqttStatusToText(mqtt_status));		
+				
+				if (mqtt_status != MQTT_OK)
+				{
+					loop_failed = true;
+				}	
+			}		
+
+			// publish total distance			
+			time_ms = timer_get_time_ms();			
+			if (!loop_failed && 
+					ModemGetTcpConnectedState() && 
+					(time_ms - boat_data_reception_time.total_distance_received_time < TOTAL_DISTANCE_MAX_DATA_AGE_MS || boat_data_reception_time.total_distance_received_time > time_ms))
+			{			
+				snprintf(buf, sizeof(buf), "%u", (unsigned int)total_distance_data);
+				mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/log", (uint8_t *)buf, strlen(buf), false, 5000UL);	
+				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish log %u %s", (unsigned int)total_distance_data, MqttStatusToText(mqtt_status));		
+				
+				if (mqtt_status != MQTT_OK)
+				{
+					loop_failed = true;
+				}	
+			}				
+			
+			// publish boat speed			
+			time_ms = timer_get_time_ms();			
+			if (!loop_failed && 
+					ModemGetTcpConnectedState() && 
+					(time_ms - boat_data_reception_time.boat_speed_received_time < BOAT_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.boat_speed_received_time > time_ms))
+			{			
+				snprintf(buf, sizeof(buf), "%.1f", boat_speed_data);
+				mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/boatspeed", (uint8_t *)buf, strlen(buf), false, 5000UL);	
+				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish boatspeed %f %s", boat_speed_data, MqttStatusToText(mqtt_status));	
+				
+				if (mqtt_status != MQTT_OK)
+				{
+					loop_failed = true;
+				}	
+			}		
+
+			// publish sog		
+			time_ms = timer_get_time_ms();			
+			if (!loop_failed && 
+					ModemGetTcpConnectedState() && 
+					(time_ms - boat_data_reception_time.speed_over_ground_received_time < SOG_MAX_DATA_AGE_MS || boat_data_reception_time.speed_over_ground_received_time > time_ms))
+			{			
+				snprintf(buf, sizeof(buf), "%.1f", speed_over_ground_data);
+				mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/sog", (uint8_t *)buf, strlen(buf), false, 5000UL);	
+				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish sog %f %s", speed_over_ground_data, MqttStatusToText(mqtt_status));		
+				
+				if (mqtt_status != MQTT_OK)
+				{
+					loop_failed = true;
+				}	
+			}		
+
+			// publish temperature		
+			time_ms = timer_get_time_ms();			
+			if (!loop_failed && 
+					ModemGetTcpConnectedState() && 
+					(time_ms - boat_data_reception_time.seawater_temperature_received_time < TEMPERATURE_MAX_DATA_AGE_MS || boat_data_reception_time.seawater_temperature_received_time > time_ms))
+			{			
+				snprintf(buf, sizeof(buf), "%.1f", seawater_temeperature_data);
+				mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/temp", (uint8_t *)buf, strlen(buf), false, 5000UL);	
+				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish temp %f %s", seawater_temeperature_data, MqttStatusToText(mqtt_status));		
+				
+				if (mqtt_status != MQTT_OK)
+				{
+					loop_failed = true;
+				}	
+			}				
+				
+			
 			
 			if (loop_failed)
 			{
