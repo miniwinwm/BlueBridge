@@ -1,0 +1,11 @@
+idf_component_register(SRCS "nmea2000_esp32.cpp"
+                            "nmea2000.cpp"
+                            "N2kMsg.cpp"
+                            "N2kStream.cpp"
+                            "N2kMessages.cpp"
+                            "Seasmart.cpp"
+                            "N2kDeviceList.cpp"
+                            "N2kGroupFunction.cpp"
+                            "N2kGroupFunctionDefaultHandlers.cpp"
+                            "N2kMaretron.cpp"
+                        INCLUDE_DIRS "include")
