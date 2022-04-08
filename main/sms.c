@@ -23,7 +23,7 @@ void sms_init(void)
 	ModemSetSmsNotificationCallback(sms_notification_callback);	
 }
 
-bool new_sms_check(uint32_t *sms_id)
+bool sms_check_for_new(uint32_t *sms_id)
 {
 	if (sms_id == NULL)
 	{
@@ -65,7 +65,7 @@ bool sms_receive(uint32_t sms_id, char *phone_number, size_t phone_number_buffer
 		{
 			ascii_hex_byte[0] = pdu_ascii_hex_buf[(unsigned int)i * 2];
 			ascii_hex_byte[1] = pdu_ascii_hex_buf[(unsigned int)i * 2 + 1];
-			pdu_bin_buf[(unsigned int)i] = (uint8_t)htoi(ascii_hex_byte);				
+			pdu_bin_buf[(unsigned int)i] = (uint8_t)util_htoi(ascii_hex_byte);				
 		}
 
 		// decode sms pdu

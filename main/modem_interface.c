@@ -107,8 +107,8 @@ size_t modem_interface_serial_read_data(size_t buffer_length, uint8_t *data)
 		debug_buffer_length += size;
 		if (debug_buffer_length > 0 && debug_buffer[debug_buffer_length - 1] == '\n')
 		{
-replace_char((char *)debug_buffer,'\r', 'r');
-replace_char((char *)debug_buffer,'\n', 'n');
+util_replace_char((char *)debug_buffer,'\r', 'r');
+util_replace_char((char *)debug_buffer,'\n', 'n');
 			
 			debug_buffer[debug_buffer_length] = '\0';
 			modem_interface_log((const char *)debug_buffer);

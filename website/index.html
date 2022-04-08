@@ -503,12 +503,12 @@
 			  
 				broker = getCookie("broker");
 				if (broker == "") {
-					broker = "broker.hivemq.com";
+					broker = "broker.emqx.io";
 				}
 				
 				port = getCookie("port");
 				if (port == "") {
-					port = "8000";
+					port = "8083";
 				}		
 
 				if (broker == "broker.hivemq.com") {
@@ -582,8 +582,8 @@
                     <div class="box-cell box2">
 					<label for="brokers">Broker</label>
 					<select id="brokers" onchange="getBrokerChoice(this)">
-						<option value="hive">Hive</option>
 						<option value="emqx">EMQX</option>
+						<option value="hive">Hive</option>
 					</select>
                     </div> 	
                     <div class="box-cell box3">

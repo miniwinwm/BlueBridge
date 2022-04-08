@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-uint32_t htoi(const char *s)
+uint32_t util_htoi(const char *s)
 {
     uint32_t val = 0UL;
     uint8_t x = 0U;
@@ -40,7 +40,7 @@ uint32_t htoi(const char *s)
     return val;
 }
 
-void replace_char(char *s, char orig, char rep) 
+void util_replace_char(char *s, char orig, char rep) 
 {
     char *ix = s;
 	
@@ -55,7 +55,7 @@ void replace_char(char *s, char orig, char rep)
     }
 }
 
-char *capitalize_string(char *s)
+char *util_capitalize_string(char *s)
 {
 	char *o = s;
 	
@@ -72,7 +72,7 @@ char *capitalize_string(char *s)
 	return o;
 }
 
-char *seconds_to_hms(uint32_t seconds)
+char *util_seconds_to_hms(uint32_t seconds)
 {
 	static char s[15];
 	if (seconds < 60UL)
@@ -91,7 +91,7 @@ char *seconds_to_hms(uint32_t seconds)
 	return s;
 }
 
-bool hms_to_seconds(const char *hms, uint32_t *result)
+bool util_hms_to_seconds(const char *hms, uint32_t *result)
 {
 	uint32_t field_val = 0UL;
 	

@@ -389,7 +389,7 @@ void boat_iot_task(void *parameters)
 		
 		for (i = 0UL; i < settings_get_period_s(); i++)
 		{
-			if (new_sms_check(&sms_id))
+			if (sms_check_for_new(&sms_id))
 			{
 				char phone_number[SMS_MAX_PHONE_NUMBER_LENGTH + 1];
 				char message_text[MODEM_SMS_MAX_TEXT_LENGTH + 1];
@@ -426,7 +426,7 @@ static bool config_parser_callback(char *key, char *value)
 		return false;
 	}
 	
-	capitalize_string(key);
+	util_capitalize_string(key);
 	
 	if (strcmp(key, "APN") == 0)
 	{
@@ -471,7 +471,7 @@ static bool config_parser_callback(char *key, char *value)
 	else if (strcmp(key, "PERIOD") == 0)
 	{
 		ESP_LOGI(pcTaskGetName(NULL), "Property period=%s", value);	
-		if (hms_to_seconds(value, &period))
+		if (util_hms_to_seconds(value, &period))
 		{
 			if (period >= 5UL)
 			{
@@ -499,7 +499,7 @@ static bool config_parser_callback(char *key, char *value)
 		snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "APN=%s\nUser=%s\nPass=%s\nBroker=%s\nPort=%u\nPeriod=%s\n%s",
 			settings_get_apn(), settings_get_apn_user_name(), settings_get_apn_password(),
 			settings_get_mqtt_broker_address(), (uint32_t)settings_get_mqtt_broker_port(),
-			seconds_to_hms(settings_get_period_s()), started_stopped_buf);
+			util_seconds_to_hms(settings_get_period_s()), started_stopped_buf);
 		(void)sms_send(message_text, settings_get_phone_number());		
 		found = true;			
 	}
