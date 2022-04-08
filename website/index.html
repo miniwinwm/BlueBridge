@@ -444,6 +444,8 @@
 			}			
 		</script>   
 		
+		
+		
 		<script type="text/javascript">
 			function setBoatName() {
 			  boatname = document.getElementById('boatname').value;			
@@ -522,7 +524,7 @@
 			function selectElement(id, valueToSelect) {    
 				let element = document.getElementById(id);
 				element.value = valueToSelect;
-			}			
+			}		
 		</script> 
   	</head>
   	
@@ -643,7 +645,7 @@
 		<script type="text/javascript" src="Mapiator.js">
 		</script>
 		
-  		<script type="text/javascript">
+  		<script type="text/javascript">		
   			var myMap;
 			var minutesLabel = document.getElementById("minutes");
 			var secondsLabel = document.getElementById("seconds");
@@ -687,6 +689,16 @@
 				} else {
 					return valString;
 				}
+			}			
+			
+			function util_hash_djb2(val) {
+				var hash = 5381;
+				for (var i = 0; i < val.length; i++) {
+					var char = val.charCodeAt(i);
+					hash = ((hash << 5) + hash) + char;
+					hash = hash >>> 0;
+				}
+				return hash.toString(16).padStart(8,"0");
 			}			
 		</script>		  	
 		

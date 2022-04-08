@@ -823,6 +823,7 @@ extern "C" void app_main(void)
 #ifdef FAKE_DATA
 	depth_data = 3.0f;	
 	heading_true_data = 80.0f;
+	course_over_ground_data = 78.0f;
 	trip_data = 0.1f;
 	total_distance_data = 32445.0;
 	boat_speed_data = 0.0f;
@@ -951,6 +952,17 @@ static void fake_data(void)
 			heading_true_data = 100.0f;
 		}		
 		boat_data_reception_time.heading_true_received_time = timer_get_time_ms();		
+		
+		course_over_ground_data += (10.0f * (float)esp_random() / (float)UINT32_MAX) - 5.0f;
+		if (course_over_ground_data < 58.0f)
+		{
+			course_over_ground_data = 58.0f;
+		}
+		if (course_over_ground_data > 98.0f)
+		{
+			course_over_ground_data = 98.0f;
+		}		
+		boat_data_reception_time.course_over_ground_received_time = timer_get_time_ms();				
 		
 		boat_speed_data += (0.1f * (float)esp_random() / (float)UINT32_MAX) - 0.05f;
 		if (boat_speed_data < 0.0f)

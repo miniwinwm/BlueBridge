@@ -1,6 +1,6 @@
 Todo
 
-Finish fake data
+Finish test data
 Finish sending data from app to broker
 Doxygen all code
 Add MIT license and standard headers to all files
@@ -11,7 +11,7 @@ Get new boards made
 Use hashed IMEI instead of hardcoded string for MQTT topic
 Update BOM
 Create a new website with BlueThing name
-Shorten MQTT topic names
+Shorten MQTT topic names - heading=0 sog=1 cog=C temperature=3 boatspeed=B depth=D log=6 lat=7 long=8 strength=9 awa=A aws=4 twa=2 tws=5
 Hash the IMEI in webpage and app
 Test with OpenCPN
 The placement of the red square in the mapiator map is not quite right - top left corner of square is location. Investigate polygon instead
