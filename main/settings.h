@@ -8,7 +8,7 @@ extern "C" {
 #include <stdint.h>
 #include "modem.h"
 
-#define MQTT_BROKER_ADDRESS_MAX_LENGTH	32
+#define MQTT_BROKER_ADDRESS_MAX_LENGTH	32UL		// todo change name or move
 
 void settings_init(void);
 void settings_save(void);
@@ -31,8 +31,8 @@ void settings_set_mqtt_broker_address(const char *mqtt_broker_address);
 uint16_t settings_get_mqtt_broker_port(void);
 void settings_set_mqtt_broker_port(uint16_t mqtt_broker_port);
 
-const char *settings_get_imei(void);
-void settings_set_imei(const char *imei);
+uint32_t settings_get_code(void);
+void settings_set_code(uint32_t code);
 
 const char *settings_get_phone_number(void);
 void settings_set_phone_number(const char *phone_number);

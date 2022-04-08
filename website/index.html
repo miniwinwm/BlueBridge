@@ -94,21 +94,7 @@
 
 			// callback called when the connection to the broker has been established
 	 		function onConnect() {
-				mqtt.subscribe(boatname + "/boatspeed");
-				mqtt.subscribe(boatname + "/sog");
-				mqtt.subscribe(boatname + "/tws");
-				mqtt.subscribe(boatname + "/aws");		
-				mqtt.subscribe(boatname + "/depth");				
-				mqtt.subscribe(boatname + "/trip");				
-				mqtt.subscribe(boatname + "/log");				
-				mqtt.subscribe(boatname + "/cog");				
-				mqtt.subscribe(boatname + "/heading");								
-				mqtt.subscribe(boatname + "/lat");								
-				mqtt.subscribe(boatname + "/long");
-				mqtt.subscribe(boatname + "/twa");
-				mqtt.subscribe(boatname + "/awa");		
-				mqtt.subscribe(boatname + "/temp");	
-				mqtt.subscribe(boatname + "/strength");
+				mqtt.subscribe(boatname + "/all");
 	  		}
 	  	
 	  		// this is called by the body part of the webpage on loading
@@ -134,55 +120,62 @@
 			// callback called when a incoming publish arrives for a subscribed topic (destinationName)
 			function onMessageArrived(msg) {
 				totalSeconds = 0;
-			    if (msg.destinationName == boatname + "/boatspeed") {
-					boatspeed = msg.payloadString;					
-				}	
-			    else if (msg.destinationName == boatname + "/sog") {
-					sog = msg.payloadString;					
-				}	
-			    else if (msg.destinationName == boatname + "/tws") {
-					tws = msg.payloadString;					
-				}	
-			    else if (msg.destinationName == boatname + "/aws") {
-					aws = msg.payloadString;					
-				}		
-			    else if (msg.destinationName == boatname + "/depth") {
-					depth = msg.payloadString;					
-				}		
-			    else if (msg.destinationName == boatname + "/trip") {
-					trip = msg.payloadString;					
-				}					
-			    else if (msg.destinationName == boatname + "/log") {
-					log = msg.payloadString;					
-				}		
-			    else if (msg.destinationName == boatname + "/cog") {
-					cog = msg.payloadString;		
-					setCompassCog(cog);			
-				}	
-			    else if (msg.destinationName == boatname + "/heading") {
-					heading = msg.payloadString;		
-					setCompassHeading(heading);			
-				}			
-			    else if (msg.destinationName == boatname + "/lat") {
-					lat = msg.payloadString;		
-				}
-			    else if (msg.destinationName == boatname + "/long") {
-					long = msg.payloadString;		
-				}	
-			    else if (msg.destinationName == boatname + "/twa") {
-					twa = msg.payloadString;		
-					setAngleTwa(twa);			
-				}					
-			    else if (msg.destinationName == boatname + "/awa") {
-					awa = msg.payloadString;		
-					setAngleAwa(awa);			
-				}
-			    else if (msg.destinationName == boatname + "/temp") {
-					temp = msg.payloadString;		
-				}				
-			    else if (msg.destinationName == boatname + "/strength") {
-					strength = msg.payloadString;		
-					setImageVisible(strength);
+			    if (msg.destinationName == boatname + "/all") {
+					const payloadArray = msg.payloadString.split(",");
+						
+					if (payloadArray.length == 15)
+					{
+						if (payloadArray[0] != "") {
+							strength = payloadArray[0];		
+							setImageVisible(strength);
+						}	
+						if (payloadArray[1] != "") {
+							cog = payloadArray[1];		
+							setCompassCog(cog);
+						}	
+						if (payloadArray[2] != "") {
+							temp = payloadArray[2];					
+						}	
+						if (payloadArray[3] != "") {
+							sog = payloadArray[3];					
+						}	
+						if (payloadArray[4] != "") {
+							boatspeed = payloadArray[4];					
+						}	
+						if (payloadArray[5] != "") {
+							log = payloadArray[5];					
+						}	
+						if (payloadArray[6] != "") {
+							trip = payloadArray[6];					
+						}	
+						if (payloadArray[7] != "") {
+							heading = payloadArray[7];					
+							setCompassHeading(heading);			
+						}	
+						if (payloadArray[8] != "") {
+							depth = payloadArray[8];					
+						}	
+						if (payloadArray[9] != "") {
+							tws = payloadArray[9];					
+						}	
+						if (payloadArray[10] != "") {
+							twa = payloadArray[10];					
+							setAngleTwa(twa);			
+						}	
+						if (payloadArray[11] != "") {
+							aws = payloadArray[11];					
+						}	
+						if (payloadArray[12] != "") {
+							awa = payloadArray[12];					
+							setAngleAwa(awa);			
+						}	
+						if (payloadArray[13] != "") {
+							lat = payloadArray[13];					
+						}	
+						if (payloadArray[14] != "") {
+							long = payloadArray[14];					
+						}	
+					}								
 				}					
 			}
 						
@@ -490,7 +483,7 @@
 				boatname = getCookie("username");
 				if (boatname == "") {
 					while(true) {
-						boatname = prompt("Please enter your boat name:","");
+						boatname = prompt("Please enter your code:","");
 						if (boatname != "" && boatname != null) {
 						setCookie("username", boatname, 365);
 						document.getElementById('boatname').value = boatname;

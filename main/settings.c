@@ -22,7 +22,7 @@ typedef struct
 
 typedef struct
 {
-	char imei[MODEM_MAX_IMEI_LENGTH + 1];	
+	uint32_t code;	
 	char phone_number[MODEM_MAX_PHONE_NUMBER_LENGTH + 1];
 	bool boat_iot_started;
 	bool restart_needed;
@@ -57,8 +57,9 @@ void settings_init(void)
         flash_store_data((uint8_t *)&settings_non_volatile, sizeof(settings_non_volatile_t));        
     }
 	
-	settings_volatile.boat_iot_started = false;
+	settings_volatile.boat_iot_started = true;
 	settings_volatile.restart_needed = false;
+	settings_volatile.code = 0UL;
 }
 
 uint8_t settings_get_device_address(void)
@@ -210,32 +211,22 @@ void settings_set_mqtt_broker_port(uint16_t mqtt_broker_port)
 	xSemaphoreGive(settings_mutex_handle);	
 }
 
-const char *settings_get_imei(void)
+uint32_t settings_get_code(void)
 {
-	static char imei[MODEM_MAX_IMEI_LENGTH + 1];
+	uint32_t code;
 	
 	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);	
-	if (settings_volatile.imei[0] == '\0')
-	{
-		strcpy(imei, "not set");
-	}
-	else
-	{	
-		strcpy(imei, settings_volatile.imei);
-	}
+	code = settings_volatile.code;
 	xSemaphoreGive(settings_mutex_handle);		
 	
-	return imei;
+	return code;
 }
 
-void settings_set_imei(const char *imei)
+void settings_set_code(uint32_t code)
 {
-	if (strlen(imei) <= MODEM_MAX_IMEI_LENGTH)
-	{
-		xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
-		strcpy(settings_volatile.imei, imei);
-		xSemaphoreGive(settings_mutex_handle);	
-	}	
+	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
+	settings_volatile.code = code;
+	xSemaphoreGive(settings_mutex_handle);	
 }
 
 const char *settings_get_phone_number(void)

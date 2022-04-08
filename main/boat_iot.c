@@ -16,8 +16,6 @@
 #include "blue_thing.h"
 #include "timer.h"
 
-#define MQTT_PUBLISH_TOPIC_ROOT				"BluePillDemo"			// SET YOUR OWN VALUE topic root for all published values
-
 static bool modem_start(void);
 static bool modem_network_register(void);
 static bool modem_set_parameters(void);
@@ -61,7 +59,7 @@ static bool modem_set_parameters(void)
 	{
 		return false;
 	}	
-	settings_set_imei(imei);
+	settings_set_code(util_hash_djb2(imei));
 	
 	modem_status = ModemSmsDeleteAllMessages(25000UL);
 	ESP_LOGI(pcTaskGetName(NULL), "Delete all SMS messages %s", ModemStatusToText(modem_status));	
@@ -177,11 +175,13 @@ void boat_iot_task(void *parameters)
 	bool modem_start_success;
 	uint8_t failed_loop_count = 0U;
 	bool loop_failed;
-	char buf[20];	
 	uint32_t sms_id;
 	uint32_t i;
 	uint16_t properties_parsed;
 	uint32_t time_ms;
+	char mqtt_topic[20];
+	char mqtt_data_buf[200];	
+	char number_buf[20];
 	
 	ESP_LOGI(pcTaskGetName(NULL), "Boat iot task started");
 	
@@ -240,21 +240,19 @@ void boat_iot_task(void *parameters)
 					loop_failed = true;
 				}	
 			}		
+/*
+			if (!loop_failed && ModemGetTcpConnectedState())
+			{
+				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%u", (uint32_t)strength);
+				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/strength", settings_get_code());			
+				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
+				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish strength %u %s", (uint32_t)strength, MqttStatusToText(mqtt_status));	
 
-			if (!loop_failed)
-			{	
-				if (ModemGetTcpConnectedState())
+				if (mqtt_status != MQTT_OK)
 				{
-					snprintf(buf, sizeof(buf), "%u", (uint32_t)strength);
-					mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/strength", (uint8_t *)buf, strlen(buf), false, 5000UL);	
-					ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish strength %u %s", (uint32_t)strength, MqttStatusToText(mqtt_status));	
-
-					if (mqtt_status != MQTT_OK)
-					{
-						loop_failed = true;
-					}					
-				}			
-			}				
+					loop_failed = true;
+				}					
+			}						
 
 			// publish depth
 			time_ms = timer_get_time_ms();		
@@ -262,8 +260,9 @@ void boat_iot_task(void *parameters)
 					ModemGetTcpConnectedState() && 
 					(time_ms - boat_data_reception_time.depth_received_time < DEPTH_MAX_DATA_AGE_MS || boat_data_reception_time.depth_received_time > time_ms))
 			{			
-				snprintf(buf, sizeof(buf), "%.1f", depth_data);
-				mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/depth", (uint8_t *)buf, strlen(buf), false, 5000UL);	
+				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%.1f", depth_data);
+				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/depth", settings_get_code());			
+				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish depth %f %s", depth_data, MqttStatusToText(mqtt_status));		
 				
 				if (mqtt_status != MQTT_OK)
@@ -277,9 +276,10 @@ void boat_iot_task(void *parameters)
 			if (!loop_failed && 
 					ModemGetTcpConnectedState() && 
 					(time_ms - boat_data_reception_time.heading_true_received_time < HEADING_TRUE_MAX_DATA_AGE_MS || boat_data_reception_time.heading_true_received_time > time_ms))
-				snprintf(buf, sizeof(buf), "%u", (unsigned int)heading_true_data);
-			{			
-				mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/heading", (uint8_t *)buf, strlen(buf), false, 5000UL);	
+			{
+				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%u", (unsigned int)heading_true_data);
+				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/heading", settings_get_code());			
+				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish heading %f %s", heading_true_data, MqttStatusToText(mqtt_status));		
 				
 				if (mqtt_status != MQTT_OK)
@@ -294,8 +294,9 @@ void boat_iot_task(void *parameters)
 					ModemGetTcpConnectedState() && 
 					(time_ms - boat_data_reception_time.trip_received_time < TRIP_MAX_DATA_AGE_MS || boat_data_reception_time.trip_received_time > time_ms))
 			{			
-				snprintf(buf, sizeof(buf), "%.1f", trip_data);
-				mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/trip", (uint8_t *)buf, strlen(buf), false, 5000UL);	
+				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%.1f", trip_data);
+				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/trip", settings_get_code());			
+				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish trip %f %s", trip_data, MqttStatusToText(mqtt_status));		
 				
 				if (mqtt_status != MQTT_OK)
@@ -310,8 +311,9 @@ void boat_iot_task(void *parameters)
 					ModemGetTcpConnectedState() && 
 					(time_ms - boat_data_reception_time.total_distance_received_time < TOTAL_DISTANCE_MAX_DATA_AGE_MS || boat_data_reception_time.total_distance_received_time > time_ms))
 			{			
-				snprintf(buf, sizeof(buf), "%u", (unsigned int)total_distance_data);
-				mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/log", (uint8_t *)buf, strlen(buf), false, 5000UL);	
+				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%u", (unsigned int)total_distance_data);
+				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/log", settings_get_code());			
+				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish log %u %s", (unsigned int)total_distance_data, MqttStatusToText(mqtt_status));		
 				
 				if (mqtt_status != MQTT_OK)
@@ -326,8 +328,9 @@ void boat_iot_task(void *parameters)
 					ModemGetTcpConnectedState() && 
 					(time_ms - boat_data_reception_time.boat_speed_received_time < BOAT_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.boat_speed_received_time > time_ms))
 			{			
-				snprintf(buf, sizeof(buf), "%.1f", boat_speed_data);
-				mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/boatspeed", (uint8_t *)buf, strlen(buf), false, 5000UL);	
+				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%.1f", boat_speed_data);
+				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/boatspeed", settings_get_code());			
+				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish boatspeed %f %s", boat_speed_data, MqttStatusToText(mqtt_status));	
 				
 				if (mqtt_status != MQTT_OK)
@@ -342,8 +345,9 @@ void boat_iot_task(void *parameters)
 					ModemGetTcpConnectedState() && 
 					(time_ms - boat_data_reception_time.speed_over_ground_received_time < SOG_MAX_DATA_AGE_MS || boat_data_reception_time.speed_over_ground_received_time > time_ms))
 			{			
-				snprintf(buf, sizeof(buf), "%.1f", speed_over_ground_data);
-				mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/sog", (uint8_t *)buf, strlen(buf), false, 5000UL);	
+				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%.1f", speed_over_ground_data);
+				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/sog", settings_get_code());			
+				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish sog %f %s", speed_over_ground_data, MqttStatusToText(mqtt_status));		
 				
 				if (mqtt_status != MQTT_OK)
@@ -358,8 +362,9 @@ void boat_iot_task(void *parameters)
 					ModemGetTcpConnectedState() && 
 					(time_ms - boat_data_reception_time.seawater_temperature_received_time < TEMPERATURE_MAX_DATA_AGE_MS || boat_data_reception_time.seawater_temperature_received_time > time_ms))
 			{			
-				snprintf(buf, sizeof(buf), "%.1f", seawater_temeperature_data);
-				mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/temp", (uint8_t *)buf, strlen(buf), false, 5000UL);	
+				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%.1f", seawater_temeperature_data);
+				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/temp", settings_get_code());			
+				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish temp %f %s", seawater_temeperature_data, MqttStatusToText(mqtt_status));		
 				
 				if (mqtt_status != MQTT_OK)
@@ -374,14 +379,117 @@ void boat_iot_task(void *parameters)
 					ModemGetTcpConnectedState() && 
 					(time_ms - boat_data_reception_time.course_over_ground_received_time < COG_MAX_DATA_AGE_MS || boat_data_reception_time.course_over_ground_received_time > time_ms))
 			{			
-				snprintf(buf, sizeof(buf), "%hu", course_over_ground_data);
-				mqtt_status = MqttPublish(MQTT_PUBLISH_TOPIC_ROOT "/cog", (uint8_t *)buf, strlen(buf), false, 5000UL);	
+				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%hu", course_over_ground_data);
+				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/cog", settings_get_code());			
+				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish cog %hu %s", course_over_ground_data, MqttStatusToText(mqtt_status));		
 				
 				if (mqtt_status != MQTT_OK)
 				{
 					loop_failed = true;
 				}	
+			}			
+*/
+			// publish all data in one
+			if (!loop_failed && ModemGetTcpConnectedState())
+			{				
+				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/all", settings_get_code());							
+				time_ms = timer_get_time_ms();			
+				
+				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%hhu,", strength);
+				
+				if (time_ms - boat_data_reception_time.course_over_ground_received_time < COG_MAX_DATA_AGE_MS || boat_data_reception_time.course_over_ground_received_time > time_ms)
+				{
+					snprintf(number_buf, sizeof(number_buf), "%hu", course_over_ground_data);
+					strcat(mqtt_data_buf, number_buf);
+				}
+				strcat(mqtt_data_buf, ",");
+				
+				if (time_ms - boat_data_reception_time.seawater_temperature_received_time < TEMPERATURE_MAX_DATA_AGE_MS || boat_data_reception_time.seawater_temperature_received_time > time_ms)
+				{
+					snprintf(number_buf, sizeof(number_buf), "%.1f", seawater_temeperature_data);
+					strcat(mqtt_data_buf, number_buf);
+				}
+				strcat(mqtt_data_buf, ",");
+
+				if (time_ms - boat_data_reception_time.speed_over_ground_received_time < SOG_MAX_DATA_AGE_MS || boat_data_reception_time.speed_over_ground_received_time > time_ms)
+				{
+					snprintf(number_buf, sizeof(number_buf), "%.1f", speed_over_ground_data);
+					strcat(mqtt_data_buf, number_buf);
+				}
+				strcat(mqtt_data_buf, ",");
+				
+				if (time_ms - boat_data_reception_time.boat_speed_received_time < BOAT_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.boat_speed_received_time > time_ms)
+				{
+					snprintf(number_buf, sizeof(number_buf), "%.1f", boat_speed_data);
+					strcat(mqtt_data_buf, number_buf);
+				}
+				strcat(mqtt_data_buf, ",");
+
+				if (time_ms - boat_data_reception_time.total_distance_received_time < TOTAL_DISTANCE_MAX_DATA_AGE_MS || boat_data_reception_time.total_distance_received_time > time_ms)
+				{
+					snprintf(number_buf, sizeof(number_buf), "%u", (unsigned int)total_distance_data);
+					strcat(mqtt_data_buf, number_buf);
+				}
+				strcat(mqtt_data_buf, ",");
+
+				if (time_ms - boat_data_reception_time.trip_received_time < TRIP_MAX_DATA_AGE_MS || boat_data_reception_time.trip_received_time > time_ms)
+				{
+					snprintf(number_buf, sizeof(number_buf), "%.1f", trip_data);
+					strcat(mqtt_data_buf, number_buf);
+				}
+				strcat(mqtt_data_buf, ",");
+
+				if (time_ms - boat_data_reception_time.heading_true_received_time < HEADING_TRUE_MAX_DATA_AGE_MS || boat_data_reception_time.heading_true_received_time > time_ms)
+				{
+					snprintf(number_buf, sizeof(number_buf), "%u", (unsigned int)heading_true_data);
+					strcat(mqtt_data_buf, number_buf);
+				}
+				strcat(mqtt_data_buf, ",");
+
+				if (time_ms - boat_data_reception_time.depth_received_time < DEPTH_MAX_DATA_AGE_MS || boat_data_reception_time.depth_received_time > time_ms)
+				{
+					snprintf(number_buf, sizeof(number_buf), "%.1f", depth_data);
+					strcat(mqtt_data_buf, number_buf);
+				}
+				strcat(mqtt_data_buf, ",");
+				
+float dummy = 0.1f;								
+				
+				snprintf(number_buf, sizeof(number_buf), "%.1f", dummy); // tws
+				strcat(mqtt_data_buf, number_buf);
+				strcat(mqtt_data_buf, ",");
+
+				snprintf(number_buf, sizeof(number_buf), "%.1f", dummy); // twa
+				strcat(mqtt_data_buf, number_buf);
+				strcat(mqtt_data_buf, ",");
+
+				snprintf(number_buf, sizeof(number_buf), "%.1f", dummy); // aws
+				strcat(mqtt_data_buf, number_buf);
+				strcat(mqtt_data_buf, ",");
+
+				snprintf(number_buf, sizeof(number_buf), "%.1f", dummy); // awa
+				strcat(mqtt_data_buf, number_buf);
+				strcat(mqtt_data_buf, ",");
+
+				snprintf(number_buf, sizeof(number_buf), "%.1f", dummy); // lat
+				strcat(mqtt_data_buf, number_buf);
+				strcat(mqtt_data_buf, ",");
+
+				snprintf(number_buf, sizeof(number_buf), "%.1f", dummy); // long
+				strcat(mqtt_data_buf, number_buf);
+			
+				
+				
+				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);					
+				//mqtt_status = MqttPublish("BluePillDemo/sog", (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);					
+				
+				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish %s %s %s", mqtt_topic, mqtt_data_buf, MqttStatusToText(mqtt_status));		
+				
+				if (mqtt_status != MQTT_OK)
+				{
+					loop_failed = true;
+				}					
 			}				
 	
 			
@@ -416,7 +524,7 @@ void boat_iot_task(void *parameters)
 					ESP_LOGI(pcTaskGetName(NULL), "SMS text %s", message_text);						
 					settings_set_phone_number(phone_number);					
 					properties_parsed = property_parse(message_text, config_parser_callback);
-					ESP_LOGI(pcTaskGetName(NULL), "%u properties parsed", properties_parsed);						
+					ESP_LOGI(pcTaskGetName(NULL), "%u settings parsed", properties_parsed);						
 				}
 				modem_status = ModemSmsDeleteAllMessages(25000UL);
 				ESP_LOGI(pcTaskGetName(NULL), "Delete all SMS messages %s", ModemStatusToText(modem_status));	
@@ -519,11 +627,11 @@ static bool config_parser_callback(char *key, char *value)
 		(void)sms_send(message_text, settings_get_phone_number());		
 		found = true;			
 	}
-	else if (strcmp(key, "IMEI") == 0)
+	else if (strcmp(key, "CODE") == 0)
 	{
-		ESP_LOGI(pcTaskGetName(NULL), "Command imei");	
+		ESP_LOGI(pcTaskGetName(NULL), "Command code");	
 		
-		snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "IMEI:%s", settings_get_imei());
+		snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "Code=%08X", settings_get_code());
 		(void)sms_send(message_text, settings_get_phone_number());		
 		found = true;
 	}	

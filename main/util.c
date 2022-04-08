@@ -77,11 +77,11 @@ char *util_seconds_to_hms(uint32_t seconds)
 	static char s[15];
 	if (seconds < 60UL)
 	{
-		snprintf(s, sizeof(s), "%02us", (unsigned int)seconds);
+		snprintf(s, sizeof(s), "%us", (unsigned int)seconds);
 	}
 	else if (seconds < 3600UL)
 	{
-		snprintf(s, sizeof(s), "%02um%02us", (unsigned int)(seconds / 60UL), (unsigned int)(seconds % 60UL));		
+		snprintf(s, sizeof(s), "%um%02us", (unsigned int)(seconds / 60UL), (unsigned int)(seconds % 60UL));		
 	}
 	else
 	{
@@ -155,10 +155,10 @@ bool util_hms_to_seconds(const char *hms, uint32_t *result)
 	return true;
 }
 
-uint32_t util_hash_djb2(uint8_t *str)
+uint32_t util_hash_djb2(const char *str)
 {
 	uint32_t hash = 5381UL;
-	uint8_t c;
+	char c;
 
 	while ((c = *str++))
 	{
