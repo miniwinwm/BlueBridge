@@ -16,8 +16,8 @@ Tidy up javascript code
 Close mqtt connection and socket on long period
 Change strcat for safe_strcat
 Set default started value to false
-In javascript change boatname to boatcode
 Implement sms get command that sends all boat data
+Send settings on start
 
 Done
 
@@ -67,3 +67,4 @@ Finish sending data from app to broker
 Boat code on webpage accept lower case by using java script toupper equivalent
 Change set code on webpage from text entry to dialog
 Remove unnecessary console logging from javascript
+In javascript change boatname to boatcode

@@ -16,11 +16,17 @@
 #include "blue_thing.h"
 #include "timer.h"
 
+#define MQTT_KEEPALIVE_S			600U
+#define MQTT_SHUTDOWN_PERIOD_S		300UL
+
 static bool modem_start(void);
 static bool modem_network_register(void);
 static bool modem_set_parameters(void);
 static bool modem_activate_data_connection(void);
 static bool config_parser_callback(char *key, char *value);
+
+static bool open_mqtt_connection(void);
+static void close_mqtt_connection(void);
 
 static bool modem_network_register(void)
 {
@@ -128,7 +134,7 @@ static bool modem_activate_data_connection(void)
 	return true;	
 }
 
-static bool modem_open_data_connection(void)
+static bool open_mqtt_connection(void)
 {
 	ModemStatus_t modem_status;
 	MqttStatus_t mqtt_status;
@@ -141,7 +147,7 @@ static bool modem_open_data_connection(void)
 		return false;
 	}
 	
-	mqtt_status = MqttConnect("1234", NULL, NULL, 600U, 20000UL);
+	mqtt_status = MqttConnect("1234", NULL, NULL, MQTT_KEEPALIVE_S, 20000UL);
 	ESP_LOGI(pcTaskGetName(NULL), "MQTT connect %s", MqttStatusToText(mqtt_status));	
 	
 	if (mqtt_status != MQTT_OK)
@@ -150,6 +156,12 @@ static bool modem_open_data_connection(void)
 	}	
 	
 	return true;
+}
+
+void close_mqtt_connection(void)
+{
+	(void)MqttDisconnect(5000UL);
+	(void)ModemCloseTcpConnection(5000UL);
 }
 
 static bool modem_start(void)
@@ -214,7 +226,7 @@ void boat_iot_task(void *parameters)
 			
 			if (!loop_failed && !ModemGetTcpConnectedState())
 			{
-				loop_failed = !modem_open_data_connection();
+				loop_failed = !open_mqtt_connection();
 			}
 			
 			if (!loop_failed)
@@ -371,6 +383,11 @@ void boat_iot_task(void *parameters)
 				}					
 			}				
 			
+			if (settings_get_period_s() > MQTT_SHUTDOWN_PERIOD_S)
+			{
+				close_mqtt_connection();
+			}
+			
 			if (loop_failed)
 			{
 				failed_loop_count++;
@@ -474,7 +491,7 @@ static bool config_parser_callback(char *key, char *value)
 		ESP_LOGI(pcTaskGetName(NULL), "Property period=%s", value);	
 		if (util_hms_to_seconds(value, &period))
 		{
-			if (period >= 5UL)
+			if (period >= 2UL)
 			{
 				settings_set_period_s(period);		
 				settings_save();

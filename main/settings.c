@@ -52,7 +52,7 @@ void settings_init(void)
 		strcpy(settings_non_volatile.apn_user_name, "user");
 		strcpy(settings_non_volatile.apn_password, "one2one");		
 		strcpy(settings_non_volatile.mqtt_broker_address, "broker.emqx.io");
-		settings_non_volatile.period_s = 15UL;
+		settings_non_volatile.period_s = 30UL;
 		settings_non_volatile.mqtt_broker_port = 1883U;
         flash_store_data((uint8_t *)&settings_non_volatile, sizeof(settings_non_volatile_t));        
     }

@@ -94,7 +94,7 @@
 
 			// callback called when the connection to the broker has been established
 	 		function onConnect() {
-				mqtt.subscribe(boatname + "/all");
+				mqtt.subscribe(boatCode + "/all");
 	  		}
 	  	
 	  		// this is called by the body part of the webpage on loading
@@ -120,7 +120,7 @@
 			// callback called when a incoming publish arrives for a subscribed topic (destinationName)
 			function onMessageArrived(msg) {
 				totalSeconds = 0;
-			    if (msg.destinationName == boatname + "/all") {
+			    if (msg.destinationName == boatCode + "/all") {
 					const payloadArray = msg.payloadString.split(",");
 						
 					if (payloadArray.length == 15)
@@ -436,14 +436,12 @@
   				ctx.stroke();
 			}			
 		</script>   
-		
-		
-		
+				
 		<script type="text/javascript">		
-			function setBoatName() {
-				boatname = prompt("Please enter new code:","").toUpperCase();
-				if (boatname != "" && boatname != null) {
-					setCookie("username", boatname, 365);
+			function setBoatCode() {
+				boatCode = prompt("Please enter new code:","").toUpperCase();
+				if (boatCode != "" && boatCode != null) {
+					setCookie("username", boatCode, 365);
 					location.reload();					
 				} else {
 					alert("Boat name cannot be blank");
@@ -480,20 +478,20 @@
 			}
 
 			function checkCookie() {
-				boatname = getCookie("username");
-				if (boatname == "") {
+				boatCode = getCookie("username");
+				if (boatCode == "") {
 					while(true) {
-						boatname = prompt("Please enter your code:","").toUpperCase();
-						if (boatname != "" && boatname != null) {
-						setCookie("username", boatname, 365);
-						document.getElementById('boatname').value = boatname;
+						boatCode = prompt("Please enter your code:","").toUpperCase();
+						if (boatCode != "" && boatCode != null) {
+						setCookie("username", boatCode, 365);
+						document.getElementById('boatCode').value = boatCode;
 						break;
 						} else {
 							alert("Boat name cannot be blank");
 						}
 					}
 				} else {
-				document.getElementById('boatname').value = boatname;
+				document.getElementById('boatCode').value = boatCode;
 				}
 			  
 				broker = getCookie("broker");
@@ -524,8 +522,8 @@
   	<body>					
 		<form>
 			<label for="fname">Boat code:</label>
-			<input type="text" id="boatname" name="boatname" readonly>
-			<input type="button" value="Change" onclick="setBoatName()">			
+			<input type="text" id="boatCode" name="boatCode" readonly>
+			<input type="button" value="Change" onclick="setBoatCode()">			
 		</form>
         <div class="container">  
             <div class="box">  
@@ -643,7 +641,7 @@
 			var minutesLabel = document.getElementById("minutes");
 			var secondsLabel = document.getElementById("seconds");
 			var totalSeconds = 0;	
-			var boatname = "";
+			var boatCode = "";
 			var broker = "";
 			var port = "";
 			document.getElementById('strength1').style.display = 'none';
