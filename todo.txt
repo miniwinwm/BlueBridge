@@ -13,11 +13,8 @@ The placement of the red square in the mapiator map is not quite right - top lef
 Check all todo's in code
 After receiving a start command publish first MQTT message immediately
 Tidy up javascript code
-Close mqtt connection and socket on long period
 Change strcat for safe_strcat
-Set default started value to false
 Implement sms get command that sends all boat data
-Send settings on start
 
 Done
 
@@ -68,3 +65,7 @@ Boat code on webpage accept lower case by using java script toupper equivalent
 Change set code on webpage from text entry to dialog
 Remove unnecessary console logging from javascript
 In javascript change boatname to boatcode
+Period setting ending in 'm' or 's' doesn't work
+Close mqtt connection and socket on long period
+Set default started value to false
+Settings period with 0s time looks odd

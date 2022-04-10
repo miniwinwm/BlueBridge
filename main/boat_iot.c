@@ -491,7 +491,7 @@ static bool config_parser_callback(char *key, char *value)
 		ESP_LOGI(pcTaskGetName(NULL), "Property period=%s", value);	
 		if (util_hms_to_seconds(value, &period))
 		{
-			if (period >= 2UL)
+			if (period >= 5UL)
 			{
 				settings_set_period_s(period);		
 				settings_save();

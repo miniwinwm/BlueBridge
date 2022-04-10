@@ -74,21 +74,32 @@ char *util_capitalize_string(char *s)
 
 char *util_seconds_to_hms(uint32_t seconds)
 {
-	static char s[15];
-	if (seconds < 60UL)
+	static char result[15];
+	char f[10];	
+	uint32_t h = seconds / 3600UL;
+	uint32_t m = (seconds - (seconds / 3600UL) * 3600UL ) / 60UL;
+	uint32_t s = seconds % 60UL;
+	
+	result[0] = '\0';
+	if (h > 0)
 	{
-		snprintf(s, sizeof(s), "%us", (unsigned int)seconds);
-	}
-	else if (seconds < 3600UL)
-	{
-		snprintf(s, sizeof(s), "%um%02us", (unsigned int)(seconds / 60UL), (unsigned int)(seconds % 60UL));		
-	}
-	else
-	{
-		snprintf(s, sizeof(s), "%uh%02um%02us", (unsigned int)(seconds / 3600UL), (unsigned int)((seconds - (seconds / 3600UL) * 3600UL ) / 60UL), (unsigned int)(seconds % 60UL));		
+		snprintf(f, sizeof(f), "%uh", (unsigned int)h);
+		strcat(result, f);
 	}
 	
-	return s;
+	if (m > 0UL)
+	{
+		snprintf(f, sizeof(f), "%um", (unsigned int)m);
+		strcat(result, f);		
+	}
+	
+	if (s > 0UL)
+	{
+		snprintf(f, sizeof(f), "%us", (unsigned int)s);
+		strcat(result, f);		
+	}	
+	
+	return result;
 }
 
 bool util_hms_to_seconds(const char *hms, uint32_t *result)
@@ -112,7 +123,7 @@ bool util_hms_to_seconds(const char *hms, uint32_t *result)
 		return false;
 	}
 	
-	if (hms[strlen(hms) - (size_t)1] != 's')
+	if (hms[strlen(hms) - (size_t)1] != 's' && hms[strlen(hms) - (size_t)1] != 'm' && hms[strlen(hms) - (size_t)1] != 'h')
 	{
 		return false;
 	}

@@ -57,7 +57,7 @@ void settings_init(void)
         flash_store_data((uint8_t *)&settings_non_volatile, sizeof(settings_non_volatile_t));        
     }
 	
-	settings_volatile.boat_iot_started = true;
+	settings_volatile.boat_iot_started = false;
 	settings_volatile.restart_needed = false;
 	settings_volatile.code = 0UL;
 }
