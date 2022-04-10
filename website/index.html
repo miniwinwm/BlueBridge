@@ -439,16 +439,16 @@
 		
 		
 		
-		<script type="text/javascript">
+		<script type="text/javascript">		
 			function setBoatName() {
-			  boatname = document.getElementById('boatname').value;			
-			  if (boatname == "") {
-				alert("Boat name cannot be blank");
-			  } else {				  
-				  setCookie("username", boatname, 365);
-				  location.reload();
-			  }
-			}
+				boatname = prompt("Please enter new code:","").toUpperCase();
+				if (boatname != "" && boatname != null) {
+					setCookie("username", boatname, 365);
+					location.reload();					
+				} else {
+					alert("Boat name cannot be blank");
+				}	
+			}									
 			
 			function setBroker(newBroker, newPort) {
 				setCookie("broker", newBroker, 365);
@@ -483,7 +483,7 @@
 				boatname = getCookie("username");
 				if (boatname == "") {
 					while(true) {
-						boatname = prompt("Please enter your code:","");
+						boatname = prompt("Please enter your code:","").toUpperCase();
 						if (boatname != "" && boatname != null) {
 						setCookie("username", boatname, 365);
 						document.getElementById('boatname').value = boatname;
@@ -523,8 +523,8 @@
   	
   	<body>					
 		<form>
-			<label for="fname">Boat name:</label>
-			<input type="text" id="boatname" name="boatname">
+			<label for="fname">Boat code:</label>
+			<input type="text" id="boatname" name="boatname" readonly>
 			<input type="button" value="Change" onclick="setBoatName()">			
 		</form>
         <div class="container">  

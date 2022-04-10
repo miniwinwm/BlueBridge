@@ -823,12 +823,18 @@ extern "C" void app_main(void)
 #ifdef FAKE_DATA
 	depth_data = 3.0f;	
 	heading_true_data = 80.0f;
-	course_over_ground_data = 78.0f;
+	course_over_ground_data = 220.0f;
 	trip_data = 0.1f;
 	total_distance_data = 32445.0;
 	boat_speed_data = 0.0f;
 	speed_over_ground_data = 0.0f;
 	seawater_temeperature_data = 6.5f;
+	latitude_data = 58.251f;
+	longitude_data = -5.227f;	
+	true_wind_speed_data = 18.0f;
+	true_wind_angle_data = 80.0f;
+	apparent_wind_speed_data = 18.0f;
+	apparent_wind_angle_data = 80.0f;
 #endif	
 	
 	// init all the reception times to some time a long time ago
@@ -953,14 +959,14 @@ static void fake_data(void)
 		}		
 		boat_data_reception_time.heading_true_received_time = timer_get_time_ms();		
 		
-		course_over_ground_data += (10.0f * (float)esp_random() / (float)UINT32_MAX) - 5.0f;
-		if (course_over_ground_data < 58.0f)
+		course_over_ground_data += (90.0f * (float)esp_random() / (float)UINT32_MAX) - 45.0f;
+		if (course_over_ground_data < 0.0f)
 		{
-			course_over_ground_data = 58.0f;
+			course_over_ground_data += 360.0f;
 		}
-		if (course_over_ground_data > 98.0f)
+		if (course_over_ground_data >= 360.0f)
 		{
-			course_over_ground_data = 98.0f;
+			course_over_ground_data -= 360.0f;
 		}		
 		boat_data_reception_time.course_over_ground_received_time = timer_get_time_ms();				
 		
@@ -997,42 +1003,30 @@ static void fake_data(void)
 		}		
 		boat_data_reception_time.seawater_temperature_received_time = timer_get_time_ms();			
 
+		true_wind_speed_data += (10.1f * (float)esp_random() / (float)UINT32_MAX) - 5.0f;
+		if (true_wind_speed_data < 2.3f)
+		{
+			true_wind_speed_data = 2.3f;
+		}
+		if (true_wind_speed_data > 25.1f)
+		{
+			true_wind_speed_data = 25.1f;
+		}		
+		boat_data_reception_time.true_wind_speed_received_time = timer_get_time_ms();			
+		
+		apparent_wind_speed_data = true_wind_speed_data + (1.0f * (float)esp_random() / (float)UINT32_MAX) - 0.5f;		
+		boat_data_reception_time.apparent_wind_speed_received_time = timer_get_time_ms();			
+				
+		true_wind_angle_data = heading_true_data + (5.1f * (float)esp_random() / (float)UINT32_MAX) - 2.5f;	
+		boat_data_reception_time.apparent_wind_angle_received_time = timer_get_time_ms();			
+		
+		apparent_wind_angle_data = true_wind_angle_data + (8.0f * (float)esp_random() / (float)UINT32_MAX) - 4.0f;		
+		boat_data_reception_time.apparent_wind_angle_received_time = timer_get_time_ms();				
+
 		boat_data_reception_time.trip_received_time = timer_get_time_ms();
-		boat_data_reception_time.total_distance_received_time = timer_get_time_ms();		
-		
+		boat_data_reception_time.total_distance_received_time = timer_get_time_ms();	
+		boat_data_reception_time.latitude_received_time = timer_get_time_ms();
+		boat_data_reception_time.longitude_received_time = timer_get_time_ms();		
 	}
-	
-
-
-	
-		
-	if(i % 50UL == 0UL)
-	{
-
-		
-
-		
-		
-
-		
-		apparent_wind_angle_data += 1.0f;
-		if (apparent_wind_angle_data >= 360.0f) apparent_wind_angle_data = 0.0f;
-		boat_data_reception_time.apparent_wind_angle_received_time = timer_get_time_ms();
-		apparent_wind_speed_data += 0.1f;
-		boat_data_reception_time.apparent_wind_speed_received_time = timer_get_time_ms();
-		
-		true_wind_angle_data += 1.0f;
-		if (true_wind_angle_data >= 360.0f) true_wind_angle_data = 0.0f;
-		boat_data_reception_time.true_wind_angle_received_time = timer_get_time_ms();
-		true_wind_speed_data += 0.1f;
-		boat_data_reception_time.true_wind_speed_received_time = timer_get_time_ms();	
-		
-		wind_direction_magnetic_data += 1.0f;
-		if (wind_direction_magnetic_data >= 360.0f) wind_direction_magnetic_data = 0.0f;
-		boat_data_reception_time.wind_direction_magnetic_received_time = timer_get_time_ms();
-		wind_direction_true_data += 1.0f;
-		if (wind_direction_true_data >= 360.0f) wind_direction_true_data = 0.0f;
-		boat_data_reception_time.wind_direction_true_received_time = timer_get_time_ms();					
-	}		
 }
 #endif

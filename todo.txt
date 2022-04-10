@@ -1,7 +1,5 @@
 Todo
 
-Finish test data
-Finish sending data from app to broker
 Doxygen all code
 Add MIT license and standard headers to all files
 Try pre-sent SMS
@@ -17,10 +15,9 @@ After receiving a start command publish first MQTT message immediately
 Tidy up javascript code
 Close mqtt connection and socket on long period
 Change strcat for safe_strcat
-Change set code on webpage from text entry to dialog
 Set default started value to false
-Remove console logging from javascript
-Make cog completely random in test data
+In javascript change boatname to boatcode
+Implement sms get command that sends all boat data
 
 Done
 
@@ -64,3 +61,9 @@ Use hashed IMEI code instead of hardcoded string for MQTT topic
 Rename mqtt data buf from buf to mqtt_data_buf in boat_iot.c
 Period set to 5s gives strange settings text message
 Combine all mqtt messages into one
+Make cog completely random in test data
+Finish test data
+Finish sending data from app to broker
+Boat code on webpage accept lower case by using java script toupper equivalent
+Change set code on webpage from text entry to dialog
+Remove unnecessary console logging from javascript

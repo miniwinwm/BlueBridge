@@ -240,164 +240,18 @@ void boat_iot_task(void *parameters)
 					loop_failed = true;
 				}	
 			}		
-/*
-			if (!loop_failed && ModemGetTcpConnectedState())
-			{
-				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%u", (uint32_t)strength);
-				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/strength", settings_get_code());			
-				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
-				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish strength %u %s", (uint32_t)strength, MqttStatusToText(mqtt_status));	
 
-				if (mqtt_status != MQTT_OK)
-				{
-					loop_failed = true;
-				}					
-			}						
-
-			// publish depth
-			time_ms = timer_get_time_ms();		
-			if (!loop_failed && 
-					ModemGetTcpConnectedState() && 
-					(time_ms - boat_data_reception_time.depth_received_time < DEPTH_MAX_DATA_AGE_MS || boat_data_reception_time.depth_received_time > time_ms))
-			{			
-				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%.1f", depth_data);
-				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/depth", settings_get_code());			
-				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
-				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish depth %f %s", depth_data, MqttStatusToText(mqtt_status));		
-				
-				if (mqtt_status != MQTT_OK)
-				{
-					loop_failed = true;
-				}	
-			}					
-			
-			// publish heading
-			time_ms = timer_get_time_ms();		
-			if (!loop_failed && 
-					ModemGetTcpConnectedState() && 
-					(time_ms - boat_data_reception_time.heading_true_received_time < HEADING_TRUE_MAX_DATA_AGE_MS || boat_data_reception_time.heading_true_received_time > time_ms))
-			{
-				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%u", (unsigned int)heading_true_data);
-				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/heading", settings_get_code());			
-				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
-				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish heading %f %s", heading_true_data, MqttStatusToText(mqtt_status));		
-				
-				if (mqtt_status != MQTT_OK)
-				{
-					loop_failed = true;
-				}	
-			}		
-
-			// publish trip
-			time_ms = timer_get_time_ms();			
-			if (!loop_failed && 
-					ModemGetTcpConnectedState() && 
-					(time_ms - boat_data_reception_time.trip_received_time < TRIP_MAX_DATA_AGE_MS || boat_data_reception_time.trip_received_time > time_ms))
-			{			
-				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%.1f", trip_data);
-				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/trip", settings_get_code());			
-				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
-				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish trip %f %s", trip_data, MqttStatusToText(mqtt_status));		
-				
-				if (mqtt_status != MQTT_OK)
-				{
-					loop_failed = true;
-				}	
-			}		
-
-			// publish total distance			
-			time_ms = timer_get_time_ms();			
-			if (!loop_failed && 
-					ModemGetTcpConnectedState() && 
-					(time_ms - boat_data_reception_time.total_distance_received_time < TOTAL_DISTANCE_MAX_DATA_AGE_MS || boat_data_reception_time.total_distance_received_time > time_ms))
-			{			
-				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%u", (unsigned int)total_distance_data);
-				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/log", settings_get_code());			
-				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
-				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish log %u %s", (unsigned int)total_distance_data, MqttStatusToText(mqtt_status));		
-				
-				if (mqtt_status != MQTT_OK)
-				{
-					loop_failed = true;
-				}	
-			}				
-			
-			// publish boat speed			
-			time_ms = timer_get_time_ms();			
-			if (!loop_failed && 
-					ModemGetTcpConnectedState() && 
-					(time_ms - boat_data_reception_time.boat_speed_received_time < BOAT_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.boat_speed_received_time > time_ms))
-			{			
-				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%.1f", boat_speed_data);
-				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/boatspeed", settings_get_code());			
-				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
-				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish boatspeed %f %s", boat_speed_data, MqttStatusToText(mqtt_status));	
-				
-				if (mqtt_status != MQTT_OK)
-				{
-					loop_failed = true;
-				}	
-			}		
-
-			// publish sog		
-			time_ms = timer_get_time_ms();			
-			if (!loop_failed && 
-					ModemGetTcpConnectedState() && 
-					(time_ms - boat_data_reception_time.speed_over_ground_received_time < SOG_MAX_DATA_AGE_MS || boat_data_reception_time.speed_over_ground_received_time > time_ms))
-			{			
-				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%.1f", speed_over_ground_data);
-				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/sog", settings_get_code());			
-				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
-				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish sog %f %s", speed_over_ground_data, MqttStatusToText(mqtt_status));		
-				
-				if (mqtt_status != MQTT_OK)
-				{
-					loop_failed = true;
-				}	
-			}		
-
-			// publish temperature		
-			time_ms = timer_get_time_ms();			
-			if (!loop_failed && 
-					ModemGetTcpConnectedState() && 
-					(time_ms - boat_data_reception_time.seawater_temperature_received_time < TEMPERATURE_MAX_DATA_AGE_MS || boat_data_reception_time.seawater_temperature_received_time > time_ms))
-			{			
-				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%.1f", seawater_temeperature_data);
-				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/temp", settings_get_code());			
-				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
-				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish temp %f %s", seawater_temeperature_data, MqttStatusToText(mqtt_status));		
-				
-				if (mqtt_status != MQTT_OK)
-				{
-					loop_failed = true;
-				}	
-			}	
-
-			// publish cog		
-			time_ms = timer_get_time_ms();			
-			if (!loop_failed && 
-					ModemGetTcpConnectedState() && 
-					(time_ms - boat_data_reception_time.course_over_ground_received_time < COG_MAX_DATA_AGE_MS || boat_data_reception_time.course_over_ground_received_time > time_ms))
-			{			
-				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%hu", course_over_ground_data);
-				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/cog", settings_get_code());			
-				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);	
-				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish cog %hu %s", course_over_ground_data, MqttStatusToText(mqtt_status));		
-				
-				if (mqtt_status != MQTT_OK)
-				{
-					loop_failed = true;
-				}	
-			}			
-*/
 			// publish all data in one
 			if (!loop_failed && ModemGetTcpConnectedState())
 			{				
+				// topic
 				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/all", settings_get_code());							
 				time_ms = timer_get_time_ms();			
 				
+				// signal strength
 				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%hhu,", strength);
 				
+				// cog
 				if (time_ms - boat_data_reception_time.course_over_ground_received_time < COG_MAX_DATA_AGE_MS || boat_data_reception_time.course_over_ground_received_time > time_ms)
 				{
 					snprintf(number_buf, sizeof(number_buf), "%hu", course_over_ground_data);
@@ -405,6 +259,7 @@ void boat_iot_task(void *parameters)
 				}
 				strcat(mqtt_data_buf, ",");
 				
+				// temperature
 				if (time_ms - boat_data_reception_time.seawater_temperature_received_time < TEMPERATURE_MAX_DATA_AGE_MS || boat_data_reception_time.seawater_temperature_received_time > time_ms)
 				{
 					snprintf(number_buf, sizeof(number_buf), "%.1f", seawater_temeperature_data);
@@ -412,6 +267,7 @@ void boat_iot_task(void *parameters)
 				}
 				strcat(mqtt_data_buf, ",");
 
+				// sog
 				if (time_ms - boat_data_reception_time.speed_over_ground_received_time < SOG_MAX_DATA_AGE_MS || boat_data_reception_time.speed_over_ground_received_time > time_ms)
 				{
 					snprintf(number_buf, sizeof(number_buf), "%.1f", speed_over_ground_data);
@@ -419,6 +275,7 @@ void boat_iot_task(void *parameters)
 				}
 				strcat(mqtt_data_buf, ",");
 				
+				// boat speed
 				if (time_ms - boat_data_reception_time.boat_speed_received_time < BOAT_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.boat_speed_received_time > time_ms)
 				{
 					snprintf(number_buf, sizeof(number_buf), "%.1f", boat_speed_data);
@@ -426,6 +283,7 @@ void boat_iot_task(void *parameters)
 				}
 				strcat(mqtt_data_buf, ",");
 
+				// log
 				if (time_ms - boat_data_reception_time.total_distance_received_time < TOTAL_DISTANCE_MAX_DATA_AGE_MS || boat_data_reception_time.total_distance_received_time > time_ms)
 				{
 					snprintf(number_buf, sizeof(number_buf), "%u", (unsigned int)total_distance_data);
@@ -433,6 +291,7 @@ void boat_iot_task(void *parameters)
 				}
 				strcat(mqtt_data_buf, ",");
 
+				// trip
 				if (time_ms - boat_data_reception_time.trip_received_time < TRIP_MAX_DATA_AGE_MS || boat_data_reception_time.trip_received_time > time_ms)
 				{
 					snprintf(number_buf, sizeof(number_buf), "%.1f", trip_data);
@@ -440,6 +299,7 @@ void boat_iot_task(void *parameters)
 				}
 				strcat(mqtt_data_buf, ",");
 
+				// heading
 				if (time_ms - boat_data_reception_time.heading_true_received_time < HEADING_TRUE_MAX_DATA_AGE_MS || boat_data_reception_time.heading_true_received_time > time_ms)
 				{
 					snprintf(number_buf, sizeof(number_buf), "%u", (unsigned int)heading_true_data);
@@ -447,43 +307,62 @@ void boat_iot_task(void *parameters)
 				}
 				strcat(mqtt_data_buf, ",");
 
+				// depth
 				if (time_ms - boat_data_reception_time.depth_received_time < DEPTH_MAX_DATA_AGE_MS || boat_data_reception_time.depth_received_time > time_ms)
 				{
 					snprintf(number_buf, sizeof(number_buf), "%.1f", depth_data);
 					strcat(mqtt_data_buf, number_buf);
 				}
 				strcat(mqtt_data_buf, ",");
-				
-float dummy = 0.1f;								
-				
-				snprintf(number_buf, sizeof(number_buf), "%.1f", dummy); // tws
-				strcat(mqtt_data_buf, number_buf);
+								
+				// tws
+				if (time_ms - boat_data_reception_time.true_wind_speed_received_time < TRUE_WIND_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.true_wind_speed_received_time > time_ms)
+				{
+					snprintf(number_buf, sizeof(number_buf), "%.1f", true_wind_speed_data);
+					strcat(mqtt_data_buf, number_buf);
+				}
 				strcat(mqtt_data_buf, ",");
 
-				snprintf(number_buf, sizeof(number_buf), "%.1f", dummy); // twa
-				strcat(mqtt_data_buf, number_buf);
+				// twa
+				if (time_ms - boat_data_reception_time.true_wind_angle_received_time < TRUE_WIND_ANGLE_MAX_DATA_AGE_MS || boat_data_reception_time.true_wind_angle_received_time > time_ms)
+				{
+					snprintf(number_buf, sizeof(number_buf), "%.1f", true_wind_angle_data);
+					strcat(mqtt_data_buf, number_buf);
+				}
 				strcat(mqtt_data_buf, ",");
 
-				snprintf(number_buf, sizeof(number_buf), "%.1f", dummy); // aws
-				strcat(mqtt_data_buf, number_buf);
+				// aws
+				if (time_ms - boat_data_reception_time.apparent_wind_speed_received_time < APPARENT_WIND_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.apparent_wind_speed_received_time > time_ms)
+				{
+					snprintf(number_buf, sizeof(number_buf), "%.1f", apparent_wind_speed_data);
+					strcat(mqtt_data_buf, number_buf);
+				}
 				strcat(mqtt_data_buf, ",");
 
-				snprintf(number_buf, sizeof(number_buf), "%.1f", dummy); // awa
-				strcat(mqtt_data_buf, number_buf);
+				// awa
+				if (time_ms - boat_data_reception_time.apparent_wind_angle_received_time < APPARENT_WIND_ANGLE_MAX_DATA_AGE_MS || boat_data_reception_time.apparent_wind_angle_received_time > time_ms)
+				{
+					snprintf(number_buf, sizeof(number_buf), "%.1f", apparent_wind_angle_data);
+					strcat(mqtt_data_buf, number_buf);
+				}
 				strcat(mqtt_data_buf, ",");
-
-				snprintf(number_buf, sizeof(number_buf), "%.1f", dummy); // lat
-				strcat(mqtt_data_buf, number_buf);
-				strcat(mqtt_data_buf, ",");
-
-				snprintf(number_buf, sizeof(number_buf), "%.1f", dummy); // long
-				strcat(mqtt_data_buf, number_buf);
-			
 				
+				// latitude
+				if (time_ms - boat_data_reception_time.latitude_received_time < LATITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.latitude_received_time > time_ms)
+				{
+					snprintf(number_buf, sizeof(number_buf), "%.8f", latitude_data);
+					strcat(mqtt_data_buf, number_buf);
+				}
+				strcat(mqtt_data_buf, ",");				
 				
-				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);					
-				//mqtt_status = MqttPublish("BluePillDemo/sog", (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);					
-				
+				// longitude
+				if (time_ms - boat_data_reception_time.longitude_received_time < LONGITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.longitude_received_time > time_ms)
+				{
+					snprintf(number_buf, sizeof(number_buf), "%.8f", longitude_data);
+					strcat(mqtt_data_buf, number_buf);
+				}
+
+				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);									
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish %s %s %s", mqtt_topic, mqtt_data_buf, MqttStatusToText(mqtt_status));		
 				
 				if (mqtt_status != MQTT_OK)
@@ -491,8 +370,6 @@ float dummy = 0.1f;
 					loop_failed = true;
 				}					
 			}				
-	
-			
 			
 			if (loop_failed)
 			{
@@ -524,7 +401,7 @@ float dummy = 0.1f;
 					ESP_LOGI(pcTaskGetName(NULL), "SMS text %s", message_text);						
 					settings_set_phone_number(phone_number);					
 					properties_parsed = property_parse(message_text, config_parser_callback);
-					ESP_LOGI(pcTaskGetName(NULL), "%u settings parsed", properties_parsed);						
+					ESP_LOGI(pcTaskGetName(NULL), "%u settings/commands parsed", properties_parsed);						
 				}
 				modem_status = ModemSmsDeleteAllMessages(25000UL);
 				ESP_LOGI(pcTaskGetName(NULL), "Delete all SMS messages %s", ModemStatusToText(modem_status));	
