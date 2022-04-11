@@ -1,20 +1,33 @@
-Todo
+Todo hardware
 
-Doxygen all code
-Add MIT license and standard headers to all files
-Try pre-sent SMS
-Modem SMS and TCP reads need buf lengths and checks
 Do a new board layout
 Get new boards made
 Update BOM
-Create a new website with BlueThing name
-Test with OpenCPN
+
+
+Todo functional
+
+Modem SMS and TCP reads need buf lengths and checks
 The placement of the red square in the mapiator map is not quite right - top left corner of square is location. Investigate polygon instead
-Check all todo's in code
 After receiving a start command publish first MQTT message immediately
-Tidy up javascript code
 Change strcat for safe_strcat
-Implement sms get command that sends all boat data
+Add MQTT cpability to Android app
+Ask if to store boat code on webpage
+
+
+Todo tidy up
+Remove redundant #includes
+Doxygen all code
+Add MIT license and standard headers to website and android app files
+Tidy up javascript code
+Create a new website with BlueThing name
+
+
+Todo testing
+
+Test with OpenCPN
+Test pre-sent SMS
+
 
 Done
 
@@ -69,3 +82,6 @@ Period setting ending in 'm' or 's' doesn't work
 Close mqtt connection and socket on long period
 Set default started value to false
 Settings period with 0s time looks odd
+Check all todo's in code
+Implement sms pos command that sends boat position
+Implement sms data command that sends all boat data without position

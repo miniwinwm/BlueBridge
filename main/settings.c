@@ -1,3 +1,29 @@
+/*
+
+MIT License
+
+Copyright (c) John Blaiklock 2022 BlueThing
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
+
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -15,7 +41,7 @@ typedef struct
 	char apn[MODEM_MAX_APN_LENGTH + 1];
 	char apn_user_name[MODEM_MAX_USERNAME_LENGTH + 1];
 	char apn_password[MODEM_MAX_PASSWORD_LENGTH + 1];
-	char mqtt_broker_address[MQTT_BROKER_ADDRESS_MAX_LENGTH + 1];
+	char mqtt_broker_address[SETTINGS_MQTT_BROKER_ADDRESS_MAX_LENGTH + 1];
 	uint16_t mqtt_broker_port;
 	uint32_t period_s;
 } settings_non_volatile_t;
@@ -167,7 +193,7 @@ void settings_set_apn_password(const char *apn_password)
 
 const char *settings_get_mqtt_broker_address(void)
 {
-	static char mqtt_broker_address[MQTT_BROKER_ADDRESS_MAX_LENGTH + 1];	
+	static char mqtt_broker_address[SETTINGS_MQTT_BROKER_ADDRESS_MAX_LENGTH + 1];	
 	
 	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);	
 	if (settings_non_volatile.mqtt_broker_address[0] == '\0')
@@ -185,7 +211,7 @@ const char *settings_get_mqtt_broker_address(void)
 
 void settings_set_mqtt_broker_address(const char *mqtt_broker_address)
 {
-	if (strlen(mqtt_broker_address) <= MQTT_BROKER_ADDRESS_MAX_LENGTH)
+	if (strlen(mqtt_broker_address) <= SETTINGS_MQTT_BROKER_ADDRESS_MAX_LENGTH)
 	{
 		xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
 		strcpy(settings_non_volatile.mqtt_broker_address, mqtt_broker_address);

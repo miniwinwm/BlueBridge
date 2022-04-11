@@ -1,3 +1,29 @@
+/*
+
+MIT License
+
+Copyright (c) John Blaiklock 2022 BlueThing
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -438,6 +464,8 @@ static bool config_parser_callback(char *key, char *value)
 	bool found = false;
 	char message_text[MODEM_SMS_MAX_TEXT_LENGTH + 1];
 	uint32_t period;
+	uint32_t time_ms;
+	char number_buf[20];
 	
 	if (!key || !value)
 	{
@@ -551,6 +579,171 @@ static bool config_parser_callback(char *key, char *value)
 		
 		settings_set_restart_needed(true);
 		(void)sms_send("Restarting", settings_get_phone_number());				
+		found = true;		
+	}	
+	else if (strcmp(key, "POS") == 0)
+	{
+		ESP_LOGI(pcTaskGetName(NULL), "Command position");	
+		time_ms = timer_get_time_ms();			
+		
+		if ((time_ms - boat_data_reception_time.latitude_received_time < LATITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.latitude_received_time > time_ms) &&
+				(time_ms - boat_data_reception_time.longitude_received_time < LONGITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.longitude_received_time > time_ms))
+		{
+			snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "www.google.com/maps/search/?api=1&query=%.8f,%.8f", latitude_data, longitude_data);
+		}
+		else
+		{
+			snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "Position not available");
+		}
+			
+		(void)sms_send(message_text, settings_get_phone_number());				
+		found = true;		
+	}	
+
+	else if (strcmp(key, "DATA") == 0)
+	{
+		ESP_LOGI(pcTaskGetName(NULL), "Command data");	
+		time_ms = timer_get_time_ms();			
+		
+		message_text[0] = '\0';
+		
+		// depth
+		if (time_ms - boat_data_reception_time.depth_received_time < DEPTH_MAX_DATA_AGE_MS || boat_data_reception_time.depth_received_time > time_ms)
+		{
+			snprintf(number_buf, sizeof(number_buf), "Depth=%0.1f m\n", depth_data);
+		}
+		else
+		{
+			snprintf(number_buf, sizeof(number_buf), "Depth=?\n");
+		}
+		safe_strcat(message_text, sizeof(message_text), number_buf);		
+		
+		// boat speed
+		if (time_ms - boat_data_reception_time.boat_speed_received_time < BOAT_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.boat_speed_received_time > time_ms)
+		{
+			snprintf(number_buf, sizeof(number_buf), "Boatspeed=%0.1f kt\n", boat_speed_data);
+		}		
+		else
+		{
+			snprintf(number_buf, sizeof(number_buf), "Boatspeed=?\n");
+		}
+		safe_strcat(message_text, sizeof(message_text), number_buf);	
+		
+		// heading
+		if (time_ms - boat_data_reception_time.heading_true_received_time < HEADING_TRUE_MAX_DATA_AGE_MS || boat_data_reception_time.heading_true_received_time > time_ms)
+		{
+			snprintf(number_buf, sizeof(number_buf), "Heading=%u T\n", (unsigned int)heading_true_data);
+		}		
+		else
+		{
+			snprintf(number_buf, sizeof(number_buf), "Heading=?\n");
+		}
+		safe_strcat(message_text, sizeof(message_text), number_buf);			
+		
+		// trip
+		if (time_ms - boat_data_reception_time.trip_received_time < TRIP_MAX_DATA_AGE_MS || boat_data_reception_time.trip_received_time > time_ms)
+		{
+			snprintf(number_buf, sizeof(number_buf), "Trip=%0.1f Nm\n", trip_data);
+		}		
+		else
+		{
+			snprintf(number_buf, sizeof(number_buf), "Trip=?\n");
+		}
+		safe_strcat(message_text, sizeof(message_text), number_buf);			
+		
+
+		// log
+		if (time_ms - boat_data_reception_time.total_distance_received_time < TOTAL_DISTANCE_MAX_DATA_AGE_MS || boat_data_reception_time.total_distance_received_time > time_ms)
+		{
+			snprintf(number_buf, sizeof(number_buf), "Log=%u Nm\n", (unsigned int)total_distance_data);
+		}
+		else
+		{
+			snprintf(number_buf, sizeof(number_buf), "Log=?\n");
+		}
+		safe_strcat(message_text, sizeof(message_text), number_buf);			
+		
+
+		// sog
+		if (time_ms - boat_data_reception_time.speed_over_ground_received_time < SOG_MAX_DATA_AGE_MS || boat_data_reception_time.speed_over_ground_received_time > time_ms)
+		{
+			snprintf(number_buf, sizeof(number_buf), "SOG=%0.1f kt\n", speed_over_ground_data);
+		}
+		else
+		{
+			snprintf(number_buf, sizeof(number_buf), "SOG=?\n");
+		}
+		safe_strcat(message_text, sizeof(message_text), number_buf);	
+
+		// cog
+		if (time_ms - boat_data_reception_time.course_over_ground_received_time < COG_MAX_DATA_AGE_MS || boat_data_reception_time.course_over_ground_received_time > time_ms)
+		{
+			snprintf(number_buf, sizeof(number_buf), "COG=%hu T\n", course_over_ground_data);
+		}
+		else
+		{
+			snprintf(number_buf, sizeof(number_buf), "COG=?\n");
+		}
+		safe_strcat(message_text, sizeof(message_text), number_buf);	
+
+		// temperature
+		if (time_ms - boat_data_reception_time.seawater_temperature_received_time < TEMPERATURE_MAX_DATA_AGE_MS || boat_data_reception_time.seawater_temperature_received_time > time_ms)
+		{
+			snprintf(number_buf, sizeof(number_buf), "Temp=%0.1f C\n", seawater_temeperature_data);
+		}
+		else
+		{
+			snprintf(number_buf, sizeof(number_buf), "Temp=?\n");
+		}
+		safe_strcat(message_text, sizeof(message_text), number_buf);	
+
+		// tws
+		if (time_ms - boat_data_reception_time.true_wind_speed_received_time < TRUE_WIND_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.true_wind_speed_received_time > time_ms)
+		{
+			snprintf(number_buf, sizeof(number_buf), "TWS=%0.1f kt\n", true_wind_speed_data);
+		}
+		else
+		{
+			snprintf(number_buf, sizeof(number_buf), "TWS=?\n");
+		}
+		safe_strcat(message_text, sizeof(message_text), number_buf);			
+		
+		// twa
+		if (time_ms - boat_data_reception_time.true_wind_angle_received_time < TRUE_WIND_ANGLE_MAX_DATA_AGE_MS || boat_data_reception_time.true_wind_angle_received_time > time_ms)
+		{
+			snprintf(number_buf, sizeof(number_buf), "TWA=%0.1f\n", true_wind_angle_data);
+		}
+		else
+		{
+			snprintf(number_buf, sizeof(number_buf), "TWA=?\n");
+		}
+		safe_strcat(message_text, sizeof(message_text), number_buf);			
+		
+
+		// aws
+		if (time_ms - boat_data_reception_time.apparent_wind_speed_received_time < APPARENT_WIND_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.apparent_wind_speed_received_time > time_ms)
+		{
+			snprintf(number_buf, sizeof(number_buf), "AWS=%.1f kt\n", apparent_wind_speed_data);
+		}
+		else
+		{
+			snprintf(number_buf, sizeof(number_buf), "AWS=?\n");
+		}
+		safe_strcat(message_text, sizeof(message_text), number_buf);			
+		
+
+		// awa
+		if (time_ms - boat_data_reception_time.apparent_wind_angle_received_time < APPARENT_WIND_ANGLE_MAX_DATA_AGE_MS || boat_data_reception_time.apparent_wind_angle_received_time > time_ms)
+		{
+			snprintf(number_buf, sizeof(number_buf), "AWA=%.1f\n", apparent_wind_angle_data);
+		}		
+		else
+		{
+			snprintf(number_buf, sizeof(number_buf), "AWA=?\n");
+		}
+		safe_strcat(message_text, sizeof(message_text), number_buf);			
+
+		(void)sms_send(message_text, settings_get_phone_number());				
 		found = true;		
 	}		
 	
