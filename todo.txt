@@ -1,37 +1,38 @@
 Todo hardware
-
+-------------
 Do a new board layout
 Get new boards made
 Update BOM
 
 
 Todo functional
-
+---------------
 Modem SMS and TCP reads need buf lengths and checks
 The placement of the red square in the mapiator map is not quite right - top left corner of square is location. Investigate polygon instead
 After receiving a start command publish first MQTT message immediately
 Change strcat for safe_strcat
 Add MQTT cpability to Android app
-Ask if to store boat code on webpage
+Ask if to store cookies on webpage
 
 
 Todo tidy up
+------------
 Remove redundant #includes
 Doxygen all code
-Add MIT license and standard headers to website and android app files
+Add MIT license headers to android app and website files
+Add standard headers to c/c++ source files
 Tidy up javascript code
 Create a new website with BlueThing name
 
 
 Todo testing
-
+------------
 Test with OpenCPN
-Test pre-sent SMS
 
 
 Done
-
-Test different brokers.
+----
+Test different brokers
 Remove loggy function from modem and serial code
 Try new power supply
 Move network connection code so that SMS works if no GPRS available
@@ -85,3 +86,6 @@ Settings period with 0s time looks odd
 Check all todo's in code
 Implement sms pos command that sends boat position
 Implement sms data command that sends all boat data without position
+Test pre-sent SMS
+Change google maps link in pos sms response to satellite view
+Flash led when mqtt message sent

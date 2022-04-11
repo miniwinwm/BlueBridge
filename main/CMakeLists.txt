@@ -16,4 +16,5 @@ idf_component_register(SRCS "main.cpp"
 							"property_parser.c"
 							"sms.c"
 							"util.c"
+							"led.c"
                     INCLUDE_DIRS ".")

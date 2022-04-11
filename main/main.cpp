@@ -45,6 +45,7 @@ SOFTWARE.
 #include "settings.h"
 #include "sms.h"
 #include "blue_thing.h"
+#include "led.h"
 
 #define PORT_N0183								0
 #define PORT_BLUETOOTH							1
@@ -608,6 +609,11 @@ static void vTimerCallback1s(TimerHandle_t xTimer)
 		nmea_disable_transmit_message(PORT_BLUETOOTH, nmea_message_XDR);
 		nmea_disable_transmit_message(PORT_BLUETOOTH, nmea_message_MDA);
 	}			
+	
+	if (settings_get_boat_iot_started())
+	{
+		led_flash(50UL);
+	}	
 }
 
 static void vTimerCallback8s(TimerHandle_t xTimer)
@@ -842,6 +848,7 @@ extern "C" void app_main(void)
     main_task_handle = xTaskGetCurrentTaskHandle();
     pressure_sensor_init();
 	serial_init(38400UL);
+	led_init();
 	wmm_init();
 	settings_init();
 	sms_init();

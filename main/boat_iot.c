@@ -41,6 +41,7 @@ SOFTWARE.
 #include "util.h"
 #include "blue_thing.h"
 #include "timer.h"
+#include "led.h"
 
 #define MQTT_KEEPALIVE_S			600U
 #define MQTT_SHUTDOWN_PERIOD_S		300UL
@@ -403,7 +404,11 @@ void boat_iot_task(void *parameters)
 				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);									
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish %s %s %s", mqtt_topic, mqtt_data_buf, MqttStatusToText(mqtt_status));		
 				
-				if (mqtt_status != MQTT_OK)
+				if (mqtt_status == MQTT_OK)
+				{
+					led_flash(1000UL);
+				}
+				else
 				{
 					loop_failed = true;
 				}					
@@ -425,7 +430,7 @@ void boat_iot_task(void *parameters)
 			
 			if (failed_loop_count == 10U)
 			{
-				failed_loop_count = 0U;
+				led_flash(60000UL);
 				ESP_LOGI(pcTaskGetName(NULL), "************ REBOOTING ************");			
 				esp_restart();	
 			}			
@@ -454,6 +459,7 @@ void boat_iot_task(void *parameters)
 					esp_restart();
 				}
 			}
+
 			vTaskDelay(1000UL);											
 		}		
 	}
@@ -589,7 +595,7 @@ static bool config_parser_callback(char *key, char *value)
 		if ((time_ms - boat_data_reception_time.latitude_received_time < LATITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.latitude_received_time > time_ms) &&
 				(time_ms - boat_data_reception_time.longitude_received_time < LONGITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.longitude_received_time > time_ms))
 		{
-			snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "www.google.com/maps/search/?api=1&query=%.8f,%.8f", latitude_data, longitude_data);
+			snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "maps.google.com/maps?t=k&q=loc:%.8f+%.8f", latitude_data, longitude_data);
 		}
 		else
 		{
