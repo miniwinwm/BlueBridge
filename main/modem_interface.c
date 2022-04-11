@@ -24,7 +24,6 @@ SOFTWARE.
 
 */
 
-#include <stdint.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -32,7 +31,6 @@ SOFTWARE.
 #include "driver/uart.h"
 #include "esp_log.h"
 #include "modem_interface.h"
-#include "modem.h"
 #include "util.h"
 
 #define MODEM_RESET_GPIO	GPIO_NUM_25

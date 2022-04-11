@@ -32,7 +32,6 @@ SOFTWARE.
 #endif
 
 #include <stdint.h>
-#include <stdbool.h>
 
 void pressure_sensor_init(void);
 bool pressure_sensor_start_measurement_mb(void);

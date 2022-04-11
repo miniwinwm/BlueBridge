@@ -24,7 +24,6 @@ SOFTWARE.
 
 */
 
-#include <stdint.h>
 #include "flash.h"
 #include "nvs_flash.h"
 

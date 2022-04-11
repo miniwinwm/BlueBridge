@@ -24,11 +24,9 @@ SOFTWARE.
 
 */
 
-#include <stdint.h>
-#include <stdbool.h>
-#include "serial.h"
 #include "driver/uart.h"
 #include "driver/gpio.h"
+#include "serial.h"
 #include "spp_acceptor.h"
 
 void serial_init(uint32_t baud_rate_1)

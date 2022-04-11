@@ -27,7 +27,6 @@ SOFTWARE.
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include "nvs.h"
 #include "nvs_flash.h"
 #include "freertos/FreeRTOS.h"

@@ -32,7 +32,6 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include "modem.h"
 
 #define SETTINGS_MQTT_BROKER_ADDRESS_MAX_LENGTH	32UL		
 

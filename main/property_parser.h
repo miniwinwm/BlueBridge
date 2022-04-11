@@ -31,6 +31,9 @@ SOFTWARE.
 extern "C" {
 #endif
 
+#include <stdint.h>
+#include <stdbool.h>
+
 typedef bool (*parser_callback_t)(char *key, char *value);
 
 uint16_t property_parse(char *str, parser_callback_t parser_callback);

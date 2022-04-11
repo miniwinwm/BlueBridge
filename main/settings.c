@@ -26,10 +26,10 @@ SOFTWARE.
 
 #include <string.h>
 #include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 #include "freertos/semphr.h"
-#include "flash.h"
 #include "settings.h"
+#include "flash.h"
+#include "modem.h"
 
 #define WAIT_FOREVER       	portMAX_DELAY  
 #define SIGNATURE			0xDEADBEEFUL

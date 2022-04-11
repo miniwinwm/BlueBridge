@@ -24,11 +24,9 @@ SOFTWARE.
 
 */
 
-#include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
 #include "mqtt.h"
-#include "modem.h"
 #include "modem_interface.h"
 
 static uint8_t EncodeRemainingLength(uint32_t remainingLength, uint8_t buffer[4]);

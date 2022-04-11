@@ -24,11 +24,10 @@ SOFTWARE.
 
 */
 
-#include <stdint.h>
-#include <stdbool.h>
 #include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
+#include "led.h"
 
 static void led_timer_callback(xTimerHandle pxTimer);
 

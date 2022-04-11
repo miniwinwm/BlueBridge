@@ -8,7 +8,6 @@
 #include "pdu.h"
 
 #include <string.h>
-#include <time.h>
 
 enum {
 	BITMASK_7BITS = 0x7F,

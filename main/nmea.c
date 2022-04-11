@@ -24,9 +24,9 @@ SOFTWARE.
 
 */
 
+#include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
 #include "nmea.h"

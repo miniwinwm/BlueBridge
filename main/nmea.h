@@ -32,7 +32,6 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include <stdbool.h>
 
 #define NMEA_NUMBER_OF_PORTS                    			2U
 #define NMEA_MAXIMUM_TRANSMIT_MESSAGE_DETAILS           	16U

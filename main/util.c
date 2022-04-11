@@ -24,12 +24,10 @@ SOFTWARE.
 
 */
 
-#include <stdint.h>
-#include <stddef.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
-#include <stdbool.h>
+#include "util.h"
 
 bool safe_strcat(char *dest, size_t size, const char *src)
 {

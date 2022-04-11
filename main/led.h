@@ -32,7 +32,6 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include <stdbool.h>
 
 void led_init(void);
 void led_flash(uint32_t ms);

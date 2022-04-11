@@ -32,7 +32,6 @@ SOFTWARE.
 #endif
 
 #include <stdint.h>
-#include <stdbool.h>
 #include <stddef.h>
 
 void serial_init(uint32_t baud_rate_1);

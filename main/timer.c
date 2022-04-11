@@ -24,7 +24,6 @@ SOFTWARE.
 
 */
 
-#include <stdint.h>
 #include "freertos/freeRTOS.h"
 #include "freertos/task.h"
 #include "timer.h"

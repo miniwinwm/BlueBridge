@@ -32,7 +32,6 @@ SOFTWARE.
 #endif
  
 #include <stdlib.h>
-#include <stdint.h>
 
 size_t spp_write(const uint8_t *buffer, size_t size);
 int spp_read(void);

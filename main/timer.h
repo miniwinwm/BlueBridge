@@ -31,6 +31,8 @@ SOFTWARE.
 extern "C" {
 #endif
 
+#include <stdint.h>
+
 uint32_t timer_get_time_ms();
 uint32_t timer_get_time_s();
 

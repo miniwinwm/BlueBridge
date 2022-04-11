@@ -2,6 +2,7 @@ Todo hardware
 -------------
 Get new boards made
 Update BOM
+Generate new pdf files
 
 
 Todo functional
@@ -16,12 +17,12 @@ Ask if to store cookies on webpage
 
 Todo tidy up
 ------------
-Remove redundant #includes
 Doxygen all code
 Add MIT license headers to android app and website files
 Add standard headers to c/c++ source files
 Tidy up javascript code
 Create a new website with BlueThing name
+Modem_interface.h should not depend on modem.h
 
 
 Todo testing
@@ -89,3 +90,4 @@ Test pre-sent SMS
 Change google maps link in pos sms response to satellite view
 Flash led when mqtt message sent
 Do a new board layout
+Remove redundant #includes

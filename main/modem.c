@@ -25,11 +25,8 @@ SOFTWARE.
 */
 
 #include <string.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "freertos/timers.h"
 #include "modem.h"
 #include "modem_interface.h"
 

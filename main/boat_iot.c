@@ -26,11 +26,9 @@ SOFTWARE.
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
-#include "freertos/queue.h"
-#include "freertos/task.h"
+#include "boat_iot.h"
 #include "main.h"
 #include "esp_log.h"
 #include "modem.h"

@@ -24,14 +24,13 @@ SOFTWARE.
 
 */
 
-#include <stdint.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <string.h>
 #include "driver/i2c.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
+#include "pressure_sensor.h"
 #include "main.h"
 #include "esp_log.h"
 
