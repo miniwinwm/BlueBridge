@@ -42,6 +42,7 @@ TaskHandle_t modem_task_handle;
 static QueueHandle_t commandQueueHandle;
 static QueueHandle_t responseQueueHandle;
 static SemaphoreHandle_t modemMutexHandle;
+static modem_task_t modem_task;
 
 static void modem_interface_task(void *parameters);
 
@@ -52,14 +53,17 @@ void modem_interface_log(const char *message)
 
 static void modem_interface_task(void *parameters)
 {
-	DoModemTask();
+	(void)parameters;
+	
+	modem_task();
 }
 
-void modem_interface_os_init(void)
+void modem_interface_os_init(size_t command_queue_packet_size, size_t response_queue_command_size, modem_task_t task)
 {
+	modem_task = task;
 	modemMutexHandle = xSemaphoreCreateMutex();
-	commandQueueHandle = xQueueCreate((UBaseType_t)10, (UBaseType_t)sizeof(AtCommandPacket_t));
-	responseQueueHandle = xQueueCreate((UBaseType_t)10, (UBaseType_t)sizeof(AtResponsePacket_t));
+	commandQueueHandle = xQueueCreate((UBaseType_t)10, (UBaseType_t)command_queue_packet_size);
+	responseQueueHandle = xQueueCreate((UBaseType_t)10, (UBaseType_t)response_queue_command_size);
     (void)xTaskCreate(modem_interface_task, "modem task", (configSTACK_DEPTH_TYPE)16384, NULL, (UBaseType_t)0, &modem_task_handle); 
 }
 
@@ -165,101 +169,101 @@ uint32_t modem_interface_get_time_ms(void)
   return (uint32_t)xTaskGetTickCount() * portTICK_PERIOD_MS;
 }
 
-ModemStatus_t modem_interface_queue_put(modem_queue_t modem_queue, const void *msg_ptr, uint32_t timeout) 
+modem_interface_status_t modem_interface_queue_put(modem_interface_queue_t modem_interface_queue, const void *msg_ptr, uint32_t timeout) 
 {
-	ModemStatus_t modem_status = MODEM_OK;
+	modem_interface_status_t modem_interface_status = MODEM_INTERFACE_OK;
 	QueueHandle_t mq_id;
 	
-	if (modem_queue == MODEM_COMMAND_QUEUE)
+	if (modem_interface_queue == MODEM_INTERFACE_COMMAND_QUEUE)
 	{
 		mq_id = commandQueueHandle;
 	}
-	else if (modem_queue == MODEM_RESPONSE_QUEUE)
+	else if (modem_interface_queue == MODEM_INTERFACE_RESPONSE_QUEUE)
 	{
 		mq_id = responseQueueHandle;
 	}
 	else
 	{
-		return MODEM_ERROR;
+		return MODEM_INTERFACE_ERROR;
 	}
 	
 	if (xQueueSendToBack(mq_id, msg_ptr, (TickType_t)timeout) != pdPASS) 
 	{
 		if (timeout != 0UL) 
 		{
-			modem_status = MODEM_TIMEOUT;
+			modem_interface_status = MODEM_INTERFACE_TIMEOUT;
 		} 
 		else 
 		{
-			modem_status = MODEM_ERROR;
+			modem_interface_status = MODEM_INTERFACE_ERROR;
 		}	
 	}
 	
-	return modem_status;
+	return modem_interface_status;
 }
 
-ModemStatus_t modem_interface_queue_get(modem_queue_t modem_queue, void *msg_ptr, uint32_t timeout) 
+modem_interface_status_t modem_interface_queue_get(modem_interface_queue_t modem_interface_queue, void *msg_ptr, uint32_t timeout) 
 {
-	ModemStatus_t modem_status = MODEM_OK;
+	modem_interface_status_t modem_interface_status = MODEM_INTERFACE_OK;
 	QueueHandle_t mq_id;
 	
-	if (modem_queue == MODEM_COMMAND_QUEUE)
+	if (modem_interface_queue == MODEM_INTERFACE_COMMAND_QUEUE)
 	{
 		mq_id = commandQueueHandle;
 	}
-	else if (modem_queue == MODEM_RESPONSE_QUEUE)
+	else if (modem_interface_queue == MODEM_INTERFACE_RESPONSE_QUEUE)
 	{
 		mq_id = responseQueueHandle;
 	}
 	else
 	{
-		return MODEM_ERROR;
+		return MODEM_INTERFACE_ERROR;
 	}	
   
 	if (xQueueReceive(mq_id, msg_ptr, (TickType_t)timeout) != pdPASS)
 	{
 		if (timeout != 0UL) 
 		{
-			modem_status = MODEM_TIMEOUT;
+			modem_interface_status = MODEM_INTERFACE_TIMEOUT;
 		} 
 		else 
 		{
-			modem_status = MODEM_ERROR;
+			modem_interface_status = MODEM_INTERFACE_ERROR;
 		}
 	}
 
-	return modem_status;
+	return modem_interface_status;
 }
 
-ModemStatus_t modem_interface_acquire_mutex(uint32_t timeout) 
+modem_interface_status_t modem_interface_acquire_mutex(uint32_t timeout) 
 {
-	ModemStatus_t modem_status = MODEM_OK;
+	modem_interface_status_t modem_interface_status = MODEM_INTERFACE_OK;
 
 	if (xSemaphoreTake(modemMutexHandle, (TickType_t)timeout) != pdPASS) 
 	{
 		if (timeout != 0UL) 
 		{
-			modem_status = MODEM_TIMEOUT;
+			modem_interface_status = MODEM_INTERFACE_TIMEOUT;
 		} 
 		else 
 		{
-			modem_status = MODEM_ERROR;
+			modem_interface_status = MODEM_INTERFACE_ERROR;
 		}
 	}
 
-	return modem_status;
+	return modem_interface_status;
 }
 
-ModemStatus_t modem_interface_release_mutex(void) 
+modem_interface_status_t modem_interface_release_mutex(void) 
 {
-	ModemStatus_t modem_status = MODEM_OK;
+	modem_interface_status_t modem_interface_status = MODEM_INTERFACE_OK;
 
 	if (xSemaphoreGive(modemMutexHandle) != pdPASS) 
 	{
-		modem_status = MODEM_ERROR;
+		modem_interface_status = MODEM_INTERFACE_ERROR;
 	}
 
-	return modem_status;
+	return modem_interface_status;
 }
 
 void *modem_interface_malloc(size_t length)

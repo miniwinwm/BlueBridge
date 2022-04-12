@@ -33,16 +33,24 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdlib.h>
-#include "modem.h"
 
 #define MODEM_INTERFACE_LOG_SERIAL			
 #define MODEM_INTERFACE_WAIT_FOREVER       portMAX_DELAY  
 
 typedef enum
 {
-	MODEM_COMMAND_QUEUE,
-	MODEM_RESPONSE_QUEUE
-} modem_queue_t;
+	MODEM_INTERFACE_COMMAND_QUEUE,
+	MODEM_INTERFACE_RESPONSE_QUEUE
+} modem_interface_queue_t;
+
+typedef enum
+{
+	MODEM_INTERFACE_OK,
+	MODEM_INTERFACE_ERROR,
+	MODEM_INTERFACE_TIMEOUT
+} modem_interface_status_t;
+
+typedef void (*modem_task_t)(void);
 
 /**
  * Call this once before using the rest of the API
@@ -57,7 +65,7 @@ void modem_interface_serial_close(void);
 /**
  *
  */
-void modem_interface_os_init(void);
+void modem_interface_os_init(size_t command_queue_packet_size, size_t response_queue_command_size, modem_task_t task);
 
 /**
  *
@@ -102,22 +110,22 @@ uint32_t modem_interface_get_time_ms(void);
 /**
  *
  */
-ModemStatus_t modem_interface_queue_put(modem_queue_t modem_queue, const void *msg_ptr, uint32_t timeout);
+modem_interface_status_t modem_interface_queue_put(modem_interface_queue_t modem_interface_queue, const void *msg_ptr, uint32_t timeout);
 
 /**
  *
  */
-ModemStatus_t modem_interface_queue_get(modem_queue_t modem_queue, void *msg_ptr, uint32_t timeout);
+modem_interface_status_t modem_interface_queue_get(modem_interface_queue_t modem_interface_queue, void *msg_ptr, uint32_t timeout);
 
 /**
  *
  */
-ModemStatus_t modem_interface_acquire_mutex(uint32_t timeout);
+modem_interface_status_t modem_interface_acquire_mutex(uint32_t timeout);
 
 /**
  *
  */
-ModemStatus_t modem_interface_release_mutex(void);
+modem_interface_status_t modem_interface_release_mutex(void);
 
 /**
  *

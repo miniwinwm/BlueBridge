@@ -147,7 +147,7 @@ ModemStatus_t ModemInit(void)
 		return status;
 	}
 	
-	modem_interface_os_init();
+	modem_interface_os_init(sizeof(AtCommandPacket_t), sizeof(AtResponsePacket_t), DoModemTask);
 	
 	return status;
 }
@@ -164,7 +164,7 @@ void DoModemTask(void)
 		modem_interface_task_delay(MODEM_SERVER_LOOP_PERIOD_MS);
 
 		// check for out of sequence data arriving as this means a URC has arrived
-		if (modem_interface_serial_received_bytes_waiting() > (size_t)0 && modem_interface_acquire_mutex(0UL) == MODEM_OK)
+		if (modem_interface_serial_received_bytes_waiting() > (size_t)0 && modem_interface_acquire_mutex(0UL) == MODEM_INTERFACE_OK)
 		{
 			urcReceiveStartTimeMs = modem_interface_get_time_ms();
 			nextUnsolicitedResponsePos = 0UL;
@@ -203,12 +203,12 @@ void DoModemTask(void)
 			}
 		}
 
-		if (modem_interface_queue_get(MODEM_COMMAND_QUEUE, &atCommandPacket, 0UL) == MODEM_OK)
+		if (modem_interface_queue_get(MODEM_INTERFACE_COMMAND_QUEUE, &atCommandPacket, 0UL) == MODEM_INTERFACE_OK)
 		{
-			if (modem_interface_acquire_mutex(atCommandPacket.timeoutMs) != MODEM_OK)
+			if (modem_interface_acquire_mutex(atCommandPacket.timeoutMs) != MODEM_INTERFACE_OK)
 			{
 				atResponsePacket.atResponse = MODEM_TIMEOUT;
-				modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+				modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 			}
 			else
 			{
@@ -298,7 +298,7 @@ void DoModemTask(void)
 						ServerGetImei(atCommandPacket.timeoutMs);
 						break;
 					}
-				modem_interface_release_mutex();
+				(void)modem_interface_release_mutex();
 			}
 		}
 	}
@@ -573,11 +573,11 @@ static ModemStatus_t ClientSendBasicCommandResponse(AtCommand_t atCommand, uint3
 	atCommandPacket.atCommand = atCommand;
 	atCommandPacket.timeoutMs = timeoutMs;
 
-	if (modem_interface_queue_put(MODEM_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_OK)
+	if (modem_interface_queue_put(MODEM_INTERFACE_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
-	if (modem_interface_queue_get(MODEM_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_OK)
+	if (modem_interface_queue_get(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
@@ -596,7 +596,7 @@ static void ServerModemHello(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT", timeoutMs);
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // get signal strength client and server functions
@@ -620,11 +620,11 @@ ModemStatus_t ModemGetSignalStrength(uint8_t *strength, uint32_t timeoutMs)
 	atCommandPacket.atCommand = MODEM_COMMAND_SIGNAL_STRENGTH;
 	atCommandPacket.timeoutMs = timeoutMs;
 
-	if (modem_interface_queue_put(MODEM_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_OK)
+	if (modem_interface_queue_put(MODEM_INTERFACE_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
-	if (modem_interface_queue_get(MODEM_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_OK)
+	if (modem_interface_queue_get(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
@@ -655,7 +655,7 @@ static void ServerGetSignalStrength(uint32_t timeoutMs)
 		}
 	}
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // get network registration status client and server functions
@@ -679,11 +679,11 @@ ModemStatus_t ModemGetNetworkRegistrationStatus(bool *registered, uint32_t timeo
 	atCommandPacket.atCommand = MODEM_COMMAND_NETWORK_REGISTRATION;
 	atCommandPacket.timeoutMs = timeoutMs;
 
-	if (modem_interface_queue_put(MODEM_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_OK)
+	if (modem_interface_queue_put(MODEM_INTERFACE_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
-	if (modem_interface_queue_get(MODEM_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_OK)
+	if (modem_interface_queue_get(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
@@ -724,7 +724,7 @@ static void ServerNetworkRegistrationStatus(uint32_t timeoutMs)
 	}
 
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // set manual data read client and server functions
@@ -738,7 +738,7 @@ static void ServerSetManualDataReceive(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT+CIPRXGET=1", timeoutMs);
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // set SMS text mode client and server functions
@@ -752,7 +752,7 @@ static void ServerSetSmsPduMode(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT+CMGF=0", timeoutMs);
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // set SMS receive mode client and server functions
@@ -766,7 +766,7 @@ static void ServerSetSmsReceiveMode(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT+CNMI=1,1,0,0,0", timeoutMs);
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // power down modem
@@ -780,7 +780,7 @@ static void ServerPowerDown(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT+CPOWD=1", timeoutMs);
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // activate data connection client and server functions
@@ -801,7 +801,7 @@ static void ServerActivateDataConnection(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT+CIICR", timeoutMs);
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // configure data connection
@@ -837,11 +837,11 @@ ModemStatus_t ModemConfigureDataConnection(const char *apn, const char *username
 	atCommandPacket.atCommand = MODEM_COMMAND_CONFIGURE_DATA_CONNECTION;
 	atCommandPacket.timeoutMs = timeoutMs;
 
-	if (modem_interface_queue_put(MODEM_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_OK)
+	if (modem_interface_queue_put(MODEM_INTERFACE_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
-	if (modem_interface_queue_get(MODEM_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_OK)
+	if (modem_interface_queue_get(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
@@ -865,7 +865,7 @@ static void ServerConfigureDataConnection(uint32_t timeoutMs)
 
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse(atCommandBuf, timeoutMs);
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // deactivate data connection client and server functions
@@ -881,7 +881,7 @@ static void ServerDeactivateDataConnection(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT+CIPSHUT", timeoutMs);
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // open TCP connection client and server functions
@@ -916,11 +916,11 @@ ModemStatus_t ModemOpenTcpConnection(const char *url, uint16_t port, uint32_t ti
 	atCommandPacket.atCommand = MODEM_COMMAND_OPEN_TCP_CONNECTION;
 	atCommandPacket.timeoutMs = timeoutMs;
 
-	if (modem_interface_queue_put(MODEM_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_OK)
+	if (modem_interface_queue_put(MODEM_INTERFACE_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
-	if (modem_interface_queue_get(MODEM_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_OK)
+	if (modem_interface_queue_get(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
@@ -966,7 +966,7 @@ static void ServerOpenTcpConnection(uint32_t timeoutMs)
 
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse(atCommandBuf, timeoutMs);
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // close TCP connection client and server functions
@@ -1003,7 +1003,7 @@ static void ServerCloseTcpConnection(uint32_t timeoutMs)
 		tcpConnectedState = false;
 	}
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // get operator details client and server functions
@@ -1027,11 +1027,11 @@ ModemStatus_t ModemGetOperatorDetails(char *operatorDetails, size_t length, uint
 	atCommandPacket.atCommand = MODEM_COMMAND_GET_OPERATOR_DETAILS;
 	atCommandPacket.timeoutMs = timeoutMs;
 
-	if (modem_interface_queue_put(MODEM_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_OK)
+	if (modem_interface_queue_put(MODEM_INTERFACE_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
-	if (modem_interface_queue_get(MODEM_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_OK)
+	if (modem_interface_queue_get(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}	
@@ -1072,7 +1072,7 @@ static void ServerGetOperatorDetails(uint32_t timeoutMs)
 	}
 	
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // get own ip address client and server functions
@@ -1096,11 +1096,11 @@ ModemStatus_t ModemGetOwnIpAddress(char *ipAddress, size_t length, uint32_t time
 	atCommandPacket.atCommand = MODEM_COMMAND_GET_OWN_IP_ADDRESS;
 	atCommandPacket.timeoutMs = timeoutMs;
 
-	if (modem_interface_queue_put(MODEM_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_OK)
+	if (modem_interface_queue_put(MODEM_INTERFACE_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
-	if (modem_interface_queue_get(MODEM_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_OK)
+	if (modem_interface_queue_get(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
@@ -1163,7 +1163,7 @@ static void ServerGetOwnIpAddress(uint32_t timeoutMs)
 
 	atResponsePacket.atResponse = modemStatus;
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // TCP write client and server functions
@@ -1228,11 +1228,11 @@ static ModemStatus_t ClientTcpWriteSection(const uint8_t *data, size_t length, u
 	atCommandPacket.atCommand = MODEM_COMMAND_TCP_WRITE;
 	atCommandPacket.timeoutMs = timeoutMs;
 
-	if (modem_interface_queue_put(MODEM_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_OK)
+	if (modem_interface_queue_put(MODEM_INTERFACE_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
-	if (modem_interface_queue_get(MODEM_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_OK)
+	if (modem_interface_queue_get(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
@@ -1342,7 +1342,7 @@ static void ServerTcpWrite(uint32_t timeoutMs)
 
 	atResponsePacket.atResponse = modemStatus;
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // get tcp read data waiting length client and server functions
@@ -1366,11 +1366,11 @@ ModemStatus_t ModemGetTcpReadDataWaitingLength(size_t *length, uint32_t timeoutM
 	atCommandPacket.atCommand = MODEM_COMMAND_GET_TCP_READ_DATA_WAITING_LENGTH;
 	atCommandPacket.timeoutMs = timeoutMs;
 
-	if (modem_interface_queue_put(MODEM_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_OK)
+	if (modem_interface_queue_put(MODEM_INTERFACE_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
-	if (modem_interface_queue_get(MODEM_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_OK)
+	if (modem_interface_queue_get(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
@@ -1401,7 +1401,7 @@ static void ServerGetTcpReadDataWaitingLength(uint32_t timeoutMs)
 		}
 	}
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // SMS receive message client and server functions
@@ -1436,12 +1436,12 @@ ModemStatus_t ModemSmsReceiveMessage(uint8_t smsId, size_t *lengthRead, uint8_t 
 	atCommandPacket.atCommand = MODEM_COMMAND_SMS_RECEIVE_MESSAGE;
 	atCommandPacket.timeoutMs = timeoutMs;	
 
-	if (modem_interface_queue_put(MODEM_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_OK)
+	if (modem_interface_queue_put(MODEM_INTERFACE_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
 	
-	if (modem_interface_queue_get(MODEM_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_OK)
+	if (modem_interface_queue_get(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
@@ -1560,7 +1560,7 @@ static void ServerSmsReceiveMessage(uint32_t timeoutMs)
 
 	atResponsePacket.atResponse = modemStatus;
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);	
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);	
 }
 
 typedef struct
@@ -1585,11 +1585,11 @@ ModemStatus_t ModemSmsSendMessage(char *buffer, uint32_t timeoutMs)
 	atCommandPacket.atCommand = MODEM_COMMAND_SMS_SEND_MESSAGE;
 	atCommandPacket.timeoutMs = timeoutMs;
 
-	if (modem_interface_queue_put(MODEM_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_OK)
+	if (modem_interface_queue_put(MODEM_INTERFACE_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
-	if (modem_interface_queue_get(MODEM_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_OK)
+	if (modem_interface_queue_get(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
@@ -1760,7 +1760,7 @@ static void ServerSmsSendMessage(uint32_t timeoutMs)
 
 	atResponsePacket.atResponse = modemStatus;
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // sms delete all messages client and server functions
@@ -1774,7 +1774,7 @@ static void ServerSmsDeleteAllMessages(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT+CMGD=1,4", timeoutMs);
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // tcp read client and server functions
@@ -1846,11 +1846,11 @@ static ModemStatus_t ClientTcpReadSection(size_t lengthToRead, size_t *lengthRea
 	atCommandPacket.atCommand = MODEM_COMMAND_TCP_READ;
 	atCommandPacket.timeoutMs = timeoutMs;
 
-	if (modem_interface_queue_put(MODEM_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_OK)
+	if (modem_interface_queue_put(MODEM_INTERFACE_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
-	if (modem_interface_queue_get(MODEM_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_OK)
+	if (modem_interface_queue_get(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
@@ -1962,7 +1962,7 @@ static void ServerTcpRead(uint32_t timeoutMs)
 
 	atResponsePacket.atResponse = modemStatus;
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 // get imei client and server functions
@@ -1986,11 +1986,11 @@ ModemStatus_t ModemGetIMEI(char *imei, size_t length, uint32_t timeoutMs)
 	atCommandPacket.atCommand = MODEM_COMMAND_GET_IMEI;
 	atCommandPacket.timeoutMs = timeoutMs;
 
-	if (modem_interface_queue_put(MODEM_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_OK)
+	if (modem_interface_queue_put(MODEM_INTERFACE_COMMAND_QUEUE, &atCommandPacket, 0UL) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
-	if (modem_interface_queue_get(MODEM_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_OK)
+	if (modem_interface_queue_get(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, MODEM_INTERFACE_WAIT_FOREVER) != MODEM_INTERFACE_OK)
 	{
 		return MODEM_FATAL_ERROR;
 	}
@@ -2016,7 +2016,7 @@ static void ServerGetImei(uint32_t timeoutMs)
 	}
 	
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
-	modem_interface_queue_put(MODEM_RESPONSE_QUEUE, &atResponsePacket, 0UL);
+	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
 const char *ModemStatusToText(ModemStatus_t modemStatus)
