@@ -168,10 +168,10 @@
 							setAngleAwa(awa);			
 						}	
 						if (payloadArray[13] != "") {
-							lat = payloadArray[13];					
+							lat = payloadArray[13];																
 						}	
 						if (payloadArray[14] != "") {
-							long = payloadArray[14];					
+							long = payloadArray[14];								
 						}	
 					}								
 				}					
@@ -699,15 +699,16 @@
 		<script type="text/javascript">
 			function go() {
 				myMap.setCenter(lat, long);		
+				// zoom level 18 does not show polygon
 				if (myMap.getZoom() == 18) {
 					myMap.setZoomLevel(17);
 				}
 				var scale = (1 << (18 - myMap.getZoom()));
 				var offsetLat = 0.00005 * scale;	
 				var offsetLong = offsetLat / (2 * Math.cos(lat / 57.3));	
-				var polyString = "Polygon (" + (long - offsetLong).toString() + " " + (lat - offsetLat).toString() + ", " 
-					+ (long + offsetLong).toString() + " " + (lat - offsetLat).toString() + ", " 
-					+ long.toString() + " " + (lat + offsetLat).toString() + ")";
+				var polyString = "Polygon (" + (parseFloat(long) - offsetLong).toString() + " " + (parseFloat(lat) - offsetLat).toString() + ", " 
+					+ (parseFloat(long) + offsetLong).toString() + " " + (parseFloat(lat) - offsetLat).toString() + ", " 
+					+ long + " " + (parseFloat(lat) + offsetLat).toString() + ")";					
 				var poly = Mapiator.parseWKT(polyString);
 				poly.fillStyle = 'rgba(255, 0, 0, .5)';
 				myMap.addElement( poly );
@@ -717,3 +718,6 @@
 		</script>		
   	</body>
 </html>
+
+
+

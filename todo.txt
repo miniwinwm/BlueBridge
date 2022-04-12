@@ -18,7 +18,6 @@ Doxygen all code
 Add standard headers to c/c++ source files
 Tidy up javascript code
 Create a new website with BlueThing name
-Modem_interface.h should not depend on modem.h
 
 
 Todo testing
@@ -92,3 +91,4 @@ Add MIT license headers to android app and website files
 Get new boards made
 Generate new hw pdf files
 The placement of the red square in the mapiator map is not quite right - top left corner of square is location. Investigate polygon instead
+Modem_interface.h should not depend on modem.h
