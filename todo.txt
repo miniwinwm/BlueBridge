@@ -1,17 +1,15 @@
 Todo hardware
 -------------
-Get new boards made
-Update BOM
-Generate new pdf files
+Create BOM
 
 
 Todo functional
 ---------------
 Modem SMS and TCP reads need buf lengths and checks
-The placement of the red square in the mapiator map is not quite right - top left corner of square is location. Investigate polygon instead
 After receiving a start command publish first MQTT message immediately
 Change strcat for safe_strcat
 Add MQTT cpability to Android app
+Rotate boat shape according to heading in javascript
 
 
 Todo tidy up
@@ -91,3 +89,6 @@ Do a new board layout
 Remove redundant #includes
 Ask if to store cookies on webpage
 Add MIT license headers to android app and website files
+Get new boards made
+Generate new hw pdf files
+The placement of the red square in the mapiator map is not quite right - top left corner of square is location. Investigate polygon instead

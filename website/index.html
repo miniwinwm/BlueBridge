@@ -17,14 +17,7 @@
 				z-index: 10;
 				position: relative;
 				top: 20px; left: 20px;
-			}
-			div#test_poi {
-				position:absolute;
-				width:10px;
-				height:10px;
-				background-color: #f00;
-				z-index:31;
-			}		
+			}				
 		        
 			#compassHeading {		
   				background: url(http://i.imgur.com/44nyA.jpg);
@@ -646,7 +639,7 @@
 		</script>
 		
   		<script type="text/javascript">		
-  			var myMap;
+  			//var myMap;
 			var minutesLabel = document.getElementById("minutes");
 			var secondsLabel = document.getElementById("seconds");
 			var totalSeconds = 0;	
@@ -705,11 +698,21 @@
 		
 		<script type="text/javascript">
 			function go() {
-				myMap.setCenter(lat, long);
-				var test = document.createElement('div');
-				test.id = 'test_poi';
-				myMap.overlayLayer.addElement(test, lat, long);
-				myMap.redraw();			
+				myMap.setCenter(lat, long);		
+				if (myMap.getZoom() == 18) {
+					myMap.setZoomLevel(17);
+				}
+				var scale = (1 << (18 - myMap.getZoom()));
+				var offsetLat = 0.00005 * scale;	
+				var offsetLong = offsetLat / (2 * Math.cos(lat / 57.3));	
+				var polyString = "Polygon (" + (long - offsetLong).toString() + " " + (lat - offsetLat).toString() + ", " 
+					+ (long + offsetLong).toString() + " " + (lat - offsetLat).toString() + ", " 
+					+ long.toString() + " " + (lat + offsetLat).toString() + ")";
+				var poly = Mapiator.parseWKT(polyString);
+				poly.fillStyle = 'rgba(255, 0, 0, .5)';
+				myMap.addElement( poly );
+				myMap.redraw();
+				myMap.removeElement(poly);
 			}
 		</script>		
   	</body>

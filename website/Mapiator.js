@@ -294,7 +294,7 @@ Mapiator.OverlayLayer = function( map ){
 		util.forEach(overlays, displayOverlay);
 	};
 }
-
+	
 Mapiator.TileLayer = function(map, visibleArea, TileConstructor){
 	// tile layer expects map.movableContainer to be at the upper left corner of
 	// the visibleArea on creation
@@ -305,8 +305,7 @@ Mapiator.TileLayer = function(map, visibleArea, TileConstructor){
 	function findTile(x,y,zoom){
 		return tileCache[TileConstructor.idFor(x,y,zoom)];
 	};
-	
-	
+
 	
 	function tileAtPosition(x,y){
 		return [Math.floor(x/map.tileSizeInPx), Math.floor(y/map.tileSizeInPx)];
@@ -388,7 +387,7 @@ Mapiator.PathOrPolygon = function( points ) {
 			l = (l && l<pp[0]) ? l : pp[0];
 			t = (t && t<pp[1]) ? t : pp[1];
 			r = (r && r>pp[0]) ? r : pp[0];
-			b = (b && b>pp[1]) ? b : pp[1];				
+			b = (b && b>pp[1]) ? b : pp[1];			
 		}
 		this.bbLeft = l;
 		this.bbTop = t;
@@ -486,6 +485,7 @@ Mapiator.Map = function( divId ) {
 			centerLng = ll[1];
 			visibleArea = null;
 		}
+
 		this.zoom = level;
 		this.mapExtendInPx = this.tileSizeInPx * (1<<this.zoom);
 	};
@@ -501,6 +501,9 @@ Mapiator.Map = function( divId ) {
 		if( this.zoom <= this.minZoom ) return;
 		this.setZoomLevel( this.zoom - 1);
 		this.redraw();
+	};
+	this.getZoom = function() {
+		return this.zoom;
 	};
 	
 	this.setTileSizeInPx = function( size ) {
@@ -555,7 +558,7 @@ Mapiator.Map = function( divId ) {
 			if( this.canvasTileLayer ) this.canvasTileLayer.destroy();
 			this.canvasTileLayer = new Mapiator.TileLayer(this, util.clone(visibleArea), Mapiator.CanvasTile);
 		}
-			
+
 		this.overlayLayer.redraw();
 	};
 	

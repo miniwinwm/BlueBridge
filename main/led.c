@@ -24,21 +24,53 @@ SOFTWARE.
 
 */
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
 #include "led.h"
 
-static void led_timer_callback(xTimerHandle pxTimer);
+/****************
+*** CONSTANTS ***
+****************/
+
+/************
+*** TYPES ***
+************/
+
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
+/**********************
+*** LOCAL VARIABLES ***
+**********************/
 
 static xTimerHandle timer_led;
 static uint32_t current_period;
+
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
+static void led_timer_callback(xTimerHandle pxTimer);
+
+/**********************
+*** LOCAL FUNCTIONS ***
+**********************/
 
 static void led_timer_callback(xTimerHandle pxTimer)
 {
 	gpio_set_level(GPIO_NUM_17, 0UL);	
 	current_period = 0UL;
 }
+
+/***********************
+*** GLOBAL FUNCTIONS ***
+***********************/
 
 void led_init(void)
 {

@@ -24,6 +24,10 @@ SOFTWARE.
 
 */
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
@@ -33,15 +37,43 @@ SOFTWARE.
 #include "pdu.h"
 #include "util.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
+/************
+*** TYPES ***
+************/
+
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
+/**********************
+*** LOCAL VARIABLES ***
+**********************/
+
 static QueueHandle_t sms_waiting_id_queue_handle;
 
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
 static void sms_notification_callback(uint32_t sms_id);
+
+/**********************
+*** LOCAL FUNCTIONS ***
+**********************/
 
 static void sms_notification_callback(uint32_t sms_id)
 {
 	ESP_LOGI(pcTaskGetName(NULL), "SMS received notification, SMS Id is %u", sms_id);		
 	xQueueSendToBack(sms_waiting_id_queue_handle, (const void *)(&sms_id), (TickType_t)0);	
 }
+
+/***********************
+*** GLOBAL FUNCTIONS ***
+***********************/
 
 void sms_init(void)
 {

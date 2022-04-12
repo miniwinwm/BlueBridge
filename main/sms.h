@@ -31,10 +31,30 @@ SOFTWARE.
 extern "C" {
 #endif
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stdint.h>
 #include <stdbool.h>
 
+/****************
+*** CONSTANTS ***
+****************/
+
 #define SMS_MAX_PHONE_NUMBER_LENGTH		24UL
+
+/************
+*** TYPES ***
+************/
+
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
 
 void sms_init(void);
 bool sms_check_for_new(uint32_t *sms_id);
