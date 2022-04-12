@@ -12,7 +12,6 @@ The placement of the red square in the mapiator map is not quite right - top lef
 After receiving a start command publish first MQTT message immediately
 Change strcat for safe_strcat
 Add MQTT cpability to Android app
-Ask if to store cookies on webpage
 
 
 Todo tidy up
@@ -91,3 +90,4 @@ Change google maps link in pos sms response to satellite view
 Flash led when mqtt message sent
 Do a new board layout
 Remove redundant #includes
+Ask if to store cookies on webpage
