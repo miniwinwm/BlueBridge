@@ -17,7 +17,6 @@ Add MQTT cpability to Android app
 Todo tidy up
 ------------
 Doxygen all code
-Add MIT license headers to android app and website files
 Add standard headers to c/c++ source files
 Tidy up javascript code
 Create a new website with BlueThing name
@@ -91,3 +90,4 @@ Flash led when mqtt message sent
 Do a new board layout
 Remove redundant #includes
 Ask if to store cookies on webpage
+Add MIT license headers to android app and website files
