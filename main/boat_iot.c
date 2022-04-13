@@ -24,6 +24,10 @@ SOFTWARE.
 
 */
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -41,8 +45,28 @@ SOFTWARE.
 #include "timer.h"
 #include "led.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
 #define MQTT_KEEPALIVE_S			600U
 #define MQTT_SHUTDOWN_PERIOD_S		300UL
+
+/************
+*** TYPES ***
+************/
+
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
+/**********************
+*** LOCAL VARIABLES ***
+**********************/
+
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
 
 static bool modem_start(void);
 static bool modem_network_register(void);
@@ -51,6 +75,10 @@ static bool modem_activate_data_connection(void);
 static bool config_parser_callback(char *key, char *value);
 static bool open_mqtt_connection(void);
 static void close_mqtt_connection(void);
+
+/**********************
+*** LOCAL FUNCTIONS ***
+**********************/
 
 static bool modem_network_register(void)
 {
@@ -182,7 +210,7 @@ static bool open_mqtt_connection(void)
 	return true;
 }
 
-void close_mqtt_connection(void)
+static void close_mqtt_connection(void)
 {
 	(void)MqttDisconnect(5000UL);
 	(void)ModemCloseTcpConnection(5000UL);
@@ -201,271 +229,6 @@ static bool modem_start(void)
 	}
 	
 	return true;
-}
-
-void boat_iot_task(void *parameters)
-{
-	ModemStatus_t modem_status;
-	MqttStatus_t mqtt_status;
-	uint8_t strength;	
-	bool modem_start_success;
-	uint8_t failed_loop_count = 0U;
-	bool loop_failed;
-	uint32_t sms_id;
-	uint32_t i;
-	uint16_t properties_parsed;
-	uint32_t time_ms;
-	char mqtt_topic[20];
-	char mqtt_data_buf[200];	
-	char number_buf[20];
-	
-	ESP_LOGI(pcTaskGetName(NULL), "Boat iot task started");
-	
-	// signal main task that this task has started
-	(void)xTaskNotifyGive(get_main_task_handle());
-	
-	do
-	{
-		(void)ModemInit();
-		modem_start_success = modem_start();	
-		if (!modem_start_success)
-		{
-			ESP_LOGI(pcTaskGetName(NULL), "Failed to start modem");			
-			ModemDelete();
-		}
-		
-		vTaskDelay(2000UL);													
-	}
-	while (!modem_start_success);
-	
-	while(true)
-	{	
-		if (settings_get_publishing_started())
-		{
-			loop_failed = false;
-			if (!ModemGetPdpActivatedState())
-			{
-				loop_failed = !modem_activate_data_connection();
-			}
-			
-			if (!loop_failed && !ModemGetTcpConnectedState())
-			{
-				loop_failed = !open_mqtt_connection();
-			}
-			
-			if (!loop_failed)
-			{		
-				if ((mqtt_status = MqttHandleResponse(5000UL)) != MQTT_NO_RESPONSE)
-				{
-					ESP_LOGI(pcTaskGetName(NULL), "Handle response %s", MqttStatusToText(mqtt_status));		
-
-					if (mqtt_status	< MQTT_OK)
-					{
-						loop_failed = true;
-					}	
-				}
-			}
-			
-			if (!loop_failed)
-			{			
-				modem_status = ModemGetSignalStrength(&strength, 250UL);
-				ESP_LOGI(pcTaskGetName(NULL), "Signal strength %s %u", ModemStatusToText(modem_status), (uint32_t)strength);	
-				
-				if (modem_status != MODEM_OK)
-				{
-					loop_failed = true;
-				}	
-			}		
-
-			// publish all data in one
-			if (!loop_failed && ModemGetTcpConnectedState())
-			{				
-				// topic
-				(void)snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/all", settings_get_code());							
-				time_ms = timer_get_time_ms();			
-				
-				// signal strength
-				(void)snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%hhu,", strength);
-				
-				// cog
-				if (time_ms - boat_data_reception_time.course_over_ground_received_time < COG_MAX_DATA_AGE_MS || boat_data_reception_time.course_over_ground_received_time > time_ms)
-				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%hu", course_over_ground_data);
-					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
-				}
-				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
-				
-				// temperature
-				if (time_ms - boat_data_reception_time.seawater_temperature_received_time < TEMPERATURE_MAX_DATA_AGE_MS || boat_data_reception_time.seawater_temperature_received_time > time_ms)
-				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", seawater_temeperature_data);
-					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
-				}
-				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
-
-				// sog
-				if (time_ms - boat_data_reception_time.speed_over_ground_received_time < SOG_MAX_DATA_AGE_MS || boat_data_reception_time.speed_over_ground_received_time > time_ms)
-				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", speed_over_ground_data);
-					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
-				}
-				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
-				
-				// boat speed
-				if (time_ms - boat_data_reception_time.boat_speed_received_time < BOAT_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.boat_speed_received_time > time_ms)
-				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", boat_speed_data);
-					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
-				}
-				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
-
-				// log
-				if (time_ms - boat_data_reception_time.total_distance_received_time < TOTAL_DISTANCE_MAX_DATA_AGE_MS || boat_data_reception_time.total_distance_received_time > time_ms)
-				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%u", (unsigned int)total_distance_data);
-					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
-				}
-				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
-
-				// trip
-				if (time_ms - boat_data_reception_time.trip_received_time < TRIP_MAX_DATA_AGE_MS || boat_data_reception_time.trip_received_time > time_ms)
-				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", trip_data);
-					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
-				}
-				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
-
-				// heading
-				if (time_ms - boat_data_reception_time.heading_true_received_time < HEADING_TRUE_MAX_DATA_AGE_MS || boat_data_reception_time.heading_true_received_time > time_ms)
-				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%u", (unsigned int)heading_true_data);
-					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
-				}
-				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
-
-				// depth
-				if (time_ms - boat_data_reception_time.depth_received_time < DEPTH_MAX_DATA_AGE_MS || boat_data_reception_time.depth_received_time > time_ms)
-				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", depth_data);
-					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
-				}
-				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
-								
-				// tws
-				if (time_ms - boat_data_reception_time.true_wind_speed_received_time < TRUE_WIND_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.true_wind_speed_received_time > time_ms)
-				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", true_wind_speed_data);
-					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
-				}
-				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
-
-				// twa
-				if (time_ms - boat_data_reception_time.true_wind_angle_received_time < TRUE_WIND_ANGLE_MAX_DATA_AGE_MS || boat_data_reception_time.true_wind_angle_received_time > time_ms)
-				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", true_wind_angle_data);
-					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
-				}
-				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
-
-				// aws
-				if (time_ms - boat_data_reception_time.apparent_wind_speed_received_time < APPARENT_WIND_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.apparent_wind_speed_received_time > time_ms)
-				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", apparent_wind_speed_data);
-					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
-				}
-				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
-
-				// awa
-				if (time_ms - boat_data_reception_time.apparent_wind_angle_received_time < APPARENT_WIND_ANGLE_MAX_DATA_AGE_MS || boat_data_reception_time.apparent_wind_angle_received_time > time_ms)
-				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", apparent_wind_angle_data);
-					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
-				}
-				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
-				
-				// latitude
-				if (time_ms - boat_data_reception_time.latitude_received_time < LATITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.latitude_received_time > time_ms)
-				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%.8f", latitude_data);
-					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
-				}
-				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");				
-				
-				// longitude
-				if (time_ms - boat_data_reception_time.longitude_received_time < LONGITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.longitude_received_time > time_ms)
-				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%.8f", longitude_data);
-					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
-				}
-
-				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);									
-				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish %s %s %s", mqtt_topic, mqtt_data_buf, MqttStatusToText(mqtt_status));		
-				
-				if (mqtt_status == MQTT_OK)
-				{
-					led_flash(1000UL);
-				}
-				else
-				{
-					loop_failed = true;
-				}					
-			}				
-			
-			if (settings_get_publishing_period_s() > MQTT_SHUTDOWN_PERIOD_S)
-			{
-				close_mqtt_connection();
-			}
-			
-			if (loop_failed)
-			{
-				failed_loop_count++;
-			}
-			else
-			{
-				failed_loop_count = 0U;
-			}
-			
-			if (failed_loop_count == 10U)
-			{
-				led_flash(60000UL);
-				ESP_LOGI(pcTaskGetName(NULL), "************ REBOOTING ************");			
-				esp_restart();	
-			}			
-		}
-		
-		for (i = 0UL; i < settings_get_publishing_period_s(); i++)
-		{
-			if (sms_check_for_new(&sms_id))
-			{
-				char phone_number[SMS_MAX_PHONE_NUMBER_LENGTH + 1];
-				char message_text[MODEM_SMS_MAX_TEXT_LENGTH + 1];
-				
-				properties_parsed = 0U;
-				if (sms_receive(sms_id, phone_number, SMS_MAX_PHONE_NUMBER_LENGTH + 1, message_text, MODEM_SMS_MAX_TEXT_LENGTH + 1))
-				{
-					ESP_LOGI(pcTaskGetName(NULL), "SMS text %s", message_text);						
-					settings_set_phone_number(phone_number);					
-					properties_parsed = property_parse(message_text, config_parser_callback);
-					ESP_LOGI(pcTaskGetName(NULL), "%u settings/commands parsed", properties_parsed);						
-				}
-				modem_status = ModemSmsDeleteAllMessages(25000UL);
-				ESP_LOGI(pcTaskGetName(NULL), "Delete all SMS messages %s", ModemStatusToText(modem_status));	
-
-				if (settings_get_reboot_needed())
-				{
-					esp_restart();
-				}
-				
-				if (settings_get_publishing_start_needed())
-				{
-					settings_set_publishing_start_needed(false);
-					break;
-				}
-			}
-
-			vTaskDelay(1000UL);											
-		}		
-	}
 }
 
 static bool config_parser_callback(char *key, char *value)
@@ -757,4 +520,273 @@ static bool config_parser_callback(char *key, char *value)
 	}		
 	
 	return found;
+}
+
+/***********************
+*** GLOBAL FUNCTIONS ***
+***********************/
+
+void boat_iot_task(void *parameters)
+{
+	ModemStatus_t modem_status;
+	MqttStatus_t mqtt_status;
+	uint8_t strength;	
+	bool modem_start_success;
+	uint8_t failed_loop_count = 0U;
+	bool loop_failed;
+	uint32_t sms_id;
+	uint32_t i;
+	uint16_t properties_parsed;
+	uint32_t time_ms;
+	char mqtt_topic[20];
+	char mqtt_data_buf[200];	
+	char number_buf[20];
+	
+	ESP_LOGI(pcTaskGetName(NULL), "Boat iot task started");
+	
+	// signal main task that this task has started
+	(void)xTaskNotifyGive(get_main_task_handle());
+	
+	do
+	{
+		(void)ModemInit();
+		modem_start_success = modem_start();	
+		if (!modem_start_success)
+		{
+			ESP_LOGI(pcTaskGetName(NULL), "Failed to start modem");			
+			ModemDelete();
+		}
+		
+		vTaskDelay(2000UL);													
+	}
+	while (!modem_start_success);
+	
+	while(true)
+	{	
+		if (settings_get_publishing_started())
+		{
+			loop_failed = false;
+			if (!ModemGetPdpActivatedState())
+			{
+				loop_failed = !modem_activate_data_connection();
+			}
+			
+			if (!loop_failed && !ModemGetTcpConnectedState())
+			{
+				loop_failed = !open_mqtt_connection();
+			}
+			
+			if (!loop_failed)
+			{		
+				if ((mqtt_status = MqttHandleResponse(5000UL)) != MQTT_NO_RESPONSE)
+				{
+					ESP_LOGI(pcTaskGetName(NULL), "Handle response %s", MqttStatusToText(mqtt_status));		
+
+					if (mqtt_status	< MQTT_OK)
+					{
+						loop_failed = true;
+					}	
+				}
+			}
+			
+			if (!loop_failed)
+			{			
+				modem_status = ModemGetSignalStrength(&strength, 250UL);
+				ESP_LOGI(pcTaskGetName(NULL), "Signal strength %s %u", ModemStatusToText(modem_status), (uint32_t)strength);	
+				
+				if (modem_status != MODEM_OK)
+				{
+					loop_failed = true;
+				}	
+			}		
+
+			// publish all data in one
+			if (!loop_failed && ModemGetTcpConnectedState())
+			{				
+				// topic
+				(void)snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/all", settings_get_code());							
+				time_ms = timer_get_time_ms();			
+				
+				// signal strength
+				(void)snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%hhu,", strength);
+				
+				// cog
+				if (time_ms - boat_data_reception_time.course_over_ground_received_time < COG_MAX_DATA_AGE_MS || boat_data_reception_time.course_over_ground_received_time > time_ms)
+				{
+					(void)snprintf(number_buf, sizeof(number_buf), "%hu", course_over_ground_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				}
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
+				
+				// temperature
+				if (time_ms - boat_data_reception_time.seawater_temperature_received_time < TEMPERATURE_MAX_DATA_AGE_MS || boat_data_reception_time.seawater_temperature_received_time > time_ms)
+				{
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", seawater_temeperature_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				}
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
+
+				// sog
+				if (time_ms - boat_data_reception_time.speed_over_ground_received_time < SOG_MAX_DATA_AGE_MS || boat_data_reception_time.speed_over_ground_received_time > time_ms)
+				{
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", speed_over_ground_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				}
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
+				
+				// boat speed
+				if (time_ms - boat_data_reception_time.boat_speed_received_time < BOAT_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.boat_speed_received_time > time_ms)
+				{
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", boat_speed_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				}
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
+
+				// log
+				if (time_ms - boat_data_reception_time.total_distance_received_time < TOTAL_DISTANCE_MAX_DATA_AGE_MS || boat_data_reception_time.total_distance_received_time > time_ms)
+				{
+					(void)snprintf(number_buf, sizeof(number_buf), "%u", (unsigned int)total_distance_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				}
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
+
+				// trip
+				if (time_ms - boat_data_reception_time.trip_received_time < TRIP_MAX_DATA_AGE_MS || boat_data_reception_time.trip_received_time > time_ms)
+				{
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", trip_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				}
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
+
+				// heading
+				if (time_ms - boat_data_reception_time.heading_true_received_time < HEADING_TRUE_MAX_DATA_AGE_MS || boat_data_reception_time.heading_true_received_time > time_ms)
+				{
+					(void)snprintf(number_buf, sizeof(number_buf), "%u", (unsigned int)heading_true_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				}
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
+
+				// depth
+				if (time_ms - boat_data_reception_time.depth_received_time < DEPTH_MAX_DATA_AGE_MS || boat_data_reception_time.depth_received_time > time_ms)
+				{
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", depth_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				}
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
+								
+				// tws
+				if (time_ms - boat_data_reception_time.true_wind_speed_received_time < TRUE_WIND_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.true_wind_speed_received_time > time_ms)
+				{
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", true_wind_speed_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				}
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
+
+				// twa
+				if (time_ms - boat_data_reception_time.true_wind_angle_received_time < TRUE_WIND_ANGLE_MAX_DATA_AGE_MS || boat_data_reception_time.true_wind_angle_received_time > time_ms)
+				{
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", true_wind_angle_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				}
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
+
+				// aws
+				if (time_ms - boat_data_reception_time.apparent_wind_speed_received_time < APPARENT_WIND_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.apparent_wind_speed_received_time > time_ms)
+				{
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", apparent_wind_speed_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				}
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
+
+				// awa
+				if (time_ms - boat_data_reception_time.apparent_wind_angle_received_time < APPARENT_WIND_ANGLE_MAX_DATA_AGE_MS || boat_data_reception_time.apparent_wind_angle_received_time > time_ms)
+				{
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", apparent_wind_angle_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				}
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
+				
+				// latitude
+				if (time_ms - boat_data_reception_time.latitude_received_time < LATITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.latitude_received_time > time_ms)
+				{
+					(void)snprintf(number_buf, sizeof(number_buf), "%.8f", latitude_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				}
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");				
+				
+				// longitude
+				if (time_ms - boat_data_reception_time.longitude_received_time < LONGITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.longitude_received_time > time_ms)
+				{
+					(void)snprintf(number_buf, sizeof(number_buf), "%.8f", longitude_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				}
+
+				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);									
+				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish %s %s %s", mqtt_topic, mqtt_data_buf, MqttStatusToText(mqtt_status));		
+				
+				if (mqtt_status == MQTT_OK)
+				{
+					led_flash(1000UL);
+				}
+				else
+				{
+					loop_failed = true;
+				}					
+			}				
+			
+			if (settings_get_publishing_period_s() > MQTT_SHUTDOWN_PERIOD_S)
+			{
+				close_mqtt_connection();
+			}
+			
+			if (loop_failed)
+			{
+				failed_loop_count++;
+			}
+			else
+			{
+				failed_loop_count = 0U;
+			}
+			
+			if (failed_loop_count == 10U)
+			{
+				led_flash(60000UL);
+				ESP_LOGI(pcTaskGetName(NULL), "************ REBOOTING ************");			
+				esp_restart();	
+			}			
+		}
+		
+		for (i = 0UL; i < settings_get_publishing_period_s(); i++)
+		{
+			if (sms_check_for_new(&sms_id))
+			{
+				char phone_number[SMS_MAX_PHONE_NUMBER_LENGTH + 1];
+				char message_text[MODEM_SMS_MAX_TEXT_LENGTH + 1];
+				
+				properties_parsed = 0U;
+				if (sms_receive(sms_id, phone_number, SMS_MAX_PHONE_NUMBER_LENGTH + 1, message_text, MODEM_SMS_MAX_TEXT_LENGTH + 1))
+				{
+					ESP_LOGI(pcTaskGetName(NULL), "SMS text %s", message_text);						
+					settings_set_phone_number(phone_number);					
+					properties_parsed = property_parse(message_text, config_parser_callback);
+					ESP_LOGI(pcTaskGetName(NULL), "%u settings/commands parsed", properties_parsed);						
+				}
+				modem_status = ModemSmsDeleteAllMessages(25000UL);
+				ESP_LOGI(pcTaskGetName(NULL), "Delete all SMS messages %s", ModemStatusToText(modem_status));	
+
+				if (settings_get_reboot_needed())
+				{
+					esp_restart();
+				}
+				
+				if (settings_get_publishing_start_needed())
+				{
+					settings_set_publishing_start_needed(false);
+					break;
+				}
+			}
+
+			vTaskDelay(1000UL);											
+		}		
+	}
 }
