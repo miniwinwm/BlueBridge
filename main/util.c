@@ -61,7 +61,28 @@ SOFTWARE.
 *** GLOBAL FUNCTIONS ***
 ***********************/
 
-bool safe_strcat(char *dest, size_t size, const char *src)
+bool util_safe_strcpy(char *dest, size_t size, const char *src)
+{
+    size_t i;
+
+    if (dest == NULL || src == NULL)
+    {
+    	return false;
+    }
+
+    if (size > 0U)
+    {
+        for (i = (size_t)0; i < size - (size_t)1 && src[i] != '\0'; i++)
+        {
+             dest[i] = src[i];
+        }
+        dest[i] = '\0';
+    }
+
+    return true;
+}
+
+bool util_safe_strcat(char *dest, size_t size, const char *src)
 {
     if (dest == NULL || src == NULL || (strlen(dest) + strlen(src) + (size_t)1 > size))
     {
@@ -149,20 +170,20 @@ char *util_seconds_to_hms(uint32_t seconds)
 	result[0] = '\0';
 	if (h > 0)
 	{
-		snprintf(f, sizeof(f), "%uh", (unsigned int)h);
-		strcat(result, f);
+		(void)snprintf(f, sizeof(f), "%uh", (unsigned int)h);
+		(void)util_safe_strcat(result, sizeof(result), f);
 	}
 	
 	if (m > 0UL)
 	{
-		snprintf(f, sizeof(f), "%um", (unsigned int)m);
-		strcat(result, f);		
+		(void)snprintf(f, sizeof(f), "%um", (unsigned int)m);
+		(void)util_safe_strcat(result, sizeof(result), f);		
 	}
 	
 	if (s > 0UL)
 	{
-		snprintf(f, sizeof(f), "%us", (unsigned int)s);
-		strcat(result, f);		
+		(void)snprintf(f, sizeof(f), "%us", (unsigned int)s);
+		(void)util_safe_strcat(result, sizeof(result), f);		
 	}	
 	
 	return result;

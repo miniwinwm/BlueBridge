@@ -111,7 +111,7 @@ size_t spp_write(const uint8_t *buffer, size_t size)
         return (size_t)0;
     }
     packet->len = size;
-    memcpy(packet->data, buffer, size);
+    (void)memcpy(packet->data, buffer, size);
     if (xQueueSend(spp_tx_queue, &packet, SPP_TX_QUEUE_TIMEOUT) != pdPASS)
     {
         vPortFree(packet);
@@ -145,7 +145,7 @@ static void spp_tx_task(void *arg)
         {
             if (packet->len <= (SPP_TX_MAX - spp_tx_buffer_len))
             {
-                memcpy(spp_tx_buffer + spp_tx_buffer_len, packet->data, packet->len);
+                (void)memcpy(spp_tx_buffer + spp_tx_buffer_len, packet->data, packet->len);
                 spp_tx_buffer_len += packet->len;
                 free(packet);
                 packet = NULL;
@@ -159,7 +159,7 @@ static void spp_tx_task(void *arg)
                 len = packet->len;
                 data = packet->data;
                 to_send = SPP_TX_MAX - spp_tx_buffer_len;
-                memcpy(spp_tx_buffer + spp_tx_buffer_len, data, to_send);
+                (void)memcpy(spp_tx_buffer + spp_tx_buffer_len, data, to_send);
                 spp_tx_buffer_len = SPP_TX_MAX;
                 data += to_send;
                 len -= to_send;
@@ -169,7 +169,7 @@ static void spp_tx_task(void *arg)
                 }
                 while (len >= SPP_TX_MAX)
                 {
-                    memcpy(spp_tx_buffer, data, SPP_TX_MAX);
+                    (void)memcpy(spp_tx_buffer, data, SPP_TX_MAX);
                     spp_tx_buffer_len = SPP_TX_MAX;
                     data += SPP_TX_MAX;
                     len -= SPP_TX_MAX;
@@ -181,7 +181,7 @@ static void spp_tx_task(void *arg)
                 }
                 if (len)
                 {
-                    memcpy(spp_tx_buffer, data, len);
+                    (void)memcpy(spp_tx_buffer, data, len);
                     spp_tx_buffer_len += len;
                     if (uxQueueMessagesWaiting(spp_tx_queue) == 0)
                     {

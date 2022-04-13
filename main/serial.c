@@ -57,6 +57,10 @@ SOFTWARE.
 *** LOCAL FUNCTIONS ***
 **********************/
 
+/***********************
+*** GLOBAL FUNCTIONS ***
+***********************/
+
 void serial_init(uint32_t baud_rate_1)
 {
 	spp_init();

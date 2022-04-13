@@ -177,8 +177,8 @@ bool sms_send(const char *message_text, const char *phone_number)
 				ascii_hex_pdu[0] = '\0';								
 				for (i = 0; i < pdu_binary_length; i++)
 				{
-					sprintf(ascii_hex_byte, "%02x", binary_pdu[i]);
-					strcat(ascii_hex_pdu, ascii_hex_byte);
+					(void)sprintf(ascii_hex_byte, "%02x", binary_pdu[i]);
+					(void)util_safe_strcat(ascii_hex_pdu, (size_t)(SMS_MAX_PDU_LENGTH * 2), ascii_hex_byte);
 				}
 				
 				modem_status = ModemSmsSendMessage(ascii_hex_pdu, 60000UL);		

@@ -241,7 +241,7 @@ void boat_iot_task(void *parameters)
 	
 	while(true)
 	{	
-		if (settings_get_boat_iot_started())
+		if (settings_get_publishing_started())
 		{
 			loop_failed = false;
 			if (!ModemGetPdpActivatedState())
@@ -282,121 +282,121 @@ void boat_iot_task(void *parameters)
 			if (!loop_failed && ModemGetTcpConnectedState())
 			{				
 				// topic
-				snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/all", settings_get_code());							
+				(void)snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/all", settings_get_code());							
 				time_ms = timer_get_time_ms();			
 				
 				// signal strength
-				snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%hhu,", strength);
+				(void)snprintf(mqtt_data_buf, sizeof(mqtt_data_buf), "%hhu,", strength);
 				
 				// cog
 				if (time_ms - boat_data_reception_time.course_over_ground_received_time < COG_MAX_DATA_AGE_MS || boat_data_reception_time.course_over_ground_received_time > time_ms)
 				{
-					snprintf(number_buf, sizeof(number_buf), "%hu", course_over_ground_data);
-					strcat(mqtt_data_buf, number_buf);
+					(void)snprintf(number_buf, sizeof(number_buf), "%hu", course_over_ground_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
-				strcat(mqtt_data_buf, ",");
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
 				
 				// temperature
 				if (time_ms - boat_data_reception_time.seawater_temperature_received_time < TEMPERATURE_MAX_DATA_AGE_MS || boat_data_reception_time.seawater_temperature_received_time > time_ms)
 				{
-					snprintf(number_buf, sizeof(number_buf), "%.1f", seawater_temeperature_data);
-					strcat(mqtt_data_buf, number_buf);
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", seawater_temeperature_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
-				strcat(mqtt_data_buf, ",");
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
 
 				// sog
 				if (time_ms - boat_data_reception_time.speed_over_ground_received_time < SOG_MAX_DATA_AGE_MS || boat_data_reception_time.speed_over_ground_received_time > time_ms)
 				{
-					snprintf(number_buf, sizeof(number_buf), "%.1f", speed_over_ground_data);
-					strcat(mqtt_data_buf, number_buf);
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", speed_over_ground_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
-				strcat(mqtt_data_buf, ",");
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
 				
 				// boat speed
 				if (time_ms - boat_data_reception_time.boat_speed_received_time < BOAT_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.boat_speed_received_time > time_ms)
 				{
-					snprintf(number_buf, sizeof(number_buf), "%.1f", boat_speed_data);
-					strcat(mqtt_data_buf, number_buf);
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", boat_speed_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
-				strcat(mqtt_data_buf, ",");
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
 
 				// log
 				if (time_ms - boat_data_reception_time.total_distance_received_time < TOTAL_DISTANCE_MAX_DATA_AGE_MS || boat_data_reception_time.total_distance_received_time > time_ms)
 				{
-					snprintf(number_buf, sizeof(number_buf), "%u", (unsigned int)total_distance_data);
-					strcat(mqtt_data_buf, number_buf);
+					(void)snprintf(number_buf, sizeof(number_buf), "%u", (unsigned int)total_distance_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
-				strcat(mqtt_data_buf, ",");
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
 
 				// trip
 				if (time_ms - boat_data_reception_time.trip_received_time < TRIP_MAX_DATA_AGE_MS || boat_data_reception_time.trip_received_time > time_ms)
 				{
-					snprintf(number_buf, sizeof(number_buf), "%.1f", trip_data);
-					strcat(mqtt_data_buf, number_buf);
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", trip_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
-				strcat(mqtt_data_buf, ",");
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
 
 				// heading
 				if (time_ms - boat_data_reception_time.heading_true_received_time < HEADING_TRUE_MAX_DATA_AGE_MS || boat_data_reception_time.heading_true_received_time > time_ms)
 				{
-					snprintf(number_buf, sizeof(number_buf), "%u", (unsigned int)heading_true_data);
-					strcat(mqtt_data_buf, number_buf);
+					(void)snprintf(number_buf, sizeof(number_buf), "%u", (unsigned int)heading_true_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
-				strcat(mqtt_data_buf, ",");
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
 
 				// depth
 				if (time_ms - boat_data_reception_time.depth_received_time < DEPTH_MAX_DATA_AGE_MS || boat_data_reception_time.depth_received_time > time_ms)
 				{
-					snprintf(number_buf, sizeof(number_buf), "%.1f", depth_data);
-					strcat(mqtt_data_buf, number_buf);
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", depth_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
-				strcat(mqtt_data_buf, ",");
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
 								
 				// tws
 				if (time_ms - boat_data_reception_time.true_wind_speed_received_time < TRUE_WIND_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.true_wind_speed_received_time > time_ms)
 				{
-					snprintf(number_buf, sizeof(number_buf), "%.1f", true_wind_speed_data);
-					strcat(mqtt_data_buf, number_buf);
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", true_wind_speed_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
-				strcat(mqtt_data_buf, ",");
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
 
 				// twa
 				if (time_ms - boat_data_reception_time.true_wind_angle_received_time < TRUE_WIND_ANGLE_MAX_DATA_AGE_MS || boat_data_reception_time.true_wind_angle_received_time > time_ms)
 				{
-					snprintf(number_buf, sizeof(number_buf), "%.1f", true_wind_angle_data);
-					strcat(mqtt_data_buf, number_buf);
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", true_wind_angle_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
-				strcat(mqtt_data_buf, ",");
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
 
 				// aws
 				if (time_ms - boat_data_reception_time.apparent_wind_speed_received_time < APPARENT_WIND_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.apparent_wind_speed_received_time > time_ms)
 				{
-					snprintf(number_buf, sizeof(number_buf), "%.1f", apparent_wind_speed_data);
-					strcat(mqtt_data_buf, number_buf);
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", apparent_wind_speed_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
-				strcat(mqtt_data_buf, ",");
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
 
 				// awa
 				if (time_ms - boat_data_reception_time.apparent_wind_angle_received_time < APPARENT_WIND_ANGLE_MAX_DATA_AGE_MS || boat_data_reception_time.apparent_wind_angle_received_time > time_ms)
 				{
-					snprintf(number_buf, sizeof(number_buf), "%.1f", apparent_wind_angle_data);
-					strcat(mqtt_data_buf, number_buf);
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", apparent_wind_angle_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
-				strcat(mqtt_data_buf, ",");
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");
 				
 				// latitude
 				if (time_ms - boat_data_reception_time.latitude_received_time < LATITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.latitude_received_time > time_ms)
 				{
-					snprintf(number_buf, sizeof(number_buf), "%.8f", latitude_data);
-					strcat(mqtt_data_buf, number_buf);
+					(void)snprintf(number_buf, sizeof(number_buf), "%.8f", latitude_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
-				strcat(mqtt_data_buf, ",");				
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");				
 				
 				// longitude
 				if (time_ms - boat_data_reception_time.longitude_received_time < LONGITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.longitude_received_time > time_ms)
 				{
-					snprintf(number_buf, sizeof(number_buf), "%.8f", longitude_data);
-					strcat(mqtt_data_buf, number_buf);
+					(void)snprintf(number_buf, sizeof(number_buf), "%.8f", longitude_data);
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
 
 				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);									
@@ -412,7 +412,7 @@ void boat_iot_task(void *parameters)
 				}					
 			}				
 			
-			if (settings_get_period_s() > MQTT_SHUTDOWN_PERIOD_S)
+			if (settings_get_publishing_period_s() > MQTT_SHUTDOWN_PERIOD_S)
 			{
 				close_mqtt_connection();
 			}
@@ -434,7 +434,7 @@ void boat_iot_task(void *parameters)
 			}			
 		}
 		
-		for (i = 0UL; i < settings_get_period_s(); i++)
+		for (i = 0UL; i < settings_get_publishing_period_s(); i++)
 		{
 			if (sms_check_for_new(&sms_id))
 			{
@@ -452,9 +452,15 @@ void boat_iot_task(void *parameters)
 				modem_status = ModemSmsDeleteAllMessages(25000UL);
 				ESP_LOGI(pcTaskGetName(NULL), "Delete all SMS messages %s", ModemStatusToText(modem_status));	
 
-				if (settings_get_restart_needed())
+				if (settings_get_reboot_needed())
 				{
 					esp_restart();
+				}
+				
+				if (settings_get_publishing_start_needed())
+				{
+					settings_set_publishing_start_needed(false);
+					break;
 				}
 			}
 
@@ -470,8 +476,9 @@ static bool config_parser_callback(char *key, char *value)
 	uint32_t period;
 	uint32_t time_ms;
 	char number_buf[20];
+	char started_stopped_buf[8];
 	
-	if (!key || !value)
+	if (key == NULL || value == NULL)
 	{
 		return false;
 	}
@@ -483,7 +490,7 @@ static bool config_parser_callback(char *key, char *value)
 		ESP_LOGI(pcTaskGetName(NULL), "Property apn=%s", value);	
 		settings_set_apn(value);
 		settings_save();
-		settings_set_restart_needed(true);
+		settings_set_reboot_needed(true);
 		found = true;
 	}
 	else if (strcmp(key, "USER") == 0)
@@ -491,7 +498,7 @@ static bool config_parser_callback(char *key, char *value)
 		ESP_LOGI(pcTaskGetName(NULL), "Property user=%s", value);	
 		settings_set_apn_user_name(value);
 		settings_save();
-		settings_set_restart_needed(true);		
+		settings_set_reboot_needed(true);		
 		found = true;
 	}
 	else if (strcmp(key, "PASS") == 0)
@@ -499,7 +506,7 @@ static bool config_parser_callback(char *key, char *value)
 		ESP_LOGI(pcTaskGetName(NULL), "Property password=%s", value);	
 		settings_set_apn_password(value);
 		settings_save();
-		settings_set_restart_needed(true);
+		settings_set_reboot_needed(true);
 		found = true;
 	}	
 	else if (strcmp(key, "BROKER") == 0)
@@ -507,7 +514,7 @@ static bool config_parser_callback(char *key, char *value)
 		ESP_LOGI(pcTaskGetName(NULL), "Property broker=%s", value);	
 		settings_set_mqtt_broker_address(value);
 		settings_save();
-		settings_set_restart_needed(true);
+		settings_set_reboot_needed(true);
 		found = true;
 	}	
 	else if (strcmp(key, "PORT") == 0)
@@ -515,7 +522,7 @@ static bool config_parser_callback(char *key, char *value)
 		ESP_LOGI(pcTaskGetName(NULL), "Property port=%s", value);	
 		settings_set_mqtt_broker_port(atoi(value));
 		settings_save();
-		settings_set_restart_needed(false);
+		settings_set_reboot_needed(false);
 		found = true;
 	}	
 	else if (strcmp(key, "PERIOD") == 0)
@@ -525,7 +532,7 @@ static bool config_parser_callback(char *key, char *value)
 		{
 			if (period >= 5UL)
 			{
-				settings_set_period_s(period);		
+				settings_set_publishing_period_s(period);		
 				settings_save();
 			}
 		}
@@ -534,22 +541,20 @@ static bool config_parser_callback(char *key, char *value)
 	else if (strcmp(key, "SETTINGS") == 0)
 	{
 		ESP_LOGI(pcTaskGetName(NULL), "Command settings");	
-		
-		char started_stopped_buf[8];
-		
-		if (settings_get_boat_iot_started())
+				
+		if (settings_get_publishing_started())
 		{
-			strcpy(started_stopped_buf, "Started");
+			(void)util_safe_strcpy(started_stopped_buf, sizeof(started_stopped_buf), "Started");
 		}
 		else
 		{
-			strcpy(started_stopped_buf, "Stopped");
+			(void)util_safe_strcpy(started_stopped_buf, sizeof(started_stopped_buf), "Stopped");
 		}
 		
-		snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "APN=%s\nUser=%s\nPass=%s\nBroker=%s\nPort=%u\nPeriod=%s\n%s",
+		(void)snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "APN=%s\nUser=%s\nPass=%s\nBroker=%s\nPort=%u\nPeriod=%s\n%s",
 			settings_get_apn(), settings_get_apn_user_name(), settings_get_apn_password(),
 			settings_get_mqtt_broker_address(), (uint32_t)settings_get_mqtt_broker_port(),
-			util_seconds_to_hms(settings_get_period_s()), started_stopped_buf);
+			util_seconds_to_hms(settings_get_publishing_period_s()), started_stopped_buf);
 		(void)sms_send(message_text, settings_get_phone_number());		
 		found = true;			
 	}
@@ -557,7 +562,7 @@ static bool config_parser_callback(char *key, char *value)
 	{
 		ESP_LOGI(pcTaskGetName(NULL), "Command code");	
 		
-		snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "Code=%08X", settings_get_code());
+		(void)snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "Code=%08X", settings_get_code());
 		(void)sms_send(message_text, settings_get_phone_number());		
 		found = true;
 	}	
@@ -565,7 +570,8 @@ static bool config_parser_callback(char *key, char *value)
 	{
 		ESP_LOGI(pcTaskGetName(NULL), "Command start");	
 		
-		settings_set_boat_iot_started(true);
+		settings_set_publishing_started(true);
+		settings_set_publishing_start_needed(true);
 		(void)sms_send("Started", settings_get_phone_number());				
 		found = true;					
 	}	
@@ -573,7 +579,7 @@ static bool config_parser_callback(char *key, char *value)
 	{
 		ESP_LOGI(pcTaskGetName(NULL), "Command stop");	
 		
-		settings_set_boat_iot_started(false);
+		settings_set_publishing_started(false);
 		(void)sms_send("Stopped", settings_get_phone_number());				
 		found = true;		
 	}	
@@ -581,7 +587,7 @@ static bool config_parser_callback(char *key, char *value)
 	{
 		ESP_LOGI(pcTaskGetName(NULL), "Command restart");	
 		
-		settings_set_restart_needed(true);
+		settings_set_reboot_needed(true);
 		(void)sms_send("Restarting", settings_get_phone_number());				
 		found = true;		
 	}	
@@ -593,11 +599,11 @@ static bool config_parser_callback(char *key, char *value)
 		if ((time_ms - boat_data_reception_time.latitude_received_time < LATITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.latitude_received_time > time_ms) &&
 				(time_ms - boat_data_reception_time.longitude_received_time < LONGITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.longitude_received_time > time_ms))
 		{
-			snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "maps.google.com/maps?t=k&q=loc:%.8f+%.8f", latitude_data, longitude_data);
+			(void)snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "maps.google.com/maps?t=k&q=loc:%.8f+%.8f", latitude_data, longitude_data);
 		}
 		else
 		{
-			snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "Position not available");
+			(void)snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "Position not available");
 		}
 			
 		(void)sms_send(message_text, settings_get_phone_number());				
@@ -614,138 +620,138 @@ static bool config_parser_callback(char *key, char *value)
 		// depth
 		if (time_ms - boat_data_reception_time.depth_received_time < DEPTH_MAX_DATA_AGE_MS || boat_data_reception_time.depth_received_time > time_ms)
 		{
-			snprintf(number_buf, sizeof(number_buf), "Depth=%0.1f m\n", depth_data);
+			(void)snprintf(number_buf, sizeof(number_buf), "Depth=%0.1f m\n", depth_data);
 		}
 		else
 		{
-			snprintf(number_buf, sizeof(number_buf), "Depth=?\n");
+			(void)snprintf(number_buf, sizeof(number_buf), "Depth=?\n");
 		}
-		safe_strcat(message_text, sizeof(message_text), number_buf);		
+		(void)util_safe_strcat(message_text, sizeof(message_text), number_buf);		
 		
 		// boat speed
 		if (time_ms - boat_data_reception_time.boat_speed_received_time < BOAT_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.boat_speed_received_time > time_ms)
 		{
-			snprintf(number_buf, sizeof(number_buf), "Boatspeed=%0.1f kt\n", boat_speed_data);
+			(void)snprintf(number_buf, sizeof(number_buf), "Boatspeed=%0.1f kt\n", boat_speed_data);
 		}		
 		else
 		{
-			snprintf(number_buf, sizeof(number_buf), "Boatspeed=?\n");
+			(void)snprintf(number_buf, sizeof(number_buf), "Boatspeed=?\n");
 		}
-		safe_strcat(message_text, sizeof(message_text), number_buf);	
+		(void)util_safe_strcat(message_text, sizeof(message_text), number_buf);	
 		
 		// heading
 		if (time_ms - boat_data_reception_time.heading_true_received_time < HEADING_TRUE_MAX_DATA_AGE_MS || boat_data_reception_time.heading_true_received_time > time_ms)
 		{
-			snprintf(number_buf, sizeof(number_buf), "Heading=%u T\n", (unsigned int)heading_true_data);
+			(void)snprintf(number_buf, sizeof(number_buf), "Heading=%u T\n", (unsigned int)heading_true_data);
 		}		
 		else
 		{
-			snprintf(number_buf, sizeof(number_buf), "Heading=?\n");
+			(void)snprintf(number_buf, sizeof(number_buf), "Heading=?\n");
 		}
-		safe_strcat(message_text, sizeof(message_text), number_buf);			
+		(void)util_safe_strcat(message_text, sizeof(message_text), number_buf);			
 		
 		// trip
 		if (time_ms - boat_data_reception_time.trip_received_time < TRIP_MAX_DATA_AGE_MS || boat_data_reception_time.trip_received_time > time_ms)
 		{
-			snprintf(number_buf, sizeof(number_buf), "Trip=%0.1f Nm\n", trip_data);
+			(void)snprintf(number_buf, sizeof(number_buf), "Trip=%0.1f Nm\n", trip_data);
 		}		
 		else
 		{
-			snprintf(number_buf, sizeof(number_buf), "Trip=?\n");
+			(void)snprintf(number_buf, sizeof(number_buf), "Trip=?\n");
 		}
-		safe_strcat(message_text, sizeof(message_text), number_buf);			
+		(void)util_safe_strcat(message_text, sizeof(message_text), number_buf);			
 		
 
 		// log
 		if (time_ms - boat_data_reception_time.total_distance_received_time < TOTAL_DISTANCE_MAX_DATA_AGE_MS || boat_data_reception_time.total_distance_received_time > time_ms)
 		{
-			snprintf(number_buf, sizeof(number_buf), "Log=%u Nm\n", (unsigned int)total_distance_data);
+			(void)snprintf(number_buf, sizeof(number_buf), "Log=%u Nm\n", (unsigned int)total_distance_data);
 		}
 		else
 		{
-			snprintf(number_buf, sizeof(number_buf), "Log=?\n");
+			(void)snprintf(number_buf, sizeof(number_buf), "Log=?\n");
 		}
-		safe_strcat(message_text, sizeof(message_text), number_buf);			
+		(void)util_safe_strcat(message_text, sizeof(message_text), number_buf);			
 		
 
 		// sog
 		if (time_ms - boat_data_reception_time.speed_over_ground_received_time < SOG_MAX_DATA_AGE_MS || boat_data_reception_time.speed_over_ground_received_time > time_ms)
 		{
-			snprintf(number_buf, sizeof(number_buf), "SOG=%0.1f kt\n", speed_over_ground_data);
+			(void)snprintf(number_buf, sizeof(number_buf), "SOG=%0.1f kt\n", speed_over_ground_data);
 		}
 		else
 		{
-			snprintf(number_buf, sizeof(number_buf), "SOG=?\n");
+			(void)snprintf(number_buf, sizeof(number_buf), "SOG=?\n");
 		}
-		safe_strcat(message_text, sizeof(message_text), number_buf);	
+		(void)util_safe_strcat(message_text, sizeof(message_text), number_buf);	
 
 		// cog
 		if (time_ms - boat_data_reception_time.course_over_ground_received_time < COG_MAX_DATA_AGE_MS || boat_data_reception_time.course_over_ground_received_time > time_ms)
 		{
-			snprintf(number_buf, sizeof(number_buf), "COG=%hu T\n", course_over_ground_data);
+			(void)snprintf(number_buf, sizeof(number_buf), "COG=%hu T\n", course_over_ground_data);
 		}
 		else
 		{
-			snprintf(number_buf, sizeof(number_buf), "COG=?\n");
+			(void)snprintf(number_buf, sizeof(number_buf), "COG=?\n");
 		}
-		safe_strcat(message_text, sizeof(message_text), number_buf);	
+		(void)util_safe_strcat(message_text, sizeof(message_text), number_buf);	
 
 		// temperature
 		if (time_ms - boat_data_reception_time.seawater_temperature_received_time < TEMPERATURE_MAX_DATA_AGE_MS || boat_data_reception_time.seawater_temperature_received_time > time_ms)
 		{
-			snprintf(number_buf, sizeof(number_buf), "Temp=%0.1f C\n", seawater_temeperature_data);
+			(void)snprintf(number_buf, sizeof(number_buf), "Temp=%0.1f C\n", seawater_temeperature_data);
 		}
 		else
 		{
-			snprintf(number_buf, sizeof(number_buf), "Temp=?\n");
+			(void)snprintf(number_buf, sizeof(number_buf), "Temp=?\n");
 		}
-		safe_strcat(message_text, sizeof(message_text), number_buf);	
+		(void)util_safe_strcat(message_text, sizeof(message_text), number_buf);	
 
 		// tws
 		if (time_ms - boat_data_reception_time.true_wind_speed_received_time < TRUE_WIND_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.true_wind_speed_received_time > time_ms)
 		{
-			snprintf(number_buf, sizeof(number_buf), "TWS=%0.1f kt\n", true_wind_speed_data);
+			(void)snprintf(number_buf, sizeof(number_buf), "TWS=%0.1f kt\n", true_wind_speed_data);
 		}
 		else
 		{
-			snprintf(number_buf, sizeof(number_buf), "TWS=?\n");
+			(void)snprintf(number_buf, sizeof(number_buf), "TWS=?\n");
 		}
-		safe_strcat(message_text, sizeof(message_text), number_buf);			
+		(void)util_safe_strcat(message_text, sizeof(message_text), number_buf);			
 		
 		// twa
 		if (time_ms - boat_data_reception_time.true_wind_angle_received_time < TRUE_WIND_ANGLE_MAX_DATA_AGE_MS || boat_data_reception_time.true_wind_angle_received_time > time_ms)
 		{
-			snprintf(number_buf, sizeof(number_buf), "TWA=%0.1f\n", true_wind_angle_data);
+			(void)snprintf(number_buf, sizeof(number_buf), "TWA=%0.1f\n", true_wind_angle_data);
 		}
 		else
 		{
-			snprintf(number_buf, sizeof(number_buf), "TWA=?\n");
+			(void)snprintf(number_buf, sizeof(number_buf), "TWA=?\n");
 		}
-		safe_strcat(message_text, sizeof(message_text), number_buf);			
+		(void)util_safe_strcat(message_text, sizeof(message_text), number_buf);			
 		
 
 		// aws
 		if (time_ms - boat_data_reception_time.apparent_wind_speed_received_time < APPARENT_WIND_SPEED_MAX_DATA_AGE_MS || boat_data_reception_time.apparent_wind_speed_received_time > time_ms)
 		{
-			snprintf(number_buf, sizeof(number_buf), "AWS=%.1f kt\n", apparent_wind_speed_data);
+			(void)snprintf(number_buf, sizeof(number_buf), "AWS=%.1f kt\n", apparent_wind_speed_data);
 		}
 		else
 		{
-			snprintf(number_buf, sizeof(number_buf), "AWS=?\n");
+			(void)snprintf(number_buf, sizeof(number_buf), "AWS=?\n");
 		}
-		safe_strcat(message_text, sizeof(message_text), number_buf);			
+		(void)util_safe_strcat(message_text, sizeof(message_text), number_buf);			
 		
 
 		// awa
 		if (time_ms - boat_data_reception_time.apparent_wind_angle_received_time < APPARENT_WIND_ANGLE_MAX_DATA_AGE_MS || boat_data_reception_time.apparent_wind_angle_received_time > time_ms)
 		{
-			snprintf(number_buf, sizeof(number_buf), "AWA=%.1f\n", apparent_wind_angle_data);
+			(void)snprintf(number_buf, sizeof(number_buf), "AWA=%.1f\n", apparent_wind_angle_data);
 		}		
 		else
 		{
-			snprintf(number_buf, sizeof(number_buf), "AWA=?\n");
+			(void)snprintf(number_buf, sizeof(number_buf), "AWA=?\n");
 		}
-		safe_strcat(message_text, sizeof(message_text), number_buf);			
+		(void)util_safe_strcat(message_text, sizeof(message_text), number_buf);			
 
 		(void)sms_send(message_text, settings_get_phone_number());				
 		found = true;		

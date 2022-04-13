@@ -34,6 +34,7 @@ SOFTWARE.
 #include "settings.h"
 #include "flash.h"
 #include "modem.h"
+#include "util.h"
 
 /****************
 *** CONSTANTS ***
@@ -72,6 +73,7 @@ typedef struct
 	char phone_number[MODEM_MAX_PHONE_NUMBER_LENGTH + 1];
 	bool boat_iot_started;
 	bool restart_needed;
+	bool publishing_start_needed;
 } settings_volatile_t;
 
 /***********************
@@ -111,20 +113,21 @@ void settings_init(void)
 	flash_load_data((uint8_t *)&settings_non_volatile, sizeof(settings_non_volatile_t));
     if (settings_non_volatile.signature != SIGNATURE)
     {
-        memset(&settings_non_volatile, 0, sizeof(settings_non_volatile_t));
+        (void)memset(&settings_non_volatile, 0, sizeof(settings_non_volatile_t));
         settings_non_volatile.signature = SIGNATURE;
         settings_non_volatile.device_address = SETTINGS_DEFAULT_CAN_DEVICE_ADDRESS;
-		strcpy(settings_non_volatile.apn, SETTINGS_DEFAULT_APN);
-		strcpy(settings_non_volatile.apn_user_name, SETTINGS_DEFAULT_APN_USER_NAME);
-		strcpy(settings_non_volatile.apn_password, SETTINGS_DEFAULT_APN_PASSWORD);		
-		strcpy(settings_non_volatile.mqtt_broker_address, SETTINGS_DEFAULT_MQTT_BROKER_ADDRESS);
+		(void)util_safe_strcpy(settings_non_volatile.apn, sizeof(settings_non_volatile.apn), SETTINGS_DEFAULT_APN);
+		(void)util_safe_strcpy(settings_non_volatile.apn_user_name, sizeof(settings_non_volatile.apn_user_name), SETTINGS_DEFAULT_APN_USER_NAME);
+		(void)util_safe_strcpy(settings_non_volatile.apn_password, sizeof(settings_non_volatile.apn_password), SETTINGS_DEFAULT_APN_PASSWORD);		
+		(void)util_safe_strcpy(settings_non_volatile.mqtt_broker_address, sizeof(settings_non_volatile.mqtt_broker_address), SETTINGS_DEFAULT_MQTT_BROKER_ADDRESS);
 		settings_non_volatile.mqtt_broker_port = SETTINGS_DEFAULT_MQTT_BROKER_PORT;
  		settings_non_volatile.period_s = SETTINGS_DEFAULT_MQTT_PUBLISH_PERIOD;
-		flash_store_data((uint8_t *)&settings_non_volatile, sizeof(settings_non_volatile_t));        
+		flash_store_data((const uint8_t *)&settings_non_volatile, sizeof(settings_non_volatile_t));        
     }
 	
 	settings_volatile.boat_iot_started = SETTINGS_DEFAULT_MQTT_PUBLISH_START_ON_BOOT;
 	settings_volatile.restart_needed = false;
+	settings_volatile.publishing_start_needed = false;
 	settings_volatile.code = 0UL;
 }
 
@@ -143,7 +146,7 @@ void settings_set_device_address(uint8_t device_address)
 void settings_save(void)
 {
 	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);	
-	flash_store_data((uint8_t *)&settings_non_volatile, sizeof(settings_non_volatile_t));	
+	flash_store_data((const uint8_t *)&settings_non_volatile, sizeof(settings_non_volatile_t));	
 	xSemaphoreGive(settings_mutex_handle);	
 }
 
@@ -154,11 +157,11 @@ const char *settings_get_apn(void)
 	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);	
 	if (settings_non_volatile.apn[0] == '\0')
 	{
-		strcpy(apn, "not set");
+		(void)util_safe_strcpy(apn, sizeof(apn), "not set");
 	}
 	else
 	{
-		strcpy(apn, settings_non_volatile.apn);
+		(void)util_safe_strcpy(apn, sizeof(apn), settings_non_volatile.apn);
 	}
 	xSemaphoreGive(settings_mutex_handle);		
 	
@@ -170,7 +173,7 @@ void settings_set_apn(const char *apn)
 	if (strlen(apn) <= MODEM_MAX_APN_LENGTH)
 	{
 		xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
-		strcpy(settings_non_volatile.apn, apn);
+		(void)strcpy(settings_non_volatile.apn, apn);			// safe strcpy
 		xSemaphoreGive(settings_mutex_handle);	
 	}
 }
@@ -182,11 +185,11 @@ const char *settings_get_apn_user_name(void)
 	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);	
 	if (settings_non_volatile.apn_user_name[0] == '\0')
 	{
-		strcpy(apn_user_name, "not set");
+		(void)util_safe_strcpy(apn_user_name, sizeof(apn_user_name), "not set");
 	}
 	else
 	{
-		strcpy(apn_user_name, settings_non_volatile.apn_user_name);
+		(void)util_safe_strcpy(apn_user_name, sizeof(apn_user_name), settings_non_volatile.apn_user_name);
 	}
 	xSemaphoreGive(settings_mutex_handle);		
 	
@@ -198,7 +201,7 @@ void settings_set_apn_user_name(const char *apn_user_name)
 	if (strlen(apn_user_name) <= MODEM_MAX_USERNAME_LENGTH)
 	{
 		xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
-		strcpy(settings_non_volatile.apn_user_name, apn_user_name);
+		(void)strcpy(settings_non_volatile.apn_user_name, apn_user_name);		// safe strcpy
 		xSemaphoreGive(settings_mutex_handle);	
 	}	
 }
@@ -210,11 +213,11 @@ const char *settings_get_apn_password(void)
 	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);	
 	if (settings_non_volatile.apn_password[0] == '\0')
 	{
-		strcpy(apn_password, "not set");
+		(void)util_safe_strcpy(apn_password, sizeof(apn_password), "not set");
 	}
 	else
 	{
-		strcpy(apn_password, settings_non_volatile.apn_password);
+		(void)util_safe_strcpy(apn_password, sizeof(apn_password), settings_non_volatile.apn_password);
 	}
 	xSemaphoreGive(settings_mutex_handle);	
 
@@ -226,7 +229,7 @@ void settings_set_apn_password(const char *apn_password)
 	if (strlen(apn_password) <= MODEM_MAX_PASSWORD_LENGTH)
 	{
 		xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);	
-		strcpy(settings_non_volatile.apn_password, apn_password);
+		(void)strcpy(settings_non_volatile.apn_password, apn_password);		// safe strcpy
 		xSemaphoreGive(settings_mutex_handle);	
 	}	
 }
@@ -238,11 +241,11 @@ const char *settings_get_mqtt_broker_address(void)
 	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);	
 	if (settings_non_volatile.mqtt_broker_address[0] == '\0')
 	{
-		strcpy(mqtt_broker_address, "not set");
+		(void)util_safe_strcpy(mqtt_broker_address, sizeof(mqtt_broker_address), "not set");
 	}
 	else
 	{	
-		strcpy(mqtt_broker_address, settings_non_volatile.mqtt_broker_address);
+		(void)util_safe_strcpy(mqtt_broker_address, sizeof(mqtt_broker_address), settings_non_volatile.mqtt_broker_address);
 	}
 	xSemaphoreGive(settings_mutex_handle);		
 	
@@ -254,7 +257,7 @@ void settings_set_mqtt_broker_address(const char *mqtt_broker_address)
 	if (strlen(mqtt_broker_address) <= SETTINGS_MQTT_BROKER_ADDRESS_MAX_LENGTH)
 	{
 		xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
-		strcpy(settings_non_volatile.mqtt_broker_address, mqtt_broker_address);
+		(void)strcpy(settings_non_volatile.mqtt_broker_address, mqtt_broker_address);		// safe strcpy
 		xSemaphoreGive(settings_mutex_handle);	
 	}	
 }
@@ -302,11 +305,11 @@ const char *settings_get_phone_number(void)
 	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);	
 	if (settings_volatile.phone_number[0] == '\0')
 	{
-		strcpy(phone_number, "not set");
+		(void)util_safe_strcpy(phone_number, sizeof(phone_number), "not set");
 	}
 	else
 	{	
-		strcpy(phone_number, settings_volatile.phone_number);
+		(void)util_safe_strcpy(phone_number, sizeof(phone_number), settings_volatile.phone_number);
 	}
 	xSemaphoreGive(settings_mutex_handle);		
 	
@@ -318,12 +321,12 @@ void settings_set_phone_number(const char *phone_number)
 	if (strlen(phone_number) <= MODEM_MAX_PHONE_NUMBER_LENGTH)
 	{
 		xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
-		strcpy(settings_volatile.phone_number, phone_number);
+		(void)strcpy(settings_volatile.phone_number, phone_number);		// safe strcpy
 		xSemaphoreGive(settings_mutex_handle);	
 	}	
 }
 
-bool settings_get_boat_iot_started(void)
+bool settings_get_publishing_started(void)
 {
 	bool boat_iot_started;
 	
@@ -334,14 +337,14 @@ bool settings_get_boat_iot_started(void)
 	return boat_iot_started;
 }
 
-void settings_set_boat_iot_started(bool boat_iot_started)
+void settings_set_publishing_started(bool boat_iot_started)
 {
 	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
 	settings_volatile.boat_iot_started = boat_iot_started;
 	xSemaphoreGive(settings_mutex_handle);	
 }
 
-bool settings_get_restart_needed(void)
+bool settings_get_reboot_needed(void)
 {
 	bool restart_needed;
 	
@@ -352,14 +355,14 @@ bool settings_get_restart_needed(void)
 	return restart_needed;
 }
 
-void settings_set_restart_needed(bool restart_needed)
+void settings_set_reboot_needed(bool restart_needed)
 {
 	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
 	settings_volatile.restart_needed = restart_needed;
 	xSemaphoreGive(settings_mutex_handle);	
 }
 
-uint32_t settings_get_period_s(void)
+uint32_t settings_get_publishing_period_s(void)
 {
 	uint32_t period_s;
 	
@@ -370,9 +373,27 @@ uint32_t settings_get_period_s(void)
 	return period_s;
 }
 
-void settings_set_period_s(uint32_t period_s)
+void settings_set_publishing_period_s(uint32_t period_s)
 {
 	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
 	settings_non_volatile.period_s = period_s;
 	xSemaphoreGive(settings_mutex_handle);		
+}
+
+bool settings_get_publishing_start_needed(void)
+{
+	bool publishing_start_needed;
+	
+	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
+	publishing_start_needed = settings_volatile.publishing_start_needed;
+	xSemaphoreGive(settings_mutex_handle);	
+	
+	return publishing_start_needed;
+}
+
+void settings_set_publishing_start_needed(bool publishing_start_needed)
+{
+	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
+	settings_volatile.publishing_start_needed = publishing_start_needed;
+	xSemaphoreGive(settings_mutex_handle);	
 }

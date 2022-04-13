@@ -69,7 +69,7 @@ static const char *create_checksum(char *message);
 static bool verify_checksum(char *message);
 static nmea_error_t send_data(uint8_t port, uint16_t data_size, uint8_t *data, uint16_t *data_sent);
 static uint16_t receive_data(uint8_t port, uint16_t buffer_length, uint8_t *data);
-static bool safe_strcat(char *dest, size_t size, const char *src);
+static bool util_safe_strcat(char *dest, size_t size, const char *src);
 static bool check_received_message(char *message_data, uint8_t min_commas, uint8_t max_commas);
 
 // map of nmea message headers to types - receive message types only
@@ -891,12 +891,12 @@ nmea_error_t nmea_encode_DPT(char *message_data, const void *source)
     if (source_DPT->data_available & NMEA_DPT_DEPTH_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_DPT->depth), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -904,12 +904,12 @@ nmea_error_t nmea_encode_DPT(char *message_data, const void *source)
     if (source_DPT->data_available & NMEA_DPT_DEPTH_OFFSET_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_DPT->depth_offset), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -917,7 +917,7 @@ nmea_error_t nmea_encode_DPT(char *message_data, const void *source)
 	if (source_DPT->data_available & NMEA_DPT_DEPTH_MAX_RANGE_PRESENT)
 	{
 		next_field_data = my_ftoa((float)(source_DPT->depth_maximum_range), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
@@ -946,12 +946,12 @@ nmea_error_t nmea_encode_HDM(char *message_data, const void *source)
     if (source_HDM->data_available & NMEA_HDM_MAG_HEADING_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_HDM->magnetic_heading), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",M"))
+    if (!util_safe_strcat(message_data, max_message_length, ",M"))
     {
     	return nmea_error_message;
     }
@@ -979,12 +979,12 @@ nmea_error_t nmea_encode_HDT(char *message_data, const void *source)
     if (source_HDT->data_available & NMEA_HDT_TRUE_HEADING_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_HDT->true_heading), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",T"))
+    if (!util_safe_strcat(message_data, max_message_length, ",T"))
     {
     	return nmea_error_message;
     }
@@ -1012,12 +1012,12 @@ nmea_error_t nmea_encode_MTW(char *message_data, const void *source)
     if (source_MTW->data_available & NMEA_MTW_WATER_TEMPERATURE_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MTW->water_temperature), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",C"))
+    if (!util_safe_strcat(message_data, max_message_length, ",C"))
     {
     	return nmea_error_message;
     }
@@ -1075,11 +1075,11 @@ nmea_error_t nmea_encode_XDR(char *message_data, const void *source)
         (void)strcat(message_data, ",");
 
         next_field_data = my_ftoa((float)(source_XDR->measurements[tuple].measurement), source_XDR->measurements[tuple].decimal_places, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
-        if (!safe_strcat(message_data, max_message_length, ","))
+        if (!util_safe_strcat(message_data, max_message_length, ","))
         {
         	return nmea_error_message;
         }
@@ -1093,7 +1093,7 @@ nmea_error_t nmea_encode_XDR(char *message_data, const void *source)
         message_data[length + (size_t)1] = '\0';
         (void)strcat(message_data, ",");
 
-        if (!safe_strcat(message_data, max_message_length, source_XDR->measurements[tuple].transducer_id))
+        if (!util_safe_strcat(message_data, max_message_length, source_XDR->measurements[tuple].transducer_id))
         {
         	return nmea_error_message;
         }
@@ -1122,12 +1122,12 @@ nmea_error_t nmea_encode_VLW(char *message_data, const void *source)
     if (source_VLW->data_available & NMEA_VLW_TOTAL_WATER_DISTANCE_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_VLW->total_water_distance), 2U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",N,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",N,"))
     {
     	return nmea_error_message;
     }
@@ -1135,12 +1135,12 @@ nmea_error_t nmea_encode_VLW(char *message_data, const void *source)
     if (source_VLW->data_available & NMEA_VLW_TRIP_WATER_DISTANCE_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_VLW->trip_water_distance), 2U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",N,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",N,"))
     {
     	return nmea_error_message;
     }
@@ -1148,12 +1148,12 @@ nmea_error_t nmea_encode_VLW(char *message_data, const void *source)
 	if (source_VLW->data_available & NMEA_VLW_TOTAL_GROUND_DISTANCE_PRESENT)
 	{
 		next_field_data = my_ftoa((float)(source_VLW->total_ground_distance), 2U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
 	}
-    if (!safe_strcat(message_data, max_message_length, ",N,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",N,"))
     {
     	return nmea_error_message;
     }
@@ -1161,12 +1161,12 @@ nmea_error_t nmea_encode_VLW(char *message_data, const void *source)
 	if (source_VLW->data_available & NMEA_VLW_TRIP_GROUND_DISTANCE_PRESENT)
 	{
 		next_field_data = my_ftoa((float)(source_VLW->trip_ground_distance), 2U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
 	}
-    if (!safe_strcat(message_data, max_message_length, ",N"))
+    if (!util_safe_strcat(message_data, max_message_length, ",N"))
     {
     	return nmea_error_message;
     }
@@ -1194,12 +1194,12 @@ nmea_error_t nmea_encode_VHW(char *message_data,  const void *source)
     if (source_VHW->data_available & NMEA_VHW_HEADING_TRUE_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_VHW->heading_true), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",T,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",T,"))
     {
     	return nmea_error_message;
     }
@@ -1207,12 +1207,12 @@ nmea_error_t nmea_encode_VHW(char *message_data,  const void *source)
     if (source_VHW->data_available & NMEA_VHW_HEADING_MAG_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_VHW->heading_magnetic), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",M,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",M,"))
     {
     	return nmea_error_message;
     }
@@ -1220,12 +1220,12 @@ nmea_error_t nmea_encode_VHW(char *message_data,  const void *source)
     if (source_VHW->data_available & NMEA_VHW_WATER_SPEED_KTS_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_VHW->water_speed_knots), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",N,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",N,"))
     {
     	return nmea_error_message;
     }
@@ -1233,12 +1233,12 @@ nmea_error_t nmea_encode_VHW(char *message_data,  const void *source)
     if (source_VHW->data_available & NMEA_VHW_WATER_SPEED_KMPH_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_VHW->water_speed_kmph), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",K"))
+    if (!util_safe_strcat(message_data, max_message_length, ",K"))
     {
     	return nmea_error_message;
     }
@@ -1266,12 +1266,12 @@ nmea_error_t nmea_encode_MWD(char *message_data, const void *source)
     if (source_MWD->data_available & NMEA_MWD_WIND_DIRECTION_TRUE_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MWD->wind_direction_true), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",T,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",T,"))
     {
     	return nmea_error_message;
     }
@@ -1279,12 +1279,12 @@ nmea_error_t nmea_encode_MWD(char *message_data, const void *source)
     if (source_MWD->data_available & NMEA_MWD_WIND_DIRECTION_MAG_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MWD->wind_direction_magnetic), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",M,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",M,"))
     {
     	return nmea_error_message;
     }
@@ -1292,12 +1292,12 @@ nmea_error_t nmea_encode_MWD(char *message_data, const void *source)
     if (source_MWD->data_available & NMEA_MWD_WIND_SPEED_KTS_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MWD->wind_speed_knots), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",N,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",N,"))
     {
     	return nmea_error_message;
     }
@@ -1305,12 +1305,12 @@ nmea_error_t nmea_encode_MWD(char *message_data, const void *source)
     if (source_MWD->data_available & NMEA_MWD_WIND_SPEED_MPS_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MWD->wind_speed_mps), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",M"))
+    if (!util_safe_strcat(message_data, max_message_length, ",M"))
     {
     	return nmea_error_message;
     }
@@ -1339,12 +1339,12 @@ nmea_error_t nmea_encode_MWV(char *message_data, const void *source)
     if (source_MWV->data_available & NMEA_MWV_WIND_ANGLE_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MWV->wind_angle), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1359,7 +1359,7 @@ nmea_error_t nmea_encode_MWV(char *message_data, const void *source)
         message_data[length] = source_MWV->reference;
         message_data[length + (size_t)1] = 0;
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1367,12 +1367,12 @@ nmea_error_t nmea_encode_MWV(char *message_data, const void *source)
     if (source_MWV->data_available & NMEA_MWV_WIND_SPEED_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MWV->wind_speed), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1387,7 +1387,7 @@ nmea_error_t nmea_encode_MWV(char *message_data, const void *source)
         message_data[length] = source_MWV->wind_speed_units;
         message_data[length + (size_t)1] = 0;
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1452,7 +1452,7 @@ nmea_error_t nmea_decode_VDM(char *message_data, nmea_message_data_VDM_t *result
     next_token = my_strtok(NULL, ",");
     if (strlen(next_token) > (size_t)0 && strlen(next_token) <= (size_t)NMEA_VDM_MAX_AIS_DATA_FIELD_LENGTH)
     {
-    	strcpy(result->data, next_token);
+    	(void)strcpy(result->data, next_token);
     	data_available |= NMEA_VDM_DATA_PRESENT;
     }
 
@@ -1489,12 +1489,12 @@ nmea_error_t nmea_encode_VDM(char *message_data, const void *source)
     if (source_VDM->data_available & NMEA_VDM_FRAGMENT_COUNT_PRESENT)
     {
         next_field_data = my_itoa((int32_t)(source_VDM->fragment_count));
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1502,12 +1502,12 @@ nmea_error_t nmea_encode_VDM(char *message_data, const void *source)
     if (source_VDM->data_available & NMEA_VDM_FRAGMENT_NUMBER_PRESENT)
     {
         next_field_data = my_itoa((int32_t)(source_VDM->fragment_number));
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1515,12 +1515,12 @@ nmea_error_t nmea_encode_VDM(char *message_data, const void *source)
     if (source_VDM->data_available & NMEA_VDM_MESSAGE_IDENTIFIER_PRESENT)
     {
         next_field_data = my_itoa((int32_t)(source_VDM->message_identifier));
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1535,19 +1535,19 @@ nmea_error_t nmea_encode_VDM(char *message_data, const void *source)
         message_data[length] = source_VDM->channel_code;
         message_data[length + (size_t)1] = 0;
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
 
     if (source_VDM->data_available & NMEA_VDM_DATA_PRESENT)
     {
-        if (!safe_strcat(message_data, max_message_length, source_VDM->data))
+        if (!util_safe_strcat(message_data, max_message_length, source_VDM->data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1555,7 +1555,7 @@ nmea_error_t nmea_encode_VDM(char *message_data, const void *source)
     if (source_VDM->data_available & NMEA_VDM_FILL_BITS_PRESENT)
     {
         next_field_data = my_itoa((int32_t)(source_VDM->fill_bits));
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
@@ -1702,23 +1702,23 @@ nmea_error_t nmea_encode_RMC(char *message_data, const void *source)
 
     max_message_length = NMEA_MAX_MESSAGE_LENGTH - 5U;
 
-    strcpy(message_data, "$GPRMC,");
+    (void)strcpy(message_data, "$GPRMC,");
 
     if (source_RMC->data_available & NMEA_RMC_UTC_PRESENT)
     {
         if (source_RMC->utc.hours < 24U && source_RMC->utc.minutes < 60U && source_RMC->utc.seconds < 60.0f)
         {
-            snprintf(utc_buffer, sizeof(utc_buffer), "%02u%02u%04.1f",
+            (void)snprintf(utc_buffer, sizeof(utc_buffer), "%02u%02u%04.1f",
                     (unsigned int)(source_RMC->utc.hours),
                     (unsigned int)(source_RMC->utc.minutes),
 					source_RMC->utc.seconds);
-            if (!safe_strcat(message_data, max_message_length, utc_buffer))
+            if (!util_safe_strcat(message_data, max_message_length, utc_buffer))
             {
             	return nmea_error_message;
             }
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1733,7 +1733,7 @@ nmea_error_t nmea_encode_RMC(char *message_data, const void *source)
         message_data[length] = source_RMC->status;
         message_data[length + (size_t)1] = 0;
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1741,12 +1741,12 @@ nmea_error_t nmea_encode_RMC(char *message_data, const void *source)
     if (source_RMC->data_available & NMEA_RMC_LATITUDE_PRESENT)
     {
         next_field_data = my_ftoa(fabsf(source_RMC->latitude), 3U, 4U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1767,7 +1767,7 @@ nmea_error_t nmea_encode_RMC(char *message_data, const void *source)
         	(void)strcat(message_data, "N");
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1775,12 +1775,12 @@ nmea_error_t nmea_encode_RMC(char *message_data, const void *source)
     if (source_RMC->data_available & NMEA_RMC_LONGITUDE_PRESENT)
     {
         next_field_data = my_ftoa(fabsf(source_RMC->longitude), 3U, 5U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1801,7 +1801,7 @@ nmea_error_t nmea_encode_RMC(char *message_data, const void *source)
             strcat(message_data, "E");
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1809,12 +1809,12 @@ nmea_error_t nmea_encode_RMC(char *message_data, const void *source)
     if (source_RMC->data_available & NMEA_RMC_SOG_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_RMC->SOG), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1822,12 +1822,12 @@ nmea_error_t nmea_encode_RMC(char *message_data, const void *source)
     if (source_RMC->data_available & NMEA_RMC_COG_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_RMC->COG), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1836,18 +1836,18 @@ nmea_error_t nmea_encode_RMC(char *message_data, const void *source)
     {
         if (source_RMC->date.date < 32U && source_RMC->date.month < 13U && source_RMC->date.year > 2000U && source_RMC->date.year < 2100U)
         {
-            snprintf(date_buffer, sizeof(date_buffer), "%02u%02u%02u",
+            (void)snprintf(date_buffer, sizeof(date_buffer), "%02u%02u%02u",
                     (unsigned int)(source_RMC->date.date),
                     (unsigned int)(source_RMC->date.month),
                     (unsigned int)(source_RMC->date.year - 2000U));
 
-            if (!safe_strcat(message_data, max_message_length, date_buffer))
+            if (!util_safe_strcat(message_data, max_message_length, date_buffer))
             {
             	return nmea_error_message;
             }
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1855,12 +1855,12 @@ nmea_error_t nmea_encode_RMC(char *message_data, const void *source)
     if (source_RMC->data_available & NMEA_RMC_MAG_VARIATION_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_RMC->magnetic_variation), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1875,7 +1875,7 @@ nmea_error_t nmea_encode_RMC(char *message_data, const void *source)
         message_data[length] = source_RMC->magnetic_variation_direction;
         message_data[length + (size_t)1] = 0;
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -1890,7 +1890,7 @@ nmea_error_t nmea_encode_RMC(char *message_data, const void *source)
 		message_data[length] = source_RMC->mode;
 		message_data[length + (size_t)1] = 0;
 	}
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -2150,17 +2150,17 @@ nmea_error_t nmea_encode_GGA(char *message_data, const void *source)
     {
         if (source_GGA->utc.hours < 24U && source_GGA->utc.minutes < 60U && source_GGA->utc.seconds < 60.0f)
         {
-            snprintf(utc_buffer, sizeof(utc_buffer), "%02u%02u%04.1f",
+            (void)snprintf(utc_buffer, sizeof(utc_buffer), "%02u%02u%04.1f",
                     (unsigned int)(source_GGA->utc.hours),
                     (unsigned int)(source_GGA->utc.minutes),
 					source_GGA->utc.seconds);
-            if (!safe_strcat(message_data, max_message_length, utc_buffer))
+            if (!util_safe_strcat(message_data, max_message_length, utc_buffer))
             {
             	return nmea_error_message;
             }
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -2168,12 +2168,12 @@ nmea_error_t nmea_encode_GGA(char *message_data, const void *source)
     if (source_GGA->data_available & NMEA_GGA_LATITUDE_PRESENT)
     {
         next_field_data = my_ftoa(fabsf(source_GGA->latitude), 3U, 4U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -2194,7 +2194,7 @@ nmea_error_t nmea_encode_GGA(char *message_data, const void *source)
         	(void)strcat(message_data, "N");
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -2202,12 +2202,12 @@ nmea_error_t nmea_encode_GGA(char *message_data, const void *source)
     if (source_GGA->data_available & NMEA_GGA_LONGITUDE_PRESENT)
     {
         next_field_data = my_ftoa(fabsf(source_GGA->longitude),3U ,5U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -2228,7 +2228,7 @@ nmea_error_t nmea_encode_GGA(char *message_data, const void *source)
         	(void)strcat(message_data, "E");
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -2237,14 +2237,14 @@ nmea_error_t nmea_encode_GGA(char *message_data, const void *source)
     {
         if (source_GGA->quality_indicator < 9u)
         {
-            snprintf(number_buffer, sizeof(number_buffer), "%u", (unsigned int)(source_GGA->quality_indicator));
-            if (!safe_strcat(message_data, max_message_length, number_buffer))
+            (void)snprintf(number_buffer, sizeof(number_buffer), "%u", (unsigned int)(source_GGA->quality_indicator));
+            if (!util_safe_strcat(message_data, max_message_length, number_buffer))
             {
             	return nmea_error_message;
             }
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -2253,14 +2253,14 @@ nmea_error_t nmea_encode_GGA(char *message_data, const void *source)
     {
         if (source_GGA->satellites_in_use < 13U)
         {
-            snprintf(number_buffer, sizeof(number_buffer), "%02u", (unsigned int)(source_GGA->satellites_in_use));
-            if (!safe_strcat(message_data, max_message_length, number_buffer))
+            (void)snprintf(number_buffer, sizeof(number_buffer), "%02u", (unsigned int)(source_GGA->satellites_in_use));
+            if (!util_safe_strcat(message_data, max_message_length, number_buffer))
             {
             	return nmea_error_message;
             }
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -2268,12 +2268,12 @@ nmea_error_t nmea_encode_GGA(char *message_data, const void *source)
     if (source_GGA->data_available & NMEA_GGA_HDOP_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_GGA->HDOP), 3U, 0U);		
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -2281,12 +2281,12 @@ nmea_error_t nmea_encode_GGA(char *message_data, const void *source)
     if (source_GGA->data_available & NMEA_GGA_ALTITUDE_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_GGA->altitude), 3U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",M,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",M,"))
     {
     	return nmea_error_message;
     }
@@ -2294,12 +2294,12 @@ nmea_error_t nmea_encode_GGA(char *message_data, const void *source)
     if (source_GGA->data_available & NMEA_GGA_GEIODAL_SEPARATION_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_GGA->geoidal_separation), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",M,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",M,"))
     {
     	return nmea_error_message;
     }
@@ -2307,12 +2307,12 @@ nmea_error_t nmea_encode_GGA(char *message_data, const void *source)
     if (source_GGA->data_available & NMEA_GGA_DGPS_AGE_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_GGA->dgpsAge), 0U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -2321,8 +2321,8 @@ nmea_error_t nmea_encode_GGA(char *message_data, const void *source)
     {
         if (source_GGA->dgps_station_id < 1024U)
         {
-            snprintf(number_buffer, sizeof(number_buffer), "%04u", (unsigned int)(source_GGA->dgps_station_id));
-            if (!safe_strcat(message_data, max_message_length, number_buffer))
+            (void)snprintf(number_buffer, sizeof(number_buffer), "%04u", (unsigned int)(source_GGA->dgps_station_id));
+            if (!util_safe_strcat(message_data, max_message_length, number_buffer))
             {
             	return nmea_error_message;
             }
@@ -2352,12 +2352,12 @@ nmea_error_t nmea_encode_MDA(char *message_data, const void *source)
     if (source_MDA->data_available & NMEA_MDA_PRESSURE_INCHES_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MDA->pressure_inches), 3U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",I,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",I,"))
     {
     	return nmea_error_message;
     }
@@ -2365,12 +2365,12 @@ nmea_error_t nmea_encode_MDA(char *message_data, const void *source)
     if (source_MDA->data_available & NMEA_MDA_PRESSURE_BARS_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MDA->pressure_bars), 5U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",B,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",B,"))
     {
     	return nmea_error_message;
     }
@@ -2378,12 +2378,12 @@ nmea_error_t nmea_encode_MDA(char *message_data, const void *source)
     if (source_MDA->data_available & NMEA_MDA_AIR_TEMPERATURE_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MDA->air_temperature), 2U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",C,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",C,"))
     {
     	return nmea_error_message;
     }
@@ -2391,12 +2391,12 @@ nmea_error_t nmea_encode_MDA(char *message_data, const void *source)
     if (source_MDA->data_available & NMEA_MDA_WATER_TEMPERATURE_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MDA->water_temperature), 2U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",C,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",C,"))
     {
     	return nmea_error_message;
     }
@@ -2404,12 +2404,12 @@ nmea_error_t nmea_encode_MDA(char *message_data, const void *source)
     if (source_MDA->data_available & NMEA_MDA_RELATIVE_HUMIDITY_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MDA->relative_huimidity), 2U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -2417,12 +2417,12 @@ nmea_error_t nmea_encode_MDA(char *message_data, const void *source)
     if (source_MDA->data_available & NMEA_MDA_ABSOLUTE_HUMIDITY_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MDA->absolute_humidity), 2U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ","))
+    if (!util_safe_strcat(message_data, max_message_length, ","))
     {
     	return nmea_error_message;
     }
@@ -2430,12 +2430,12 @@ nmea_error_t nmea_encode_MDA(char *message_data, const void *source)
     if (source_MDA->data_available & NMEA_MDA_DEW_POINT_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MDA->dew_point), 2U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",C,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",C,"))
     {
     	return nmea_error_message;
     }
@@ -2443,12 +2443,12 @@ nmea_error_t nmea_encode_MDA(char *message_data, const void *source)
     if (source_MDA->data_available & NMEA_MDA_WIND_DIRECTION_TRUE_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MDA->wind_direction_true), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",T,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",T,"))
     {
     	return nmea_error_message;
     }
@@ -2456,12 +2456,12 @@ nmea_error_t nmea_encode_MDA(char *message_data, const void *source)
     if (source_MDA->data_available & NMEA_MDA_WIND_DIRECTION_MAGNETIC_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MDA->wind_direction_magnetic), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",M,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",M,"))
     {
     	return nmea_error_message;
     }
@@ -2469,12 +2469,12 @@ nmea_error_t nmea_encode_MDA(char *message_data, const void *source)
     if (source_MDA->data_available & NMEA_MDA_WINDSPEED_KNOTS_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MDA->windspeed_knots), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",N,"))
+    if (!util_safe_strcat(message_data, max_message_length, ",N,"))
     {
     	return nmea_error_message;
     }
@@ -2482,12 +2482,12 @@ nmea_error_t nmea_encode_MDA(char *message_data, const void *source)
     if (source_MDA->data_available & NMEA_MDA_WINDSPEED_MPS_PRESENT)
     {
         next_field_data = my_ftoa((float)(source_MDA->windspeed_mps), 1U, 0U);
-        if (!safe_strcat(message_data, max_message_length, next_field_data))
+        if (!util_safe_strcat(message_data, max_message_length, next_field_data))
         {
         	return nmea_error_message;
         }
     }
-    if (!safe_strcat(message_data, max_message_length, ",M"))
+    if (!util_safe_strcat(message_data, max_message_length, ",M"))
     {
     	return nmea_error_message;
     }
@@ -2539,7 +2539,7 @@ static uint16_t receive_data(uint8_t port, uint16_t buffer_length, uint8_t *data
 	return bytes_read;
 }
 
-static bool safe_strcat(char *dest, size_t size, const char *src)
+static bool util_safe_strcat(char *dest, size_t size, const char *src)
 {
     if (dest == NULL || src == NULL || (strlen(dest) + strlen(src) + (size_t)1 > size))
     {

@@ -104,10 +104,10 @@ MqttStatus_t MqttConnect(const char *clientId, const char *username, const char 
 	p++;
 
 	// remaining length
-	memcpy(&packet[p], remainingLengthBuffer, (size_t)remainingLengthLength);
+	(void)memcpy(&packet[p], remainingLengthBuffer, (size_t)remainingLengthLength);
 	p += (uint32_t)remainingLengthLength;
 
-	memcpy(&packet[p], "\x00\x04MQTT\x04", 7);
+	(void)memcpy(&packet[p], "\x00\x04MQTT\x04", 7);
 	p += 7UL;
 
 	// flags
@@ -135,7 +135,7 @@ MqttStatus_t MqttConnect(const char *clientId, const char *username, const char 
 	p++;
 
 	// client id
-	memcpy(&packet[p], clientId, strlen(clientId));
+	(void)memcpy(&packet[p], clientId, strlen(clientId));
 	p += (uint32_t)strlen(clientId);
 
 	// username if supplied
@@ -146,7 +146,7 @@ MqttStatus_t MqttConnect(const char *clientId, const char *username, const char 
 		packet[p] = strlen(username) & 0xffU;
 		p++;
 
-		memcpy(&packet[p], username, strlen(username));
+		(void)memcpy(&packet[p], username, strlen(username));
 		p += (uint32_t)strlen(username);
 	}
 
@@ -158,7 +158,7 @@ MqttStatus_t MqttConnect(const char *clientId, const char *username, const char 
 		packet[p] = strlen(password) & 0xffU;
 		p++;
 
-		memcpy(&packet[p], password, strlen(password));
+		(void)memcpy(&packet[p], password, strlen(password));
 		p += (uint32_t)strlen(password);
 	}
 
@@ -241,7 +241,7 @@ MqttStatus_t MqttSubscribe(char *topic, uint16_t packetIdentifier, uint32_t time
 	p++;
 
 	// remaining length
-	memcpy(&packet[p], remainingLengthBuffer, (size_t)remainingLengthLength);
+	(void)memcpy(&packet[p], remainingLengthBuffer, (size_t)remainingLengthLength);
 	p += (uint32_t)remainingLengthLength;
 
 	// packet identifier
@@ -257,7 +257,7 @@ MqttStatus_t MqttSubscribe(char *topic, uint16_t packetIdentifier, uint32_t time
 	p++;
 
 	// topic
-	memcpy(&packet[p], topic, strlen(topic));
+	(void)memcpy(&packet[p], topic, strlen(topic));
 	p += strlen(topic);
 
 	// qos
@@ -308,7 +308,7 @@ MqttStatus_t MqttUnsubscribe(char *topic, uint16_t packetIdentifier, uint32_t ti
 	p++;
 
 	// remaining length
-	memcpy(&packet[p], remainingLengthBuffer, (size_t)remainingLengthLength);
+	(void)memcpy(&packet[p], remainingLengthBuffer, (size_t)remainingLengthLength);
 	p += (uint32_t)remainingLengthLength;
 
 	// packet identifier
@@ -324,7 +324,7 @@ MqttStatus_t MqttUnsubscribe(char *topic, uint16_t packetIdentifier, uint32_t ti
 	p++;
 
 	// topic
-	memcpy(&packet[p], topic, strlen(topic));
+	(void)memcpy(&packet[p], topic, strlen(topic));
 	p += strlen(topic);
 
 	// send packet
@@ -376,7 +376,7 @@ MqttStatus_t MqttPublish(const char *topic, const uint8_t *payload, uint32_t pay
 	p++;
 
 	// remaining length
-	memcpy(&packet[p], remainingLengthBuffer, (size_t)remainingLengthLength);
+	(void)memcpy(&packet[p], remainingLengthBuffer, (size_t)remainingLengthLength);
 	p += (uint32_t)remainingLengthLength;
 
 	// topic length
@@ -386,11 +386,11 @@ MqttStatus_t MqttPublish(const char *topic, const uint8_t *payload, uint32_t pay
 	p++;
 
 	// topic
-	memcpy(&packet[p], topic, strlen(topic));
+	(void)memcpy(&packet[p], topic, strlen(topic));
 	p += strlen(topic);
 
 	// payload
-	memcpy(&packet[p], payload, payloadLength);
+	(void)memcpy(&packet[p], payload, payloadLength);
 	p += payloadLength;
 
 	// send packet

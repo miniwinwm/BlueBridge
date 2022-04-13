@@ -606,7 +606,7 @@ static void vTimerCallback1s(TimerHandle_t xTimer)
 		nmea_disable_transmit_message(PORT_BLUETOOTH, nmea_message_MDA);
 	}			
 	
-	if (settings_get_boat_iot_started())
+	if (settings_get_publishing_started())
 	{
 		led_flash(50UL);
 	}	

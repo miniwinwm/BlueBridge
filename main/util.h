@@ -60,7 +60,17 @@ char *util_capitalize_string(char *s);
 char *util_seconds_to_hms(uint32_t seconds);
 bool util_hms_to_seconds(const char *hms, uint32_t *result);
 uint32_t util_hash_djb2(const char *str);
-bool safe_strcat(char *dest, size_t size, const char *src);
+bool util_safe_strcat(char *dest, size_t size, const char *src);
+
+/**
+ * Perform a safer string copy than strcpy.
+ *
+ * @param dest Pointer to destination string
+ * @param size The size of the dest buffer
+ * @param src Pointer to source string to copy
+ * @return true if string copied successfully
+ */
+bool util_safe_strcpy(char *dest, size_t size, const char *src);
 
 #ifdef __cplusplus
 }

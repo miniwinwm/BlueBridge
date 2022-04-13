@@ -162,7 +162,7 @@ size_t modem_interface_serial_read_data(size_t buffer_length, uint8_t *data)
 	}
 	else
 	{
-		memcpy(debug_buffer + debug_buffer_length, data, size);
+		(void)memcpy(debug_buffer + debug_buffer_length, data, size);
 		debug_buffer_length += size;
 		if (debug_buffer_length > 0 && debug_buffer[debug_buffer_length - 1] == '\n')
 		{

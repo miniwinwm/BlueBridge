@@ -67,6 +67,8 @@ static ModemStatus_t ClientSendBasicCommandResponse(AtCommand_t atCommand, uint3
 static ModemStatus_t ClientTcpWriteSection(const uint8_t *data, size_t length, uint32_t timeoutMs);
 static ModemStatus_t ClientTcpReadSection(size_t lengthToRead, size_t *lengthRead, uint8_t *buffer, uint32_t timeoutMs);
 static void ServerFlushReadBufferOnError(ModemStatus_t modemStatus);
+static bool ModemStrcat(char *dest, size_t size, const char *src);
+bool ModemStrcpy(char *dest, size_t size, const char *src);
 
 // server objects
 static uint8_t echoOrUrc[MODEM_MAX_AT_COMMAND_SIZE];
@@ -74,6 +76,37 @@ static AtCommandPacket_t atCommandPacket;
 static AtResponsePacket_t atResponsePacket;
 
 static SmsNotificationCallback_t mySmsNotificationCallback;
+
+static bool ModemStrcat(char *dest, size_t size, const char *src)
+{
+    if (dest == NULL || src == NULL || (strlen(dest) + strlen(src) + (size_t)1 > size))
+    {
+    	return false;
+    }
+
+	return (strncat((dest), (src), (size - strlen(dest) - (size_t)1U)));
+}
+
+bool ModemStrcpy(char *dest, size_t size, const char *src)
+{
+    size_t i;
+
+    if (dest == NULL || src == NULL)
+    {
+    	return false;
+    }
+
+    if (size > 0U)
+    {
+        for (i = (size_t)0; i < size - (size_t)1 && src[i] != '\0'; i++)
+        {
+             dest[i] = src[i];
+        }
+        dest[i] = '\0';
+    }
+
+    return true;
+}
 
 ModemStatus_t ModemSetSmsNotificationCallback(SmsNotificationCallback_t smsNotificationCallback)
 {
@@ -629,7 +662,7 @@ ModemStatus_t ModemGetSignalStrength(uint8_t *strength, uint32_t timeoutMs)
 		return MODEM_FATAL_ERROR;
 	}
 
-	memcpy(&signalStrengthResponseData, atResponsePacket.data, sizeof(signalStrengthResponseData));
+	(void)memcpy(&signalStrengthResponseData, atResponsePacket.data, sizeof(signalStrengthResponseData));
 	*strength = signalStrengthResponseData.signalStrength;
 
 	return atResponsePacket.atResponse;
@@ -651,7 +684,7 @@ static void ServerGetSignalStrength(uint32_t timeoutMs)
 		else
 		{
 			signalStrengthResponseData.signalStrength = (uint8_t)strtol(responseText + 6, &dummy, 10);
-			memcpy(atResponsePacket.data, &signalStrengthResponseData, sizeof(signalStrengthResponseData));
+			(void)memcpy(atResponsePacket.data, &signalStrengthResponseData, sizeof(signalStrengthResponseData));
 		}
 	}
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
@@ -688,7 +721,7 @@ ModemStatus_t ModemGetNetworkRegistrationStatus(bool *registered, uint32_t timeo
 		return MODEM_FATAL_ERROR;
 	}
 
-	memcpy(&getRegistrationStatusResponseData, atResponsePacket.data, sizeof(getRegistrationStatusResponseData));
+	(void)memcpy(&getRegistrationStatusResponseData, atResponsePacket.data, sizeof(getRegistrationStatusResponseData));
 	*registered = getRegistrationStatusResponseData.registrationStatus;
 
 	return atResponsePacket.atResponse;
@@ -719,7 +752,7 @@ static void ServerNetworkRegistrationStatus(uint32_t timeoutMs)
 			{
 				registrationStatusResponseData.registrationStatus = false;
 			}
-			memcpy(atResponsePacket.data, &registrationStatusResponseData, sizeof(registrationStatusResponseData));
+			(void)memcpy(atResponsePacket.data, &registrationStatusResponseData, sizeof(registrationStatusResponseData));
 		}
 	}
 
@@ -829,11 +862,11 @@ ModemStatus_t ModemConfigureDataConnection(const char *apn, const char *username
 		return MODEM_BAD_PARAMETER;
 	}
 
-	strcpy(configureDataConnectionCommandData.apn, apn);
-	strcpy(configureDataConnectionCommandData.username, username);
-	strcpy(configureDataConnectionCommandData.password, password);
+	(void)strcpy(configureDataConnectionCommandData.apn, apn);				// safe strcpy
+	(void)strcpy(configureDataConnectionCommandData.username, username);	// safe strcpy
+	(void)strcpy(configureDataConnectionCommandData.password, password);	// safe strcpy
 
-	memcpy(atCommandPacket.data, &configureDataConnectionCommandData, sizeof(configureDataConnectionCommandData));
+	(void)memcpy(atCommandPacket.data, &configureDataConnectionCommandData, sizeof(configureDataConnectionCommandData));
 	atCommandPacket.atCommand = MODEM_COMMAND_CONFIGURE_DATA_CONNECTION;
 	atCommandPacket.timeoutMs = timeoutMs;
 
@@ -852,16 +885,16 @@ ModemStatus_t ModemConfigureDataConnection(const char *apn, const char *username
 static void ServerConfigureDataConnection(uint32_t timeoutMs)
 {
 	ConfigureDataConnectionCommandData_t configureDataConnectionCommandData;
-	char atCommandBuf[MODEM_MAX_AT_COMMAND_SIZE];
+	char atCommandBuf[MODEM_MAX_AT_COMMAND_SIZE + 1];
 
-	memcpy(&configureDataConnectionCommandData, atCommandPacket.data, sizeof(configureDataConnectionCommandData));
-	strcpy(atCommandBuf, "AT+CSTT=\"");
-	strcat(atCommandBuf, configureDataConnectionCommandData.apn);
-	strcat(atCommandBuf, "\",\"");
-	strcat(atCommandBuf, configureDataConnectionCommandData.username);
-	strcat(atCommandBuf, "\",\"");
-	strcat(atCommandBuf, configureDataConnectionCommandData.password);
-	strcat(atCommandBuf, "\"\r");
+	(void)memcpy(&configureDataConnectionCommandData, atCommandPacket.data, sizeof(configureDataConnectionCommandData));
+	(void)ModemStrcpy(atCommandBuf, sizeof(atCommandBuf), "AT+CSTT=\"");
+	(void)ModemStrcat(atCommandBuf, sizeof(atCommandBuf), configureDataConnectionCommandData.apn);
+	(void)ModemStrcat(atCommandBuf, sizeof(atCommandBuf), "\",\"");
+	(void)ModemStrcat(atCommandBuf, sizeof(atCommandBuf), configureDataConnectionCommandData.username);
+	(void)ModemStrcat(atCommandBuf, sizeof(atCommandBuf), "\",\"");
+	(void)ModemStrcat(atCommandBuf, sizeof(atCommandBuf), configureDataConnectionCommandData.password);
+	(void)ModemStrcat(atCommandBuf, sizeof(atCommandBuf), "\"\r");
 
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse(atCommandBuf, timeoutMs);
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
@@ -909,10 +942,10 @@ ModemStatus_t ModemOpenTcpConnection(const char *url, uint16_t port, uint32_t ti
 		return MODEM_TCP_ALREADY_CONNECTED;
 	}
 
-	strcpy(openTcpConnectionCommandData.url, url);
+	(void)ModemStrcpy(openTcpConnectionCommandData.url, sizeof(openTcpConnectionCommandData.url), url);
 	openTcpConnectionCommandData.port = port;
 
-	memcpy(atCommandPacket.data, &openTcpConnectionCommandData, sizeof(openTcpConnectionCommandData));
+	(void)memcpy(atCommandPacket.data, &openTcpConnectionCommandData, sizeof(openTcpConnectionCommandData));
 	atCommandPacket.atCommand = MODEM_COMMAND_OPEN_TCP_CONNECTION;
 	atCommandPacket.timeoutMs = timeoutMs;
 
@@ -956,13 +989,13 @@ static void ServerOpenTcpConnection(uint32_t timeoutMs)
 	char atCommandBuf[MODEM_MAX_AT_COMMAND_SIZE + 1];
 	char portBuf[6];
 
-	memcpy(&openTcpConnectionCommandData, atCommandPacket.data, sizeof(openTcpConnectionCommandData));
-	itoa(openTcpConnectionCommandData.port, portBuf, 10);
-	strcpy(atCommandBuf, "AT+CIPSTART=\"TCP\",\"");
-	strcat(atCommandBuf, openTcpConnectionCommandData.url);
-	strcat(atCommandBuf, "\",\"");
-	strcat(atCommandBuf, portBuf);
-	strcat(atCommandBuf, "\"\r");
+	(void)memcpy(&openTcpConnectionCommandData, atCommandPacket.data, sizeof(openTcpConnectionCommandData));
+	(void)itoa(openTcpConnectionCommandData.port, portBuf, 10);
+	(void)ModemStrcpy(atCommandBuf, sizeof(atCommandBuf), "AT+CIPSTART=\"TCP\",\"");
+	(void)ModemStrcat(atCommandBuf, sizeof(atCommandBuf), openTcpConnectionCommandData.url);
+	(void)ModemStrcat(atCommandBuf, sizeof(atCommandBuf), "\",\"");
+	(void)ModemStrcat(atCommandBuf, sizeof(atCommandBuf), portBuf);
+	(void)ModemStrcat(atCommandBuf, sizeof(atCommandBuf), "\"\r");
 
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse(atCommandBuf, timeoutMs);
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
@@ -1036,13 +1069,13 @@ ModemStatus_t ModemGetOperatorDetails(char *operatorDetails, size_t length, uint
 		return MODEM_FATAL_ERROR;
 	}	
 
-	memcpy(&getOperatorDetailsResponseData, atResponsePacket.data, sizeof(getOperatorDetailsResponseData));
+	(void)memcpy(&getOperatorDetailsResponseData, atResponsePacket.data, sizeof(getOperatorDetailsResponseData));
 	
 	if (strncmp(getOperatorDetailsResponseData.operatorDetails, "+COPS: ", 	(size_t)7) == 0)
 	{
 		if (strlen(getOperatorDetailsResponseData.operatorDetails) > (size_t)7)
 		{
-			strcpy(operatorDetails, getOperatorDetailsResponseData.operatorDetails + 7);
+			(void)ModemStrcpy(operatorDetails, length, getOperatorDetailsResponseData.operatorDetails + 7);
 		}
 		else
 		{
@@ -1068,7 +1101,7 @@ static void ServerGetOperatorDetails(uint32_t timeoutMs)
 		{
 			getOperatorDetailsResponseData.operatorDetails[strlen(getOperatorDetailsResponseData.operatorDetails) - 1] = '\0';
 		}
-		memcpy(atResponsePacket.data, &getOperatorDetailsResponseData, sizeof(getOperatorDetailsResponseData));
+		(void)memcpy(atResponsePacket.data, &getOperatorDetailsResponseData, sizeof(getOperatorDetailsResponseData));
 	}
 	
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
@@ -1105,8 +1138,8 @@ ModemStatus_t ModemGetOwnIpAddress(char *ipAddress, size_t length, uint32_t time
 		return MODEM_FATAL_ERROR;
 	}
 
-	memcpy(&getOwnIpAddressResponseData, atResponsePacket.data, sizeof(getOwnIpAddressResponseData));
-	strcpy(ipAddress, getOwnIpAddressResponseData.ipAddress);
+	(void)memcpy(&getOwnIpAddressResponseData, atResponsePacket.data, sizeof(getOwnIpAddressResponseData));
+	(void)ModemStrcpy(ipAddress, length, getOwnIpAddressResponseData.ipAddress);
 
 	return atResponsePacket.atResponse;
 }
@@ -1133,7 +1166,7 @@ static void ServerGetOwnIpAddress(uint32_t timeoutMs)
 					if (i >= 8UL)
 					{
 						getOwnIpAddressResponseData.ipAddress[i - 1UL] = '\0';
-						memcpy(atResponsePacket.data, &getOwnIpAddressResponseData, sizeof(getOwnIpAddressResponseData));
+						(void)memcpy(atResponsePacket.data, &getOwnIpAddressResponseData, sizeof(getOwnIpAddressResponseData));
 						modemStatus = MODEM_OK;
 					}
 					else
@@ -1221,10 +1254,10 @@ static ModemStatus_t ClientTcpWriteSection(const uint8_t *data, size_t length, u
 	AtResponsePacket_t atResponsePacket;
 	TcpWriteCommandData_t tcpWriteCommandData;
 
-	memcpy(tcpWriteCommandData.data, data, length);
+	(void)memcpy(tcpWriteCommandData.data, data, length);
 	tcpWriteCommandData.length = length;
 
-	memcpy(atCommandPacket.data, &tcpWriteCommandData, sizeof(tcpWriteCommandData));
+	(void)memcpy(atCommandPacket.data, &tcpWriteCommandData, sizeof(tcpWriteCommandData));
 	atCommandPacket.atCommand = MODEM_COMMAND_TCP_WRITE;
 	atCommandPacket.timeoutMs = timeoutMs;
 
@@ -1251,11 +1284,11 @@ static void ServerTcpWrite(uint32_t timeoutMs)
 	size_t i = (size_t)0;
 	uint8_t dummy;
 
-	memcpy(&tcpWriteCommandData, atCommandPacket.data, sizeof(tcpWriteCommandData));
-	itoa(tcpWriteCommandData.length, lengthBuf, 10);
-	strcpy(atCommandBuf, "AT+CIPSEND=");
-	strcat(atCommandBuf, lengthBuf);
-	strcat(atCommandBuf, "\r");
+	(void)memcpy(&tcpWriteCommandData, atCommandPacket.data, sizeof(tcpWriteCommandData));
+	(void)itoa(tcpWriteCommandData.length, lengthBuf, 10);
+	(void)ModemStrcpy(atCommandBuf, sizeof(atCommandBuf), "AT+CIPSEND=");
+	(void)ModemStrcat(atCommandBuf, sizeof(atCommandBuf), lengthBuf);
+	(void)ModemStrcat(atCommandBuf, sizeof(atCommandBuf), "\r");
 
 	modem_interface_serial_write_data(strlen(atCommandBuf), (uint8_t *)atCommandBuf);
 
@@ -1375,7 +1408,7 @@ ModemStatus_t ModemGetTcpReadDataWaitingLength(size_t *length, uint32_t timeoutM
 		return MODEM_FATAL_ERROR;
 	}
 
-	memcpy(&getTcpReadDataWaitinghResponseData, atResponsePacket.data, sizeof(getTcpReadDataWaitinghResponseData));
+	(void)memcpy(&getTcpReadDataWaitinghResponseData, atResponsePacket.data, sizeof(getTcpReadDataWaitinghResponseData));
 	*length = getTcpReadDataWaitinghResponseData.length;
 
 	return atResponsePacket.atResponse;
@@ -1397,7 +1430,7 @@ static void ServerGetTcpReadDataWaitingLength(uint32_t timeoutMs)
 		else
 		{
 			getTcpReadDataWaitinghResponseData.length = (uint16_t)strtol(responseText + 13, &dummy, 10);
-			memcpy(atResponsePacket.data, &getTcpReadDataWaitinghResponseData, sizeof(getTcpReadDataWaitinghResponseData));
+			(void)memcpy(atResponsePacket.data, &getTcpReadDataWaitinghResponseData, sizeof(getTcpReadDataWaitinghResponseData));
 		}
 	}
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);
@@ -1432,7 +1465,7 @@ ModemStatus_t ModemSmsReceiveMessage(uint8_t smsId, size_t *lengthRead, uint8_t 
 	*lengthRead = (size_t)0;
 	smsReceiveCommandData.smsId = smsId;
 	
-	memcpy(atCommandPacket.data, &smsReceiveCommandData, sizeof(smsReceiveCommandData));
+	(void)memcpy(atCommandPacket.data, &smsReceiveCommandData, sizeof(smsReceiveCommandData));
 	atCommandPacket.atCommand = MODEM_COMMAND_SMS_RECEIVE_MESSAGE;
 	atCommandPacket.timeoutMs = timeoutMs;	
 
@@ -1446,9 +1479,9 @@ ModemStatus_t ModemSmsReceiveMessage(uint8_t smsId, size_t *lengthRead, uint8_t 
 		return MODEM_FATAL_ERROR;
 	}
 	
-	memcpy(&smsReceiveResponseData, atResponsePacket.data, sizeof(smsReceiveResponseData));
+	(void)memcpy(&smsReceiveResponseData, atResponsePacket.data, sizeof(smsReceiveResponseData));
 	*lengthRead = smsReceiveResponseData.length;
-	memcpy(buffer, smsReceiveResponseData.data, smsReceiveResponseData.length);	
+	(void)memcpy(buffer, smsReceiveResponseData.data, smsReceiveResponseData.length);	
 
 	return atResponsePacket.atResponse;	
 }
@@ -1464,12 +1497,12 @@ static void ServerSmsReceiveMessage(uint32_t timeoutMs)
 	size_t i = (size_t)0;
 	uint32_t startTime = modem_interface_get_time_ms();
 		
-	memcpy(&smsReceiveCommandData, atCommandPacket.data, sizeof(smsReceiveCommandData));
+	(void)memcpy(&smsReceiveCommandData, atCommandPacket.data, sizeof(smsReceiveCommandData));
 
-	strcpy(commandText, "AT+CMGR=");
-	itoa(smsReceiveCommandData.smsId, numberBuf, 10);
-	strcat(commandText, numberBuf);
-	strcat(commandText, ",0\r");	
+	(void)ModemStrcpy(commandText, sizeof(commandText), "AT+CMGR=");
+	(void)itoa(smsReceiveCommandData.smsId, numberBuf, 10);
+	(void)ModemStrcat(commandText, sizeof(commandText), numberBuf);
+	(void)ModemStrcat(commandText, sizeof(commandText), ",0\r");	
 	
 	modem_interface_serial_write_data(strlen(commandText), (uint8_t *)commandText);
 
@@ -1550,7 +1583,7 @@ static void ServerSmsReceiveMessage(uint32_t timeoutMs)
 		}
 		
 		smsReadResponseData.length = i - (size_t)1;
-		memcpy(atResponsePacket.data, &smsReadResponseData, sizeof(smsReadResponseData));		
+		(void)memcpy(atResponsePacket.data, &smsReadResponseData, sizeof(smsReadResponseData));		
 	}
 
 	if (modemStatus == MODEM_OK)
@@ -1579,9 +1612,9 @@ ModemStatus_t ModemSmsSendMessage(char *buffer, uint32_t timeoutMs)
 		return MODEM_BAD_PARAMETER;
 	}
 
-	strcpy(smsSendMessageCommandData.pdu, buffer);
+	(void)ModemStrcpy(smsSendMessageCommandData.pdu, sizeof(smsSendMessageCommandData.pdu), buffer);
 	
-	memcpy(atCommandPacket.data, &smsSendMessageCommandData, sizeof(smsSendMessageCommandData));
+	(void)memcpy(atCommandPacket.data, &smsSendMessageCommandData, sizeof(smsSendMessageCommandData));
 	atCommandPacket.atCommand = MODEM_COMMAND_SMS_SEND_MESSAGE;
 	atCommandPacket.timeoutMs = timeoutMs;
 
@@ -1610,12 +1643,12 @@ static void ServerSmsSendMessage(uint32_t timeoutMs)
 	char prompt[7];
 	uint8_t write_response[12];
 	
-	memcpy(&smsSendMessageCommandData, atCommandPacket.data, sizeof(smsSendMessageCommandData));
-	itoa(strlen((char *)smsSendMessageCommandData.pdu) / 2 - 1, lengthBuf, 10);		// length of data - length of smsc (not supplied here so a single 0, hence -1)
+	(void)memcpy(&smsSendMessageCommandData, atCommandPacket.data, sizeof(smsSendMessageCommandData));
+	(void)itoa(strlen((char *)smsSendMessageCommandData.pdu) / 2 - 1, lengthBuf, 10);		// length of data - length of smsc (not supplied here so a single 0, hence -1)
 
-	strcpy(atCommandBuf, "AT+CMGS=");
-	strcat(atCommandBuf, lengthBuf);
-	strcat(atCommandBuf, "\r");	
+	(void)ModemStrcpy(atCommandBuf, sizeof(atCommandBuf), "AT+CMGS=");
+	(void)ModemStrcat(atCommandBuf, sizeof(atCommandBuf), lengthBuf);
+	(void)ModemStrcat(atCommandBuf, sizeof(atCommandBuf), "\r");	
 	
 	modem_interface_serial_write_data(strlen(atCommandBuf), (uint8_t *)atCommandBuf);
 	modemStatus = ServerGetEcho(atCommandBuf, timeoutMs);	
@@ -1671,7 +1704,7 @@ static void ServerSmsSendMessage(uint32_t timeoutMs)
 	
 	if (modemStatus == MODEM_OK)
 	{
-		strcat(smsSendMessageCommandData.pdu, ctrlz);	
+		(void)ModemStrcat(smsSendMessageCommandData.pdu, sizeof(smsSendMessageCommandData.pdu), ctrlz);	
 		modem_interface_serial_write_data(strlen(smsSendMessageCommandData.pdu), (uint8_t *)smsSendMessageCommandData.pdu);
 		while (i < strlen(smsSendMessageCommandData.pdu))
 		{
@@ -1841,7 +1874,7 @@ static ModemStatus_t ClientTcpReadSection(size_t lengthToRead, size_t *lengthRea
 	TcpReadResponseData_t tcpReadResponseData;
 
 	tcpReadCommandData.lengthToRead = lengthToRead;
-	memcpy(atCommandPacket.data, &tcpReadCommandData, sizeof(tcpReadCommandData));
+	(void)memcpy(atCommandPacket.data, &tcpReadCommandData, sizeof(tcpReadCommandData));
 
 	atCommandPacket.atCommand = MODEM_COMMAND_TCP_READ;
 	atCommandPacket.timeoutMs = timeoutMs;
@@ -1855,9 +1888,9 @@ static ModemStatus_t ClientTcpReadSection(size_t lengthToRead, size_t *lengthRea
 		return MODEM_FATAL_ERROR;
 	}
 
-	memcpy(&tcpReadResponseData, atResponsePacket.data, sizeof(tcpReadResponseData));
+	(void)memcpy(&tcpReadResponseData, atResponsePacket.data, sizeof(tcpReadResponseData));
 	*lengthRead = tcpReadResponseData.lengthRead;
-	memcpy(buffer, tcpReadResponseData.data, tcpReadResponseData.lengthRead);
+	(void)memcpy(buffer, tcpReadResponseData.data, tcpReadResponseData.lengthRead);
 
 	return atResponsePacket.atResponse;
 }
@@ -1873,12 +1906,12 @@ static void ServerTcpRead(uint32_t timeoutMs)
 	size_t i = (size_t)0;
 	uint32_t startTime = modem_interface_get_time_ms();
 
-	memcpy(&tcpReadCommandData, atCommandPacket.data, sizeof(tcpReadCommandData));
+	(void)memcpy(&tcpReadCommandData, atCommandPacket.data, sizeof(tcpReadCommandData));
 
-	strcpy(commandText, "AT+CIPRXGET=2,");
-	itoa(tcpReadCommandData.lengthToRead, numberBuf, 10);
-	strcat(commandText, numberBuf);
-	strcat(commandText, "\r");
+	(void)ModemStrcpy(commandText, sizeof(commandText), "AT+CIPRXGET=2,");
+	(void)itoa(tcpReadCommandData.lengthToRead, numberBuf, 10);
+	(void)ModemStrcat(commandText, sizeof(commandText), numberBuf);
+	(void)ModemStrcat(commandText, sizeof(commandText), "\r");
 
 	modem_interface_serial_write_data(strlen(commandText), (uint8_t *)commandText);
 
@@ -1952,7 +1985,7 @@ static void ServerTcpRead(uint32_t timeoutMs)
 			}
 		}
 
-		memcpy(atResponsePacket.data, &tcpReadResponseData, sizeof(tcpReadResponseData));
+		(void)memcpy(atResponsePacket.data, &tcpReadResponseData, sizeof(tcpReadResponseData));
 	}
 
 	if (modemStatus == MODEM_OK)
@@ -1995,8 +2028,8 @@ ModemStatus_t ModemGetIMEI(char *imei, size_t length, uint32_t timeoutMs)
 		return MODEM_FATAL_ERROR;
 	}
 
-	memcpy(&getImeiResponseData, atResponsePacket.data, sizeof(getImeiResponseData));
-	strcpy(imei, getImeiResponseData.imei);
+	(void)memcpy(&getImeiResponseData, atResponsePacket.data, sizeof(getImeiResponseData));
+	(void)ModemStrcpy(imei, length, getImeiResponseData.imei);
 
 	return atResponsePacket.atResponse;
 }
@@ -2012,7 +2045,7 @@ static void ServerGetImei(uint32_t timeoutMs)
 		{		
 			getImeiResponseData.imei[strlen(getImeiResponseData.imei) - 1] = '\0';
 		}
-		memcpy(atResponsePacket.data, &getImeiResponseData, sizeof(getImeiResponseData));
+		(void)memcpy(atResponsePacket.data, &getImeiResponseData, sizeof(getImeiResponseData));
 	}
 	
 	ServerFlushReadBufferOnError(atResponsePacket.atResponse);

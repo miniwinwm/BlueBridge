@@ -82,14 +82,17 @@ void settings_set_code(uint32_t code);
 const char *settings_get_phone_number(void);
 void settings_set_phone_number(const char *phone_number);
 
-bool settings_get_boat_iot_started(void);
-void settings_set_boat_iot_started(bool boat_iot_started);
+bool settings_get_publishing_started(void);
+void settings_set_publishing_started(bool boat_iot_started);
 
-bool settings_get_restart_needed(void);
-void settings_set_restart_needed(bool restart_needed);
+bool settings_get_reboot_needed(void);
+void settings_set_reboot_needed(bool restart_needed);
 
-uint32_t settings_get_period_s(void);
-void settings_set_period_s(uint32_t period_s);
+uint32_t settings_get_publishing_period_s(void);
+void settings_set_publishing_period_s(uint32_t period_s);
+
+bool settings_get_publishing_start_needed(void);
+void settings_set_publishing_start_needed(bool publishing_start_needed);
 
 #ifdef __cplusplus
 }

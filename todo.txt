@@ -6,10 +6,10 @@ Todo functional
 ---------------
 Modem SMS and TCP reads need buf lengths and checks
 After receiving a start command publish first MQTT message immediately
-Change strcat for safe_strcat
 Add MQTT cpability to Android app
 Rotate boat shape according to heading in javascript
 Remove test #defines
+Make buffer handling safe in nmea.c
 
 
 Todo tidy up
@@ -17,7 +17,8 @@ Todo tidy up
 Add standard headers to c/c++ source files
 Tidy up javascript code
 Create a new website with BlueThing name
-Check all char * are const where possible
+Check all pointer parameters are const where possible
+
 
 Todo testing
 ------------
@@ -31,6 +32,7 @@ Create main documentation file
 Create overview diagram
 Doxygen all code
 Create doxyfile
+Create hardware build file
 
 
 Done
@@ -103,3 +105,5 @@ Modem_interface.h should not depend on modem.h
 Settings defaults as #defines
 Move extern declarations into header files
 Create BOM
+Change strcpy for safe_strcpy
+Change strcat for safe_strcat
