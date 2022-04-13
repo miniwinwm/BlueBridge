@@ -697,7 +697,9 @@
 		</script>		  	
 		
 		<script type="text/javascript">
-			function go() {
+			function go() {			
+				var shapeX = [ -0.5, 0, 0.5 ]; 
+				var shapeY = [ -1, 1, -1 ]; 			
 				myMap.setCenter(lat, long);		
 				// zoom level 18 does not show polygon
 				if (myMap.getZoom() == 18) {
@@ -705,16 +707,36 @@
 				}
 				var scale = (1 << (18 - myMap.getZoom()));
 				var offsetLat = 0.00005 * scale;	
-				var offsetLong = offsetLat / (2 * Math.cos(lat / 57.3));	
-				var polyString = "Polygon (" + (parseFloat(long) - offsetLong).toString() + " " + (parseFloat(lat) - offsetLat).toString() + ", " 
-					+ (parseFloat(long) + offsetLong).toString() + " " + (parseFloat(lat) - offsetLat).toString() + ", " 
-					+ long + " " + (parseFloat(lat) + offsetLat).toString() + ")";					
+				var offsetLong = offsetLat / Math.cos(lat / 57.3);	
+				rotateShape(3, shapeX, shapeY, heading);
+				for (var i = 0; i < 3; i++) {
+					shapeX[i] *= offsetLong;
+					shapeY[i] *= offsetLat;
+				}
+				var polyString = "Polygon (" + (parseFloat(long) + shapeX[0]).toString() + " " + (parseFloat(lat) + shapeY[0]).toString() + ", " 
+					+ (parseFloat(long) + shapeX[1]).toString() + " " + (parseFloat(lat) + shapeY[1]).toString() + ", " 
+					+ (parseFloat(long) + shapeX[2]).toString() + " " + (parseFloat(lat) + shapeY[2]).toString() + ")";	
 				var poly = Mapiator.parseWKT(polyString);
 				poly.fillStyle = 'rgba(255, 0, 0, .5)';
 				myMap.addElement( poly );
 				myMap.redraw();
 				myMap.removeElement(poly);
 			}
+			
+			function rotateShape(corners, polyX, polyY, angleDegrees) {
+				var i;
+				var x, y;
+				var angle_rads;
+
+				angleDegrees = 360 - angleDegrees;
+				angleRads = angleDegrees / 57.3;
+				for (i = 0; i < corners; i++) {
+					x = ((polyX[i] * Math.cos(angleRads) - polyY[i] * Math.sin(angleRads)));
+					y = ((polyX[i] * Math.sin(angleRads) + polyY[i] * Math.cos(angleRads)));
+					polyX[i] = x;
+					polyY[i] = y;
+				}
+			}						
 		</script>		
   	</body>
 </html>

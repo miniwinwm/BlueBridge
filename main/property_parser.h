@@ -31,10 +31,30 @@ SOFTWARE.
 extern "C" {
 #endif
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stdint.h>
 #include <stdbool.h>
 
+/****************
+*** CONSTANTS ***
+****************/
+
+/************
+*** TYPES ***
+************/
+
 typedef bool (*parser_callback_t)(char *key, char *value);
+
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
 
 uint16_t property_parse(char *str, parser_callback_t parser_callback);
 

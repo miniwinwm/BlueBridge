@@ -23,6 +23,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
+/***************
+*** INCLUDES ***
+***************/
 
 #include <string.h>
 #include <stdbool.h>
@@ -30,13 +33,40 @@ SOFTWARE.
 #include "modem.h"
 #include "modem_interface.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
+/************
+*** TYPES ***
+************/
+
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
+/**********************
+*** LOCAL VARIABLES ***
+**********************/
+
 static uint8_t EncodeRemainingLength(uint32_t remainingLength, uint8_t buffer[4]);
 static uint32_t DecodeRemainingLength(uint8_t buffer[4]);
-
 static PublishCallback_t publishCallback;
 static PingResponseCallback_t pingCallback;
 static SubscribeResponseCallback_t subscribeCallback;
 static UnsubscribeResponseCallback_t unsubscribeCallback;
+
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
+/**********************
+*** LOCAL FUNCTIONS ***
+**********************/
+
+/***********************
+*** GLOBAL FUNCTIONS ***
+***********************/
 
 void MqttSetPublishCallback(PublishCallback_t callback)
 {
@@ -209,7 +239,7 @@ MqttStatus_t MqttPing(uint32_t timeoutMs)
 	return MQTT_OK;
 }
 
-MqttStatus_t MqttSubscribe(char *topic, uint16_t packetIdentifier, uint32_t timeoutMs)
+MqttStatus_t MqttSubscribe(const char *topic, uint16_t packetIdentifier, uint32_t timeoutMs)
 {
 	uint8_t *packet;
 	uint32_t remainingLength;
@@ -219,7 +249,7 @@ MqttStatus_t MqttSubscribe(char *topic, uint16_t packetIdentifier, uint32_t time
 	uint8_t p = 0U;
 
 	// check parameters
-	if (!topic || strlen(topic) == (size_t)0 || strlen(topic) > (size_t)250)
+	if (topic == NULL || strlen(topic) == (size_t)0 || strlen(topic) > (size_t)250)
 	{
 		return MQTT_BAD_PARAMETER;
 	}
@@ -231,7 +261,7 @@ MqttStatus_t MqttSubscribe(char *topic, uint16_t packetIdentifier, uint32_t time
 	// calculate packet length and allocate memory
 	packetLength = 1UL + (uint32_t)remainingLengthLength + remainingLength;
 	packet = modem_interface_malloc(packetLength);
-	if (!packet)
+	if (packet == NULL)
 	{
 		return MQTT_NO_MEMORY;
 	}
@@ -276,7 +306,7 @@ MqttStatus_t MqttSubscribe(char *topic, uint16_t packetIdentifier, uint32_t time
 	return MQTT_OK;
 }
 
-MqttStatus_t MqttUnsubscribe(char *topic, uint16_t packetIdentifier, uint32_t timeoutMs)
+MqttStatus_t MqttUnsubscribe(const char *topic, uint16_t packetIdentifier, uint32_t timeoutMs)
 {
 	uint8_t *packet;
 	uint32_t remainingLength;
@@ -286,7 +316,7 @@ MqttStatus_t MqttUnsubscribe(char *topic, uint16_t packetIdentifier, uint32_t ti
 	uint8_t p = 0U;
 
 	// check parameters
-	if (!topic || strlen(topic) == (size_t)0 || strlen(topic) > (size_t)250)
+	if (topic == NULL || strlen(topic) == (size_t)0 || strlen(topic) > (size_t)250)
 	{
 		return MQTT_BAD_PARAMETER;
 	}
@@ -298,7 +328,7 @@ MqttStatus_t MqttUnsubscribe(char *topic, uint16_t packetIdentifier, uint32_t ti
 	// calculate packet length and allocate memory
 	packetLength = 1UL + (uint32_t)remainingLengthLength + remainingLength;
 	packet = modem_interface_malloc(packetLength);
-	if (!packet)
+	if (packet == NULL)
 	{
 		return MQTT_NO_MEMORY;
 	}
@@ -350,7 +380,7 @@ MqttStatus_t MqttPublish(const char *topic, const uint8_t *payload, uint32_t pay
 	uint32_t p = 0U;
 
 	// check parameters
-	if (!topic || !payload || strlen(topic) == (size_t)0 || strlen(topic) > (size_t)250)
+	if (topic == NULL || payload == NULL || strlen(topic) == (size_t)0 || strlen(topic) > (size_t)250)
 	{
 		return MQTT_BAD_PARAMETER;
 	}
@@ -362,7 +392,7 @@ MqttStatus_t MqttPublish(const char *topic, const uint8_t *payload, uint32_t pay
 	// calculate packet length and allocate memory
 	packetLength = 1UL + (uint32_t)remainingLengthLength + remainingLength;
 	packet = modem_interface_malloc(packetLength);
-	if (!packet)
+	if (packet == NULL)
 	{
 		return MQTT_NO_MEMORY;
 	}
@@ -489,7 +519,7 @@ MqttStatus_t MqttHandleResponse(uint32_t timeoutMs)
 			if (remainingLength > 0UL)
 			{
 				remainingData = modem_interface_malloc(remainingLength);
-				if (!remainingData)
+				if (remainingData == NULL)
 				{
 					return MQTT_NO_MEMORY;
 				}

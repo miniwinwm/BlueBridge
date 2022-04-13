@@ -31,7 +31,15 @@ SOFTWARE.
 extern "C" {
 #endif
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stdint.h>
+
+/****************
+*** CONSTANTS ***
+****************/
 
 #define MQTT_CONNECT_REQ_PACKET_ID		0x10U
 #define MQTT_CONNECT_ACK_PACKET_ID		0x20U
@@ -64,21 +72,32 @@ typedef enum
 	MQTT_SUBSCRIBE_FAILURE = -7
 } MqttStatus_t;
 
+/************
+*** TYPES ***
+************/
+
 typedef void (*PublishCallback_t)(const char *topic, uint8_t topicLength, const uint8_t *payload, uint32_t payloadLength);
 typedef void (*PingResponseCallback_t)(void);
 typedef void (*SubscribeResponseCallback_t)(uint16_t packetIdentifier, bool success);
 typedef void (*UnsubscribeResponseCallback_t)(uint16_t packetIdentifier);
 
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
+
 void MqttSetPublishCallback(PublishCallback_t callback);
 void MqttSetPingResponseCallback(PingResponseCallback_t callback);
 void MqttSetSubscribeResponseCallback(SubscribeResponseCallback_t callback);
 void MqttSetUnsubscribeResponseCallback(UnsubscribeResponseCallback_t callback);
-
 MqttStatus_t MqttConnect(const char *clientId, const char *username, const char *password, uint16_t keepAlive, uint32_t timeoutMs);
 MqttStatus_t MqttPing(uint32_t timeoutMs);
 MqttStatus_t MqttPublish(const char *topic, const uint8_t *payload, uint32_t payloadLength, bool retain, uint32_t timeoutMs);
-MqttStatus_t MqttSubscribe(char *topic, uint16_t packetIdentifier, uint32_t timeoutMs);
-MqttStatus_t MqttUnsubscribe(char *topic, uint16_t packetIdentifier, uint32_t timeoutMs);
+MqttStatus_t MqttSubscribe(const char *topic, uint16_t packetIdentifier, uint32_t timeoutMs);
+MqttStatus_t MqttUnsubscribe(const char *topic, uint16_t packetIdentifier, uint32_t timeoutMs);
 MqttStatus_t MqttDisconnect(uint32_t timeoutMs);
 MqttStatus_t MqttHandleResponse(uint32_t timeoutMs);
 const char *MqttStatusToText(MqttStatus_t mqttStatus);

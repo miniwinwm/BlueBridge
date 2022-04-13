@@ -5,9 +5,7 @@ Todo hardware
 Todo functional
 ---------------
 Modem SMS and TCP reads need buf lengths and checks
-After receiving a start command publish first MQTT message immediately
 Add MQTT cpability to Android app
-Rotate boat shape according to heading in javascript
 Remove test #defines
 Make buffer handling safe in nmea.c
 
@@ -107,3 +105,5 @@ Move extern declarations into header files
 Create BOM
 Change strcpy for safe_strcpy
 Change strcat for safe_strcat
+After receiving a start command publish first MQTT message immediately
+Rotate boat shape according to heading in javascript 

@@ -49,7 +49,6 @@ static bool modem_network_register(void);
 static bool modem_set_parameters(void);
 static bool modem_activate_data_connection(void);
 static bool config_parser_callback(char *key, char *value);
-
 static bool open_mqtt_connection(void);
 static void close_mqtt_connection(void);
 

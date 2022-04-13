@@ -24,8 +24,20 @@ SOFTWARE.
 
 */
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <string.h>
 #include "property_parser.h"
+
+/****************
+*** CONSTANTS ***
+****************/
+
+/************
+*** TYPES ***
+************/
 
 typedef enum 
 {
@@ -35,6 +47,26 @@ typedef enum
 	IN_VALUE,
 } parse_state_t;
 
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
+/**********************
+*** LOCAL VARIABLES ***
+**********************/
+
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
+/**********************
+*** LOCAL FUNCTIONS ***
+**********************/
+
+/***********************
+*** GLOBAL FUNCTIONS ***
+***********************/
+
 uint16_t property_parse(char *str, parser_callback_t parser_callback)
 {
 	char *key = "";
@@ -43,7 +75,7 @@ uint16_t property_parse(char *str, parser_callback_t parser_callback)
 	parse_state_t parse_state;
 	uint16_t found = 0U;
 	
-	if (!str || !parser_callback)
+	if (str == NULL || parser_callback == NULL)
 	{
 		return 0U;
 	}
