@@ -24,10 +24,42 @@ SOFTWARE.
 
 */
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
 #include "util.h"
+
+/****************
+*** CONSTANTS ***
+****************/
+
+/************
+*** TYPES ***
+************/
+
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
+/**********************
+*** LOCAL VARIABLES ***
+**********************/
+
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
+/**********************
+*** LOCAL FUNCTIONS ***
+**********************/
+
+/***********************
+*** GLOBAL FUNCTIONS ***
+***********************/
 
 bool safe_strcat(char *dest, size_t size, const char *src)
 {

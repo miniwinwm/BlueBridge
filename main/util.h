@@ -31,8 +31,28 @@ SOFTWARE.
 extern "C" {
 #endif
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stdint.h>
 #include <stdbool.h>
+
+/****************
+*** CONSTANTS ***
+****************/
+
+/************
+*** TYPES ***
+************/
+
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
 
 uint32_t util_htoi(const char *s);
 void util_replace_char(char *s, char orig, char rep);

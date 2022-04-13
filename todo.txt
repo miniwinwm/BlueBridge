@@ -10,19 +10,29 @@ After receiving a start command publish first MQTT message immediately
 Change strcat for safe_strcat
 Add MQTT cpability to Android app
 Rotate boat shape according to heading in javascript
+Remove test #defines
 
 
 Todo tidy up
 ------------
-Doxygen all code
 Add standard headers to c/c++ source files
 Tidy up javascript code
 Create a new website with BlueThing name
+Move extern declarations into header files
 
 
 Todo testing
 ------------
 Test with OpenCPN
+Test on boat
+
+
+Todo documentation
+------------------
+Create main documentation file
+Create overview diagram
+Doxygen all code
+Create doxyfile
 
 
 Done

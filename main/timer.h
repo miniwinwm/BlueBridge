@@ -31,7 +31,27 @@ SOFTWARE.
 extern "C" {
 #endif
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stdint.h>
+
+/****************
+*** CONSTANTS ***
+****************/
+
+/************
+*** TYPES ***
+************/
+
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
 
 uint32_t timer_get_time_ms();
 uint32_t timer_get_time_s();
