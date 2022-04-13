@@ -31,9 +31,29 @@ SOFTWARE.
 extern "C" {
 #endif
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stdint.h>
 
+/****************
+*** CONSTANTS ***
+****************/
+
 #define SETTINGS_MQTT_BROKER_ADDRESS_MAX_LENGTH	32UL		
+
+/************
+*** TYPES ***
+************/
+
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
 
 void settings_init(void);
 void settings_save(void);

@@ -19,7 +19,8 @@ Add standard headers to c/c++ source files
 Tidy up javascript code
 Create a new website with BlueThing name
 Move extern declarations into header files
-
+Settings defaults as #defines
+Check all char * are const where possible
 
 Todo testing
 ------------

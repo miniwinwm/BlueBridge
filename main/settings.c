@@ -24,6 +24,10 @@ SOFTWARE.
 
 */
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
@@ -31,8 +35,24 @@ SOFTWARE.
 #include "flash.h"
 #include "modem.h"
 
-#define WAIT_FOREVER       	portMAX_DELAY  
-#define SIGNATURE			0xDEADBEEFUL
+/****************
+*** CONSTANTS ***
+****************/
+
+#define WAIT_FOREVER       							portMAX_DELAY  
+#define SIGNATURE									0xDEADBEEFUL
+#define SETTINGS_DEFAULT_CAN_DEVICE_ADDRESS			22U
+#define SETTINGS_DEFAULT_APN						"data.uk"
+#define SETTINGS_DEFAULT_APN_USER_NAME				"user"
+#define SETTINGS_DEFAULT_APN_PASSWORD				"one2one"
+#define SETTINGS_DEFAULT_MQTT_BROKER_ADDRESS		"broker.emqx.io"
+#define SETTINGS_DEFAULT_MQTT_BROKER_PORT			1883U
+#define SETTINGS_DEFAULT_MQTT_PUBLISH_PERIOD		30UL
+#define SETTINGS_DEFAULT_MQTT_PUBLISH_START_ON_BOOT	true
+
+/************
+*** TYPES ***
+************/
 
 typedef struct 
 {
@@ -54,10 +74,30 @@ typedef struct
 	bool restart_needed;
 } settings_volatile_t;
 
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
+/**********************
+*** LOCAL VARIABLES ***
+**********************/
+
 static settings_non_volatile_t settings_non_volatile;
 static settings_volatile_t settings_volatile;
 static SemaphoreHandle_t settings_mutex_handle;
 static bool init = false;
+
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
+/**********************
+*** LOCAL FUNCTIONS ***
+**********************/
+
+/***********************
+*** GLOBAL FUNCTIONS ***
+***********************/
 
 void settings_init(void)
 {
@@ -73,17 +113,17 @@ void settings_init(void)
     {
         memset(&settings_non_volatile, 0, sizeof(settings_non_volatile_t));
         settings_non_volatile.signature = SIGNATURE;
-        settings_non_volatile.device_address = 22U;
-		strcpy(settings_non_volatile.apn, "data.uk");
-		strcpy(settings_non_volatile.apn_user_name, "user");
-		strcpy(settings_non_volatile.apn_password, "one2one");		
-		strcpy(settings_non_volatile.mqtt_broker_address, "broker.emqx.io");
-		settings_non_volatile.period_s = 30UL;
-		settings_non_volatile.mqtt_broker_port = 1883U;
-        flash_store_data((uint8_t *)&settings_non_volatile, sizeof(settings_non_volatile_t));        
+        settings_non_volatile.device_address = SETTINGS_DEFAULT_CAN_DEVICE_ADDRESS;
+		strcpy(settings_non_volatile.apn, SETTINGS_DEFAULT_APN);
+		strcpy(settings_non_volatile.apn_user_name, SETTINGS_DEFAULT_APN_USER_NAME);
+		strcpy(settings_non_volatile.apn_password, SETTINGS_DEFAULT_APN_PASSWORD);		
+		strcpy(settings_non_volatile.mqtt_broker_address, SETTINGS_DEFAULT_MQTT_BROKER_ADDRESS);
+		settings_non_volatile.mqtt_broker_port = SETTINGS_DEFAULT_MQTT_BROKER_PORT;
+ 		settings_non_volatile.period_s = SETTINGS_DEFAULT_MQTT_PUBLISH_PERIOD;
+		flash_store_data((uint8_t *)&settings_non_volatile, sizeof(settings_non_volatile_t));        
     }
 	
-	settings_volatile.boat_iot_started = false;
+	settings_volatile.boat_iot_started = SETTINGS_DEFAULT_MQTT_PUBLISH_START_ON_BOOT;
 	settings_volatile.restart_needed = false;
 	settings_volatile.code = 0UL;
 }
