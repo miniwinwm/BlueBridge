@@ -82,7 +82,7 @@ void flash_load_data(void *data, size_t length)
     nvs_close(my_handle);
 }
 
-void flash_store_data(void *data, size_t length)
+void flash_store_data(const void *data, size_t length)
 {
 	nvs_handle my_handle;
 

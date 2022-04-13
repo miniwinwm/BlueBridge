@@ -31,11 +31,30 @@ SOFTWARE.
  extern "C" {
 #endif
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stdint.h>
 #include <stddef.h>
 
-void serial_init(uint32_t baud_rate_1);
+/****************
+*** CONSTANTS ***
+****************/
 
+/************
+*** TYPES ***
+************/
+
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
+
+void serial_init(uint32_t baud_rate_1);
 size_t serial_1_read_data(size_t buffer_length, uint8_t *data);
 size_t serial_1_send_data(size_t length, const uint8_t *data);
 size_t serial_2_read_data(size_t buffer_length, uint8_t *data);

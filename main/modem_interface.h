@@ -31,11 +31,23 @@ SOFTWARE.
 extern "C" {
 #endif
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stdint.h>
 #include <stdlib.h>
 
+/****************
+*** CONSTANTS ***
+****************/
+
 #define MODEM_INTERFACE_LOG_SERIAL			
 #define MODEM_INTERFACE_WAIT_FOREVER       portMAX_DELAY  
+
+/************
+*** TYPES ***
+************/
 
 typedef enum
 {
@@ -51,6 +63,14 @@ typedef enum
 } modem_interface_status_t;
 
 typedef void (*modem_task_t)(void);
+
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
 
 /**
  * Call this once before using the rest of the API

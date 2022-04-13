@@ -31,6 +31,26 @@ SOFTWARE.
 extern "C" {
 #endif
 
+/***************
+*** INCLUDES ***
+***************/
+
+/****************
+*** CONSTANTS ***
+****************/
+
+/************
+*** TYPES ***
+************/
+
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
+
 void boat_iot_task(void *parameters);
 
 #ifdef __cplusplus

@@ -24,6 +24,10 @@ SOFTWARE.
 
 */
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -33,29 +37,56 @@ SOFTWARE.
 #include "modem_interface.h"
 #include "util.h"
 
+/****************
+*** CONSTANTS ***
+****************/
+
 #define MODEM_RESET_GPIO	GPIO_NUM_25
 #define MODEM_TX_GPIO		GPIO_NUM_26
 #define MODEM_RX_GPIO		GPIO_NUM_27
 
-TaskHandle_t modem_task_handle;
+/************
+*** TYPES ***
+************/
 
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
+/**********************
+*** LOCAL VARIABLES ***
+**********************/
+
+static TaskHandle_t modem_task_handle;
 static QueueHandle_t commandQueueHandle;
 static QueueHandle_t responseQueueHandle;
 static SemaphoreHandle_t modemMutexHandle;
 static modem_task_t modem_task;
 
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
 static void modem_interface_task(void *parameters);
 
-void modem_interface_log(const char *message)
-{
-	ESP_LOGI(pcTaskGetName(NULL), "%s", message);
-}
+/**********************
+*** LOCAL FUNCTIONS ***
+**********************/
 
 static void modem_interface_task(void *parameters)
 {
 	(void)parameters;
 	
 	modem_task();
+}
+
+/***********************
+*** GLOBAL FUNCTIONS ***
+***********************/
+
+void modem_interface_log(const char *message)
+{
+	ESP_LOGI(pcTaskGetName(NULL), "%s", message);
 }
 
 void modem_interface_os_init(size_t command_queue_packet_size, size_t response_queue_command_size, modem_task_t task)

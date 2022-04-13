@@ -31,8 +31,28 @@ SOFTWARE.
  extern "C" {
 #endif
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+
+/****************
+*** CONSTANTS ***
+****************/
+
+/************
+*** TYPES ***
+************/
+
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
 
 TaskHandle_t get_main_task_handle(void);
 

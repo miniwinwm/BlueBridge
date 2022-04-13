@@ -1,6 +1,5 @@
 Todo hardware
 -------------
-Create BOM
 
 
 Todo functional
@@ -18,8 +17,6 @@ Todo tidy up
 Add standard headers to c/c++ source files
 Tidy up javascript code
 Create a new website with BlueThing name
-Move extern declarations into header files
-Settings defaults as #defines
 Check all char * are const where possible
 
 Todo testing
@@ -66,7 +63,7 @@ Change MQTT password topic name to pass
 Change LED component on schematic to a PL2
 Use string capitalize function in SMS keys
 Test that no CR on end of a user sent SMS message works
-Add 32 bit has function to utils
+Add 32 bit hash function to utils
 In Android app clear heading/pressure change items when watching stopped
 In Android app Windspeed label is misaligned
 Rename function in util.c/h to start with util_
@@ -103,3 +100,6 @@ Get new boards made
 Generate new hw pdf files
 The placement of the red square in the mapiator map is not quite right - top left corner of square is location. Investigate polygon instead
 Modem_interface.h should not depend on modem.h
+Settings defaults as #defines
+Move extern declarations into header files
+Create BOM

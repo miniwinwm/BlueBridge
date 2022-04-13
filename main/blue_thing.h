@@ -31,6 +31,14 @@ SOFTWARE.
 extern "C" {
 #endif
 
+/***************
+*** INCLUDES ***
+***************/
+
+/****************
+*** CONSTANTS ***
+****************/
+
 #define FAKE_DATA
 
 #define NETWORK_REGISTRATION_WAIT_TIME_MS		60000UL					// time to wait for network registration before giving up
@@ -55,6 +63,10 @@ extern "C" {
 #define TRUE_WIND_SPEED_MAX_DATA_AGE_MS			4000UL
 #define WIND_DIRECTION_MAGNETIC_MAX_DATA_AGE_MS	4000UL
 #define WIND_DIRECTION_TRUE_MAX_DATA_AGE_MS		4000UL
+
+/************
+*** TYPES ***
+************/
 
 typedef struct
 {
@@ -94,6 +106,10 @@ typedef struct
 	uint32_t wind_direction_true_received_time;
 } boat_data_reception_time_t;
 
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
 extern volatile float variation_wmm_data;
 extern volatile float pressure_data;
 extern volatile float speed_over_ground_data;
@@ -116,6 +132,9 @@ extern volatile my_time_t gmt_data;
 extern volatile my_date_t date_data;
 extern volatile boat_data_reception_time_t boat_data_reception_time;
 
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
 
 #ifdef __cplusplus
 }

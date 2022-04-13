@@ -68,7 +68,6 @@ static float k[13][13];
 static float snorm[169];
 static float fn[13];
 static float fm[13];
-extern const uint8_t wmm_cof_entries_encoded[];
 static wmm_cof_record_t wmm_cof_entries[COEFFICIENTS_COUNT];
 
 /********************************

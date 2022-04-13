@@ -24,10 +24,38 @@ SOFTWARE.
 
 */
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include "driver/uart.h"
 #include "driver/gpio.h"
 #include "serial.h"
 #include "spp_acceptor.h"
+
+/****************
+*** CONSTANTS ***
+****************/
+
+/************
+*** TYPES ***
+************/
+
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
+/**********************
+*** LOCAL VARIABLES ***
+**********************/
+
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
+/**********************
+*** LOCAL FUNCTIONS ***
+**********************/
 
 void serial_init(uint32_t baud_rate_1)
 {
