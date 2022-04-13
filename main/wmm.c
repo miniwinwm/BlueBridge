@@ -24,23 +24,43 @@ SOFTWARE.
 
 */
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stdbool.h>
 #include <math.h>
 #include "wmm.h"
 
-#define PI_CONST 3.14159265359f
-#define RADIANS_TO_DEGREES 0.017453292f
-#define DEGREES_TO_RADIANS (PI_CONST / 180.0f)
-#define A_CONST 6378.137f
-#define A2_CONST (A_CONST * A_CONST)
-#define B_CONST 6356.7523142f
-#define B2_CONST (B_CONST * B_CONST)
-#define RE_CONST 6371.2f
-#define A4_CONST (A2_CONST * A2_CONST)
-#define B4_CONST (B2_CONST * B2_CONST)
-#define C2_CONST (A2_CONST - B2_CONST)
-#define C4_CONST (A4_CONST - B4_CONST)
+/****************
+*** CONSTANTS ***
+****************/
+
+#define PI_CONST 				3.14159265359f
+#define RADIANS_TO_DEGREES 		0.017453292f
+#define DEGREES_TO_RADIANS 		(PI_CONST / 180.0f)
+#define A_CONST 				6378.137f
+#define A2_CONST 				(A_CONST * A_CONST)
+#define B_CONST 				6356.7523142f
+#define B2_CONST 				(B_CONST * B_CONST)
+#define RE_CONST 				6371.2f
+#define A4_CONST 				(A2_CONST * A2_CONST)
+#define B4_CONST 				(B2_CONST * B2_CONST)
+#define C2_CONST 				(A2_CONST - B2_CONST)
+#define C4_CONST 				(A4_CONST - B4_CONST)
 #define COEFFICIENTS_COUNT		90U
+
+/************
+*** TYPES ***
+************/
+
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
+/**********************
+*** LOCAL VARIABLES ***
+**********************/
 
 static float c[13][13];
 static float cd[13][13];
@@ -51,12 +71,15 @@ static float fm[13];
 extern const uint8_t wmm_cof_entries_encoded[];
 static wmm_cof_record_t wmm_cof_entries[COEFFICIENTS_COUNT];
 
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
 static float convert_varint_to_float(char **bytes);
 
-float wmm_get_date(uint8_t year, uint8_t month, uint8_t date)
-{
-	return (float)year + 2000.0f + (float)(month - 1U) / 12.0f + (float)(date - 1U) / (365.0f);
-}
+/**********************
+*** LOCAL FUNCTIONS ***
+**********************/
 
 static float convert_varint_to_float(char **bytes)
 {
@@ -103,6 +126,15 @@ static float convert_varint_to_float(char **bytes)
 	}
 
 	return result;
+}
+
+/***********************
+*** GLOBAL FUNCTIONS ***
+***********************/
+
+float wmm_get_date(uint8_t year, uint8_t month, uint8_t date)
+{
+	return (float)year + 2000.0f + (float)(month - 1U) / 12.0f + (float)(date - 1U) / (365.0f);
 }
 
 void wmm_init(void)

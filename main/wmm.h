@@ -31,9 +31,21 @@ SOFTWARE.
 extern "C" {
 #endif
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stdint.h>
 
+/****************
+*** CONSTANTS ***
+****************/
+
 #define WMM_EPOCH		2020.0f
+
+/************
+*** TYPES ***
+************/
 
 typedef struct
 {
@@ -42,6 +54,14 @@ typedef struct
 	float dgnm;
 	float dhnm;
 } wmm_cof_record_t;
+
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
 
 void E0000(float glat, float glon, float time_years, float *dec);
 void wmm_init(void);

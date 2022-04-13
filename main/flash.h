@@ -31,7 +31,27 @@ SOFTWARE.
  extern "C" {
 #endif
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stddef.h>
+
+/****************
+*** CONSTANTS ***
+****************/
+
+/************
+*** TYPES ***
+************/
+
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
 
 void flash_init(void);
 void flash_load_data(void *data, size_t length);
