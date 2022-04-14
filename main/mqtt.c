@@ -33,6 +33,10 @@ SOFTWARE.
 #include "modem.h"
 #include "modem_interface.h"
 
+/**************
+*** DEFINES ***
+**************/
+
 /****************
 *** CONSTANTS ***
 ****************/

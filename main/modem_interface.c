@@ -37,13 +37,17 @@ SOFTWARE.
 #include "modem_interface.h"
 #include "util.h"
 
-/****************
-*** CONSTANTS ***
-****************/
+/**************
+*** DEFINES ***
+**************/
 
 #define MODEM_RESET_GPIO	GPIO_NUM_25
 #define MODEM_TX_GPIO		GPIO_NUM_26
 #define MODEM_RX_GPIO		GPIO_NUM_27
+
+/****************
+*** CONSTANTS ***
+****************/
 
 /************
 *** TYPES ***

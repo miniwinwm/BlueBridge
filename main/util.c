@@ -33,6 +33,10 @@ SOFTWARE.
 #include <stdio.h>
 #include "util.h"
 
+/**************
+*** DEFINES ***
+**************/
+
 /****************
 *** CONSTANTS ***
 ****************/

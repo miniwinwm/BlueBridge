@@ -37,6 +37,10 @@ SOFTWARE.
 #include "pdu.h"
 #include "util.h"
 
+/**************
+*** DEFINES ***
+**************/
+
 /****************
 *** CONSTANTS ***
 ****************/

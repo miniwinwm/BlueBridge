@@ -38,6 +38,15 @@ SOFTWARE.
 #include "main.h"
 #include "esp_log.h"
 
+/**************
+*** DEFINES ***
+**************/
+
+#define I2C_PRESSURE_SENSOR_ADDRESS			0x76U
+#define I2C_MEASUREMENT_START_WAIT_MS       500
+#define I2C_MEASUREMENT_PERIOD_MS           1000U
+#define I2C_TIMEOUT_MS                      1000U
+
 /************
 *** TYPES ***
 ************/
@@ -47,6 +56,16 @@ typedef struct
 	uint8_t register_address;
 	uint8_t *coefficient;
 } coefficients_table_entry;
+
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
+static void bmp280_compensate_T_int32(int32_t adc_T);
+static uint32_t bmp280_compensate_P_int64(int32_t adc_P);
+static bool i2c_send(uint8_t address, uint8_t reg, uint8_t data);
+static bool i2c_receive(uint8_t address, uint8_t reg, uint8_t *read_value);
+static bool i2c_receive_multi(uint8_t address, uint8_t reg, uint8_t *read_value, uint8_t length);
 
 /**********************
 *** LOCAL VARIABLES ***
@@ -71,11 +90,6 @@ static QueueHandle_t pressure_sensor_queue_handle;
 *** CONSTANTS ***
 ****************/
 
-#define I2C_PRESSURE_SENSOR_ADDRESS			0x76U
-#define I2C_MEASUREMENT_START_WAIT_MS       500
-#define I2C_MEASUREMENT_PERIOD_MS           1000U
-#define I2C_TIMEOUT_MS                      1000U
-
 static const coefficients_table_entry coefficients_table[] = {{0x88U, (uint8_t *)&dig_T1},
 		{0x8aU, (uint8_t *)&dig_T2},
 		{0x8cU, (uint8_t *)&dig_T3},
@@ -93,16 +107,6 @@ static const coefficients_table_entry coefficients_table[] = {{0x88U, (uint8_t *
 /***********************
 *** GLOBAL VARIABLES ***
 ***********************/
-
-/********************************
-*** LOCAL FUNCTION PROTOTYPES ***
-********************************/
-
-static void bmp280_compensate_T_int32(int32_t adc_T);
-static uint32_t bmp280_compensate_P_int64(int32_t adc_P);
-static bool i2c_send(uint8_t address, uint8_t reg, uint8_t data);
-static bool i2c_receive(uint8_t address, uint8_t reg, uint8_t *read_value);
-static bool i2c_receive_multi(uint8_t address, uint8_t reg, uint8_t *read_value, uint8_t length);
 
 /**********************
 *** LOCAL FUNCTIONS ***

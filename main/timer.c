@@ -32,6 +32,9 @@ SOFTWARE.
 #include "freertos/task.h"
 #include "timer.h"
 
+/**************
+*** DEFINES ***
+**************/
 
 /****************
 *** CONSTANTS ***

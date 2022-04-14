@@ -45,9 +45,9 @@ SOFTWARE.
 #include "timer.h"
 #include "led.h"
 
-/****************
-*** CONSTANTS ***
-****************/
+/**************
+*** DEFINES ***
+**************/
 
 #define MQTT_KEEPALIVE_S			600U
 #define MQTT_SHUTDOWN_PERIOD_S		300UL
@@ -55,14 +55,6 @@ SOFTWARE.
 /************
 *** TYPES ***
 ************/
-
-/***********************
-*** GLOBAL VARIABLES ***
-***********************/
-
-/**********************
-*** LOCAL VARIABLES ***
-**********************/
 
 /********************************
 *** LOCAL FUNCTION PROTOTYPES ***
@@ -75,6 +67,18 @@ static bool modem_activate_data_connection(void);
 static bool config_parser_callback(char *key, char *value);
 static bool open_mqtt_connection(void);
 static void close_mqtt_connection(void);
+
+/**********************
+*** LOCAL VARIABLES ***
+**********************/
+
+/****************
+*** CONSTANTS ***
+****************/
+
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
 
 /**********************
 *** LOCAL FUNCTIONS ***

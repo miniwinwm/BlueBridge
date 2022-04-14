@@ -33,6 +33,10 @@ SOFTWARE.
 #include "freertos/timers.h"
 #include "led.h"
 
+/**************
+*** DEFINES ***
+**************/
+
 /****************
 *** CONSTANTS ***
 ****************/

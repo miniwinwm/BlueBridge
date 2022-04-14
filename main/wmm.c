@@ -36,6 +36,10 @@ SOFTWARE.
 *** CONSTANTS ***
 ****************/
 
+/**************
+*** DEFINES ***
+**************/
+
 #define PI_CONST 				3.14159265359f
 #define RADIANS_TO_DEGREES 		0.017453292f
 #define DEGREES_TO_RADIANS 		(PI_CONST / 180.0f)

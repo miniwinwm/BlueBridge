@@ -31,6 +31,10 @@ SOFTWARE.
 #include <string.h>
 #include "property_parser.h"
 
+/**************
+*** DEFINES ***
+**************/
+
 /****************
 *** CONSTANTS ***
 ****************/

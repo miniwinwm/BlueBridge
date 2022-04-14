@@ -12,7 +12,7 @@ Make buffer handling safe in nmea.c
 
 Todo tidy up
 ------------
-Add standard headers to c/c++ source files
+Add standard headers to c/c++ source files and reorder sections
 Tidy up javascript code
 Create a new website with BlueThing name
 Check all pointer parameters are const where possible
