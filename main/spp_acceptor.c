@@ -24,6 +24,10 @@ SOFTWARE.
 
 */
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
@@ -42,6 +46,10 @@ SOFTWARE.
 #include "esp_spp_api.h"
 #include "spp_acceptor.h"
 
+/**************
+*** DEFINES ***
+**************/
+
 #define SPP_SERVER_NAME 			"SPP_SERVER"
 #define DEVICE_NAME 				"BlueBridge"
 #define RX_QUEUE_SIZE 				512
@@ -52,11 +60,28 @@ SOFTWARE.
 #define SPP_NOT_CONGESTED_TIMEOUT 	1000
 #define SPP_TX_MAX 					330
 
+/************
+*** TYPES ***
+************/
+
 typedef struct
 {
 	size_t len;
 	uint8_t data[];
 } spp_packet_t;
+
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
+static bool spp_send_buffer();
+static void spp_tx_task(void *arg);
+static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
+static void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param);
+
+/**********************
+*** LOCAL VARIABLES ***
+**********************/
 
 static xQueueHandle spp_rx_queue;
 static xQueueHandle spp_tx_queue;
@@ -67,10 +92,17 @@ static uint32_t spp_client;
 static uint8_t spp_tx_buffer[SPP_TX_MAX];
 static uint16_t spp_tx_buffer_len = 0;
 
-static bool spp_send_buffer();
-static void spp_tx_task(void *arg);
-static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
-static void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param);
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
+/****************
+*** CONSTANTS ***
+****************/
+
+/**********************
+*** LOCAL FUNCTIONS ***
+**********************/
 
 static bool spp_send_buffer()
 {
@@ -346,6 +378,10 @@ static void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *pa
     }
     return;
 }
+
+/***********************
+*** GLOBAL FUNCTIONS ***
+***********************/
 
 void spp_init()
 {

@@ -24,6 +24,10 @@ SOFTWARE.
 
 */
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
@@ -32,6 +36,16 @@ SOFTWARE.
 #include "nmea.h"
 #include "serial.h"
 #include "timer.h"
+
+/**************
+*** DEFINES ***
+**************/
+
+#define NMEA_MESSAGE_MAP_ENTRIES (sizeof(nmea_message_type_map) / sizeof(nmea_message_type_map_t))
+
+/************
+*** TYPES ***
+************/
 
 typedef struct
 {
@@ -47,30 +61,46 @@ typedef struct
 	nmea_message_type_t message_type;
 } nmea_message_type_map_t;
 
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
+static uint8_t decode(const char *buffer, uint8_t port);
+static nmea_error_t encode(const transmit_message_info_t *transmit_message_info, char *output_buffer);
+static void adjust_messages_speed(uint8_t port, uint32_t permil_period_adjustment);
+static const nmea_receive_message_details_t *get_receive_message_details(uint8_t port, nmea_message_type_t message_type);
+static const transmit_message_details_t *get_transmit_message_details(uint8_t port, nmea_message_type_t message_type);
+static transmit_message_info_t *get_transmit_message_info(uint16_t details_number);
+static const char *my_strtok(const char *s1, const char *delimit);
+static nmea_message_type_t get_message_type_from_header(const char *header);
+static uint8_t count_commas(const char *text);
+static const char *my_ftoa(float number, uint8_t precision, uint8_t padding);
+static const char *my_itoa(int32_t number);
+static uint32_t my_xtoi(const char *hex_string);
+static uint8_t calc_checksum(const char *message);
+static const char *create_checksum(const char *message);
+static bool verify_checksum(const char *message);
+static nmea_error_t send_data(uint8_t port, uint16_t data_size, const uint8_t *data, uint16_t *data_sent);
+static uint16_t receive_data(uint8_t port, uint16_t buffer_length, uint8_t *data);
+static bool util_safe_strcat(char *dest, size_t size, const char *src);
+static bool check_received_message(const char *message_data, uint8_t min_commas, uint8_t max_commas);
+
+/**********************
+*** LOCAL VARIABLES ***
+**********************/
+
 static const nmea_receive_message_details_t *receive_message_details[NMEA_MAXIMUM_RECEIVE_MESSAGE_DETAILS];
 static transmit_message_info_t transmit_messages_infos[NMEA_MAXIMUM_TRANSMIT_MESSAGE_DETAILS];
 static char message_data_to_send_buffer[NMEA_NUMBER_OF_PORTS][NMEA_MAX_MESSAGE_LENGTH + 1];
 static char message_data_to_read_buffer[NMEA_NUMBER_OF_PORTS][NMEA_MAX_MESSAGE_LENGTH + 1];
 
-static uint8_t decode(char *buffer, uint8_t port);
-static nmea_error_t encode(transmit_message_info_t *transmit_message_info, char *output_buffer);
-static void adjust_messages_speed(uint8_t port, uint32_t permil_period_adjustment);
-static const nmea_receive_message_details_t *get_receive_message_details(uint8_t port, nmea_message_type_t message_type);
-static const transmit_message_details_t *get_transmit_message_details(uint8_t port, nmea_message_type_t message_type);
-static transmit_message_info_t *get_transmit_message_info(uint16_t details_number);
-static char *my_strtok(char *s1, const char *delimit);
-static nmea_message_type_t get_message_type_from_header(char *header);
-static uint8_t count_commas(const char *text);
-static const char *my_ftoa(float number, uint8_t precision, uint8_t padding);
-static const char *my_itoa(int32_t number);
-static uint32_t my_xtoi(char *hex_string);
-static uint8_t calc_checksum(char *message);
-static const char *create_checksum(char *message);
-static bool verify_checksum(char *message);
-static nmea_error_t send_data(uint8_t port, uint16_t data_size, uint8_t *data, uint16_t *data_sent);
-static uint16_t receive_data(uint8_t port, uint16_t buffer_length, uint8_t *data);
-static bool util_safe_strcat(char *dest, size_t size, const char *src);
-static bool check_received_message(char *message_data, uint8_t min_commas, uint8_t max_commas);
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
+/****************
+*** CONSTANTS ***
+****************/
 
 // map of nmea message headers to types - receive message types only
 static const nmea_message_type_map_t nmea_message_type_map[] = {
@@ -79,10 +109,12 @@ static const nmea_message_type_map_t nmea_message_type_map[] = {
 		{"RMB", nmea_message_RMB},
 		{"RMC", nmea_message_RMC},
 		{"VDM", nmea_message_VDM}};
+		
+/**********************
+*** LOCAL FUNCTIONS ***
+**********************/		
 
-#define NMEA_MESSAGE_MAP_ENTRIES (sizeof(nmea_message_type_map) / sizeof(nmea_message_type_map_t))
-
-static uint8_t decode(char *buffer, uint8_t port)
+static uint8_t decode(const char *buffer, uint8_t port)
 {
     uint8_t bytes_used = 0U;
     uint8_t next_message_next_position = 0U;
@@ -160,7 +192,7 @@ static uint8_t decode(char *buffer, uint8_t port)
     return bytes_used;
 }
 
-static nmea_error_t encode(transmit_message_info_t *transmit_message_info, char *output_buffer)
+static nmea_error_t encode(const transmit_message_info_t *transmit_message_info, char *output_buffer)
 {
     nmea_get_transmit_data_callback_t transmit_data_callback;
     nmea_encoder_function_t encoder;
@@ -192,6 +224,352 @@ static nmea_error_t encode(transmit_message_info_t *transmit_message_info, char 
 
     return error;
 }
+
+static nmea_message_type_t get_message_type_from_header(const char *header)
+{
+	for (uint8_t i = 0U; i < NMEA_MESSAGE_MAP_ENTRIES; i++)
+	{
+		if (strncmp(header, nmea_message_type_map[i].message_header, (size_t)3) == 0)
+		{
+			return nmea_message_type_map[i].message_type;
+		}
+	}
+
+    return nmea_message_min;
+}
+
+static uint8_t calc_checksum(const char *message)
+{
+    uint8_t checksum = 0U;
+
+    while (*message)
+    {
+        checksum ^= *message++;
+    }
+
+    return checksum;
+}
+
+static uint32_t my_xtoi(const char *hex_string)
+{
+	uint32_t i = 0UL;
+
+	while (*hex_string)
+	{
+		char c = toupper(*hex_string++);
+		if ((c < '0') || (c > 'F') || ((c > '9') && (c < 'A')))
+		{
+			break;
+		}
+		c -= '0';
+
+		if (c > 9)
+		{
+			c -= 7;
+		}
+
+		i = (i << 4) + (uint32_t)c;
+	}
+
+	return i;
+}
+
+static bool verify_checksum(const char *message)
+{
+    size_t length;
+    uint8_t calculated_checksum = 0U;
+    uint32_t read_checksum;
+    char *checksum_start;
+
+    length = strlen(message);
+
+    if (length < (size_t)12)
+    {
+        return false;
+    }
+
+    if ((checksum_start = strchr(message, '*')) == NULL)
+    {
+        return false;
+    }
+
+    message++;
+    while (*message != '*')
+    {
+        calculated_checksum ^= *message++;
+    }
+
+    read_checksum = my_xtoi(checksum_start + 1);
+
+    return ((uint32_t)calculated_checksum == read_checksum);
+}
+
+static const char *create_checksum(const char *message)
+{
+    static char checksum_text[4];
+
+    (void)snprintf(checksum_text, sizeof(checksum_text), "*%02X", calc_checksum(message));
+
+    return checksum_text;
+}
+
+static uint8_t count_commas(const char *text)
+{
+    uint8_t comma_count = 0U;
+
+    while (*text)
+    {
+        if (*text == ',')
+        {
+        	comma_count++;
+        }
+        text++;
+    }
+
+    return comma_count;
+}
+
+static const char *my_ftoa(float number, uint8_t precision, uint8_t padding)
+{
+    static char buffer[24];
+    char format[9];
+
+    buffer[0] = 0;
+
+    if (precision > 12U || padding > 12U)
+    {
+        return buffer;
+    }
+
+    if (padding > 0U)
+    {
+        if (precision > 0U)
+        {
+        	(void)snprintf(format, sizeof(format), "%%0%u.%uf", padding + precision + 1U, precision);
+        }
+        else
+        {
+        	(void)snprintf(format, sizeof(format), "%%0%u.%uf", padding + precision, precision);
+        }
+    }
+    else
+    {
+        (void)snprintf(format, sizeof(format), "%%.%uf", precision);
+    }
+
+    (void)snprintf(buffer, sizeof(buffer), format, number);
+
+    return buffer;
+}
+
+static const char *my_itoa(int32_t number)
+{
+    static char buffer[12];
+
+    (void)snprintf(buffer, sizeof(buffer), "%d", (int)number);
+
+    return buffer;
+}
+
+static const char *my_strtok(const char *s1, const char *delimit)
+{
+    static char *last_token = NULL;
+    char *tmp;
+
+    if (s1 == NULL)
+    {
+        s1 = last_token;
+        if (s1 == NULL)
+        {
+            return NULL;
+        }
+    }
+    else
+    {
+        s1 += strspn(s1, delimit);
+    }
+
+    tmp = strpbrk(s1, delimit);
+    if (tmp)
+    {
+        *tmp = 0;
+        last_token = tmp + 1;
+    }
+    else
+    {
+    	last_token = NULL;
+    }
+
+    return s1;
+}
+
+uint8_t nmea_count_set_bits(uint32_t n, uint8_t start_bit, uint8_t length)
+{
+    uint8_t count = 0U;
+    uint32_t mask;
+    uint8_t bit;
+
+    mask = 1UL;
+    for (bit = 0U; bit < start_bit + length; bit++)
+    {
+        if (bit >= start_bit && (n & mask) > 0UL)
+        {
+        	count++;
+        }
+        mask <<= 1;
+    }
+
+    return count;
+}
+
+static transmit_message_info_t *get_transmit_message_info(uint16_t details_number)
+{
+    if (details_number < NMEA_MAXIMUM_TRANSMIT_MESSAGE_DETAILS)
+    {
+        return &transmit_messages_infos[details_number];
+    }
+
+    return NULL;
+}
+
+static void adjust_messages_speed(uint8_t port, uint32_t permil_period_adjustment)
+{
+    uint16_t i;
+
+    for (i = 0U; i < NMEA_MAXIMUM_TRANSMIT_MESSAGE_DETAILS; i++)
+    {
+        if (transmit_messages_infos[i].transmit_message_details != NULL &&
+                transmit_messages_infos[i].transmit_message_details->port == port)
+        {
+            transmit_messages_infos[i].current_transmit_period_ms = (uint16_t)(((uint32_t)transmit_messages_infos[i].current_transmit_period_ms * permil_period_adjustment) / 1000UL);
+
+            if (transmit_messages_infos[i].current_transmit_period_ms < transmit_messages_infos[i].transmit_message_details->transmit_period_ms)
+            {
+                transmit_messages_infos[i].current_transmit_period_ms = transmit_messages_infos[i].transmit_message_details->transmit_period_ms;
+            }
+        }
+    }
+}
+
+static const nmea_receive_message_details_t *get_receive_message_details(uint8_t port, nmea_message_type_t message_type)
+{
+   uint16_t i;
+
+   for (i = 0U; i < NMEA_MAXIMUM_RECEIVE_MESSAGE_DETAILS; i++)
+   {
+       if (receive_message_details[i] != NULL)
+       {
+           if (receive_message_details[i]->port == port &&
+                   receive_message_details[i]->message_type == message_type)
+           {
+               return receive_message_details[i];
+           }
+       }
+   }
+
+   return NULL;
+}
+
+static const transmit_message_details_t *get_transmit_message_details(uint8_t port, nmea_message_type_t message_type)
+{
+   uint16_t i;
+
+   for (i = 0U; i < NMEA_MAXIMUM_TRANSMIT_MESSAGE_DETAILS; i++)
+   {
+       if (transmit_messages_infos[i].transmit_message_details != NULL)
+       {
+           if (transmit_messages_infos[i].transmit_message_details->port == port &&
+                   transmit_messages_infos[i].transmit_message_details->message_type == message_type)
+           {
+               return transmit_messages_infos[i].transmit_message_details;
+           }
+       }
+   }
+
+   return NULL;
+}
+
+static bool check_received_message(const char *message_data, uint8_t min_commas, uint8_t max_commas)
+{
+	size_t length = strlen(message_data);
+	uint8_t comma_count = count_commas(message_data);;
+
+	if (length < (size_t)NMEA_MIN_MESSAGE_LENGTH || message_data[length - (size_t)2] != '\r')
+	{
+		return false;
+	}
+
+	if (comma_count < min_commas || comma_count > max_commas)
+	{
+		return false;
+	}
+
+    if (strlen(my_strtok(message_data, ",")) != (size_t)6)
+    {
+        return false;
+    }
+
+	return true;
+}
+
+static nmea_error_t send_data(uint8_t port, uint16_t data_size, const uint8_t *data, uint16_t *data_sent)
+{
+	switch (port)
+	{
+	case 0U:
+        *data_sent = serial_1_send_data(data_size, data);	
+		break;	
+		
+	case 1U:
+        *data_sent = serial_2_send_data(data_size, data);	
+		break;			
+
+	default:
+		break;
+	}
+
+    if (*data_sent != data_size)
+    {
+        return nmea_error_overflow;
+    }
+
+    return nmea_error_none;
+}
+
+static uint16_t receive_data(uint8_t port, uint16_t buffer_length, uint8_t *data)
+{
+	uint16_t bytes_read = 0U;
+	switch (port)
+	{
+	case 0U:
+		bytes_read = serial_1_read_data(buffer_length, data);
+		break;
+
+	case 1U:
+        bytes_read = serial_2_read_data(buffer_length, data);
+        break;
+
+	default:
+		break;
+	}
+
+	return bytes_read;
+}
+
+static bool util_safe_strcat(char *dest, size_t size, const char *src)
+{
+    if (dest == NULL || src == NULL || (strlen(dest) + strlen(src) + (size_t)1 > size))
+    {
+    	return false;
+    }
+
+	return (strncat((dest), (src), (size - strlen(dest) - (size_t)1U)));
+}
+
+
+/***********************
+*** GLOBAL FUNCTIONS ***
+***********************/
 
 void nmea_process(void)
 {
@@ -355,213 +733,6 @@ void nmea_process(void)
     }
 }
 
-static nmea_message_type_t get_message_type_from_header(char *header)
-{
-	for (uint8_t i = 0U; i < NMEA_MESSAGE_MAP_ENTRIES; i++)
-	{
-		if (strncmp(header, nmea_message_type_map[i].message_header, (size_t)3) == 0)
-		{
-			return nmea_message_type_map[i].message_type;
-		}
-	}
-
-    return nmea_message_min;
-}
-
-static uint8_t calc_checksum(char *message)
-{
-    uint8_t checksum = 0U;
-
-    while (*message)
-    {
-        checksum ^= *message++;
-    }
-
-    return checksum;
-}
-
-static uint32_t my_xtoi(char *hex_string)
-{
-	uint32_t i = 0UL;
-
-	while (*hex_string)
-	{
-		char c = toupper(*hex_string++);
-		if ((c < '0') || (c > 'F') || ((c > '9') && (c < 'A')))
-		{
-			break;
-		}
-		c -= '0';
-
-		if (c > 9)
-		{
-			c -= 7;
-		}
-
-		i = (i << 4) + (uint32_t)c;
-	}
-
-	return i;
-}
-
-static bool verify_checksum(char *message)
-{
-    size_t length;
-    uint8_t calculated_checksum = 0U;
-    uint32_t read_checksum;
-    char *checksum_start;
-
-    length = strlen(message);
-
-    if (length < (size_t)12)
-    {
-        return false;
-    }
-
-    if ((checksum_start = strchr(message, '*')) == NULL)
-    {
-        return false;
-    }
-
-    message++;
-    while (*message != '*')
-    {
-        calculated_checksum ^= *message++;
-    }
-
-    read_checksum = my_xtoi(checksum_start + 1);
-
-    return ((uint32_t)calculated_checksum == read_checksum);
-}
-
-static const char *create_checksum(char *message)
-{
-    static char checksum_text[4];
-
-    (void)snprintf(checksum_text, sizeof(checksum_text), "*%02X", calc_checksum(message));
-
-    return checksum_text;
-}
-
-static uint8_t count_commas(const char *text)
-{
-    uint8_t comma_count = 0U;
-
-    while (*text)
-    {
-        if (*text == ',')
-        {
-        	comma_count++;
-        }
-        text++;
-    }
-
-    return comma_count;
-}
-
-static const char *my_ftoa(float number, uint8_t precision, uint8_t padding)
-{
-    static char buffer[24];
-    char format[9];
-
-    buffer[0] = 0;
-
-    if (precision > 12U || padding > 12U)
-    {
-        return buffer;
-    }
-
-    if (padding > 0U)
-    {
-        if (precision > 0U)
-        {
-        	(void)snprintf(format, sizeof(format), "%%0%u.%uf", padding + precision + 1U, precision);
-        }
-        else
-        {
-        	(void)snprintf(format, sizeof(format), "%%0%u.%uf", padding + precision, precision);
-        }
-    }
-    else
-    {
-        (void)snprintf(format, sizeof(format), "%%.%uf", precision);
-    }
-
-    (void)snprintf(buffer, sizeof(buffer), format, number);
-
-    return buffer;
-}
-
-static const char *my_itoa(int32_t number)
-{
-    static char buffer[12];
-
-    (void)snprintf(buffer, sizeof(buffer), "%d", (int)number);
-
-    return buffer;
-}
-
-static char *my_strtok(char *s1, const char *delimit)
-{
-    static char *last_token = NULL;
-    char *tmp;
-
-    if (s1 == NULL)
-    {
-        s1 = last_token;
-        if (s1 == NULL)
-        {
-            return NULL;
-        }
-    }
-    else
-    {
-        s1 += strspn(s1, delimit);
-    }
-
-    tmp = strpbrk(s1, delimit);
-    if (tmp)
-    {
-        *tmp = 0;
-        last_token = tmp + 1;
-    }
-    else
-    {
-    	last_token = NULL;
-    }
-
-    return s1;
-}
-
-uint8_t nmea_count_set_bits(uint32_t n, uint8_t start_bit, uint8_t length)
-{
-    uint8_t count = 0U;
-    uint32_t mask;
-    uint8_t bit;
-
-    mask = 1UL;
-    for (bit = 0U; bit < start_bit + length; bit++)
-    {
-        if (bit >= start_bit && (n & mask) > 0UL)
-        {
-        	count++;
-        }
-        mask <<= 1;
-    }
-
-    return count;
-}
-
-static transmit_message_info_t *get_transmit_message_info(uint16_t details_number)
-{
-    if (details_number < NMEA_MAXIMUM_TRANSMIT_MESSAGE_DETAILS)
-    {
-        return &transmit_messages_infos[details_number];
-    }
-
-    return NULL;
-}
-
 void nmea_disable_transmit_message(uint8_t port, nmea_message_type_t message_type)
 {
     uint16_t i;
@@ -650,64 +821,6 @@ void nmea_enable_receive_message(const nmea_receive_message_details_t *nmea_rece
     receive_message_details[i] = nmea_receive_message_details;
 }
 
-
-static void adjust_messages_speed(uint8_t port, uint32_t permil_period_adjustment)
-{
-    uint16_t i;
-
-    for (i = 0U; i < NMEA_MAXIMUM_TRANSMIT_MESSAGE_DETAILS; i++)
-    {
-        if (transmit_messages_infos[i].transmit_message_details != NULL &&
-                transmit_messages_infos[i].transmit_message_details->port == port)
-        {
-            transmit_messages_infos[i].current_transmit_period_ms = (uint16_t)(((uint32_t)transmit_messages_infos[i].current_transmit_period_ms * permil_period_adjustment) / 1000UL);
-
-            if (transmit_messages_infos[i].current_transmit_period_ms < transmit_messages_infos[i].transmit_message_details->transmit_period_ms)
-            {
-                transmit_messages_infos[i].current_transmit_period_ms = transmit_messages_infos[i].transmit_message_details->transmit_period_ms;
-            }
-        }
-    }
-}
-
-static const nmea_receive_message_details_t *get_receive_message_details(uint8_t port, nmea_message_type_t message_type)
-{
-   uint16_t i;
-
-   for (i = 0U; i < NMEA_MAXIMUM_RECEIVE_MESSAGE_DETAILS; i++)
-   {
-       if (receive_message_details[i] != NULL)
-       {
-           if (receive_message_details[i]->port == port &&
-                   receive_message_details[i]->message_type == message_type)
-           {
-               return receive_message_details[i];
-           }
-       }
-   }
-
-   return NULL;
-}
-
-static const transmit_message_details_t *get_transmit_message_details(uint8_t port, nmea_message_type_t message_type)
-{
-   uint16_t i;
-
-   for (i = 0U; i < NMEA_MAXIMUM_TRANSMIT_MESSAGE_DETAILS; i++)
-   {
-       if (transmit_messages_infos[i].transmit_message_details != NULL)
-       {
-           if (transmit_messages_infos[i].transmit_message_details->port == port &&
-                   transmit_messages_infos[i].transmit_message_details->message_type == message_type)
-           {
-               return transmit_messages_infos[i].transmit_message_details;
-           }
-       }
-   }
-
-   return NULL;
-}
-
 void nmea_transmit_message_now(uint8_t port, nmea_message_type_t message_type)
 {
     const transmit_message_details_t *transmit_message_details;
@@ -729,30 +842,7 @@ void nmea_transmit_message_now(uint8_t port, nmea_message_type_t message_type)
     }
 }
 
-static bool check_received_message(char *message_data, uint8_t min_commas, uint8_t max_commas)
-{
-	size_t length = strlen(message_data);
-	uint8_t comma_count = count_commas(message_data);;
-
-	if (length < (size_t)NMEA_MIN_MESSAGE_LENGTH || message_data[length - (size_t)2] != '\r')
-	{
-		return false;
-	}
-
-	if (comma_count < min_commas || comma_count > max_commas)
-	{
-		return false;
-	}
-
-    if (strlen(my_strtok(message_data, ",")) != (size_t)6)
-    {
-        return false;
-    }
-
-	return true;
-}
-
-nmea_error_t nmea_decode_APB(char *message_data, nmea_message_data_APB_t *result)
+nmea_error_t nmea_decode_APB(const char *message_data, nmea_message_data_APB_t *result)
 {
     const char *next_token;
     uint8_t comma_count = count_commas(message_data);
@@ -1406,14 +1496,14 @@ nmea_error_t nmea_encode_MWV(char *message_data, const void *source)
     return nmea_error_none;
 }
 
-nmea_error_t nmea_decode_VDM(char *message_data, nmea_message_data_VDM_t *result)
+nmea_error_t nmea_decode_VDM(const char *message_data, nmea_message_data_VDM_t *result)
 {
 	/* sample messages
 	!AIVDM,2,1,3,B,55P5TL01VIaAL@7WKO@mBplU@<PDhh000000001S;AJ::4A80?4i@E53,0*3E
 	!AIVDM,2,2,3,B,1@0000000000000,2*55
 	 */
 
-    char *next_token;
+    const char *next_token;
     uint32_t data_available = 0UL;
 
     if (!check_received_message(message_data, 6U, 6U))
@@ -1568,9 +1658,9 @@ nmea_error_t nmea_encode_VDM(char *message_data, const void *source)
     return nmea_error_none;
 }
 
-nmea_error_t nmea_decode_RMC(char *message_data, nmea_message_data_RMC_t *result)
+nmea_error_t nmea_decode_RMC(const char *message_data, nmea_message_data_RMC_t *result)
 {
-    char *next_token;
+    const char *next_token;
     uint8_t comma_count = count_commas(message_data);
     uint32_t data_available = 0UL;
 
@@ -1909,9 +1999,9 @@ nmea_error_t nmea_encode_RMC(char *message_data, const void *source)
     return nmea_error_none;
 }
 
-nmea_error_t nmea_decode_RMB(char *message_data, nmea_message_data_RMB_t *result)
+nmea_error_t nmea_decode_RMB(const char *message_data, nmea_message_data_RMB_t *result)
 {
-    char *next_token;
+    const char *next_token;
     uint8_t comma_count = count_commas(message_data);
     uint32_t data_available = 0UL;
 
@@ -2024,9 +2114,9 @@ nmea_error_t nmea_decode_RMB(char *message_data, nmea_message_data_RMB_t *result
     return nmea_error_none;
 }
 
-nmea_error_t nmea_decode_GGA(char *message_data, nmea_message_data_GGA_t *result)
+nmea_error_t nmea_decode_GGA(const char *message_data, nmea_message_data_GGA_t *result)
 {
-    char *next_token;
+    const char *next_token;
     uint32_t data_available = 0UL;
 
     if (!check_received_message(message_data, 14U, 14U))
@@ -2493,58 +2583,4 @@ nmea_error_t nmea_encode_MDA(char *message_data, const void *source)
     }
 
     return nmea_error_none;
-}
-
-static nmea_error_t send_data(uint8_t port, uint16_t data_size, uint8_t *data, uint16_t *data_sent)
-{
-	switch (port)
-	{
-	case 0U:
-        *data_sent = serial_1_send_data(data_size, data);	
-		break;	
-		
-	case 1U:
-        *data_sent = serial_2_send_data(data_size, data);	
-		break;			
-
-	default:
-		break;
-	}
-
-    if (*data_sent != data_size)
-    {
-        return nmea_error_overflow;
-    }
-
-    return nmea_error_none;
-}
-
-static uint16_t receive_data(uint8_t port, uint16_t buffer_length, uint8_t *data)
-{
-	uint16_t bytes_read = 0U;
-	switch (port)
-	{
-	case 0U:
-		bytes_read = serial_1_read_data(buffer_length, data);
-		break;
-
-	case 1U:
-        bytes_read = serial_2_read_data(buffer_length, data);
-        break;
-
-	default:
-		break;
-	}
-
-	return bytes_read;
-}
-
-static bool util_safe_strcat(char *dest, size_t size, const char *src)
-{
-    if (dest == NULL || src == NULL || (strlen(dest) + strlen(src) + (size_t)1 > size))
-    {
-    	return false;
-    }
-
-	return (strncat((dest), (src), (size - strlen(dest) - (size_t)1U)));
 }

@@ -41,7 +41,6 @@ SOFTWARE.
 #include "settings.h"
 #include "sms.h"
 #include "util.h"
-#include "blue_thing.h"
 #include "timer.h"
 #include "led.h"
 
@@ -72,13 +71,13 @@ static void close_mqtt_connection(void);
 *** LOCAL VARIABLES ***
 **********************/
 
-/****************
-*** CONSTANTS ***
-****************/
-
 /***********************
 *** GLOBAL VARIABLES ***
 ***********************/
+
+/****************
+*** CONSTANTS ***
+****************/
 
 /**********************
 *** LOCAL FUNCTIONS ***

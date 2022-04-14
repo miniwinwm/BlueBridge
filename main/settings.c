@@ -36,10 +36,6 @@ SOFTWARE.
 #include "modem.h"
 #include "util.h"
 
-/****************
-*** CONSTANTS ***
-****************/
-
 /**************
 *** DEFINES ***
 **************/
@@ -80,9 +76,9 @@ typedef struct
 	bool publishing_start_needed;
 } settings_volatile_t;
 
-/***********************
-*** GLOBAL VARIABLES ***
-***********************/
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
 
 /**********************
 *** LOCAL VARIABLES ***
@@ -93,9 +89,13 @@ static settings_volatile_t settings_volatile;
 static SemaphoreHandle_t settings_mutex_handle;
 static bool init = false;
 
-/********************************
-*** LOCAL FUNCTION PROTOTYPES ***
-********************************/
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
+/****************
+*** CONSTANTS ***
+****************/
 
 /**********************
 *** LOCAL FUNCTIONS ***

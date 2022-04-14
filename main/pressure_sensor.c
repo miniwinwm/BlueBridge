@@ -86,6 +86,10 @@ static int16_t dig_P9;
 static int32_t t_fine;
 static QueueHandle_t pressure_sensor_queue_handle;
 
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
 /****************
 *** CONSTANTS ***
 ****************/
@@ -103,10 +107,6 @@ static const coefficients_table_entry coefficients_table[] = {{0x88U, (uint8_t *
 		{0x9cU, (uint8_t *)&dig_P8},
 		{0x9eU, (uint8_t *)&dig_P9}
 };
-
-/***********************
-*** GLOBAL VARIABLES ***
-***********************/
 
 /**********************
 *** LOCAL FUNCTIONS ***

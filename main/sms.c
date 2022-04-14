@@ -41,17 +41,15 @@ SOFTWARE.
 *** DEFINES ***
 **************/
 
-/****************
-*** CONSTANTS ***
-****************/
-
 /************
 *** TYPES ***
 ************/
 
-/***********************
-*** GLOBAL VARIABLES ***
-***********************/
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
+static void sms_notification_callback(uint32_t sms_id);
 
 /**********************
 *** LOCAL VARIABLES ***
@@ -59,11 +57,13 @@ SOFTWARE.
 
 static QueueHandle_t sms_waiting_id_queue_handle;
 
-/********************************
-*** LOCAL FUNCTION PROTOTYPES ***
-********************************/
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
 
-static void sms_notification_callback(uint32_t sms_id);
+/****************
+*** CONSTANTS ***
+****************/
 
 /**********************
 *** LOCAL FUNCTIONS ***

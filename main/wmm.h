@@ -37,9 +37,9 @@ extern "C" {
 
 #include <stdint.h>
 
-/****************
-*** CONSTANTS ***
-****************/
+/**************
+*** DEFINES ***
+**************/
 
 #define WMM_EPOCH		2020.0f
 

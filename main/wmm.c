@@ -32,10 +32,6 @@ SOFTWARE.
 #include <math.h>
 #include "wmm.h"
 
-/****************
-*** CONSTANTS ***
-****************/
-
 /**************
 *** DEFINES ***
 **************/
@@ -58,9 +54,11 @@ SOFTWARE.
 *** TYPES ***
 ************/
 
-/***********************
-*** GLOBAL VARIABLES ***
-***********************/
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
+static float convert_varint_to_float(char **bytes);
 
 /**********************
 *** LOCAL VARIABLES ***
@@ -74,11 +72,13 @@ static float fn[13];
 static float fm[13];
 static wmm_cof_record_t wmm_cof_entries[COEFFICIENTS_COUNT];
 
-/********************************
-*** LOCAL FUNCTION PROTOTYPES ***
-********************************/
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
 
-static float convert_varint_to_float(char **bytes);
+/****************
+*** CONSTANTS ***
+****************/
 
 /**********************
 *** LOCAL FUNCTIONS ***
@@ -240,6 +240,11 @@ void E0000(float glat, float glon, float time_years, float *dec)
 	cp[1] = crlon;
 	dp[0][0] = 0.0f;
 	pp[0] = 1.0f;
+	
+	if (dec == NULL)
+	{
+		return;
+	}
 
 	// CONVERT FROM GEODETIC COORDS. TO SPHERICAL COORDS
 	float q = sqrtf(A2_CONST - C2_CONST * srlat2);

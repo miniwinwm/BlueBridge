@@ -31,7 +31,15 @@ SOFTWARE.
 extern "C" {
 #endif
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stdint.h>
+
+/**************
+*** DEFINES ***
+**************/
 
 #define NMEA_NUMBER_OF_PORTS                    			2U
 #define NMEA_MAXIMUM_TRANSMIT_MESSAGE_DETAILS           	16U
@@ -139,6 +147,10 @@ extern "C" {
 #define NMEA_SPEED_UP_MESSAGE_PERMIL_PERIOD_ADJUSTMENT		999UL
 #define NMEA_SLOW_DOWN_MESSAGE_PERMIL_PERIOD_ADJUSTMENT		1010UL
 
+/************
+*** TYPES ***
+************/
+
 typedef struct
 {
     uint8_t hours;          /* 0-23 */
@@ -184,7 +196,7 @@ typedef enum
     nmea_message_max             /* must be last value */
 } nmea_message_type_t;
 
-typedef void (*nmea_receive_message_callback_t)(char *message);
+typedef void (*nmea_receive_message_callback_t)(const char *message);
 typedef void (*nmea_get_transmit_data_callback_t)(void);
 typedef nmea_error_t (*nmea_encoder_function_t)(const char *message_data, void *source);
 
@@ -376,25 +388,33 @@ typedef struct
     nmea_XDR_tuple_t measurements[NMEA_XDR_MAX_MEASUREMENTS_COUNT];
 } nmea_message_data_XDR_t;
 
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
+
 void nmea_enable_transmit_message(const transmit_message_details_t *nmea_transmit_message_details);
 void nmea_disable_transmit_message(uint8_t port, nmea_message_type_t message_type);
 void nmea_enable_receive_message(const nmea_receive_message_details_t *nmea_receive_message_details);
 void nmea_transmit_message_now(uint8_t port, nmea_message_type_t message_type);
 void nmea_process(void);
 uint8_t nmea_count_set_bits(uint32_t n, uint8_t start_bit, uint8_t length);
-nmea_error_t nmea_decode_APB(char *message_data, nmea_message_data_APB_t *result);
-nmea_error_t nmea_decode_GGA(char *message_data, nmea_message_data_GGA_t *result);
+nmea_error_t nmea_decode_APB(const char *message_data, nmea_message_data_APB_t *result);
+nmea_error_t nmea_decode_GGA(const char *message_data, nmea_message_data_GGA_t *result);
 nmea_error_t nmea_encode_GGA(char *message_data,  const void *source);
 nmea_error_t nmea_encode_HDM(char *message_data, const void *source);
 nmea_error_t nmea_encode_MTW(char *message_data, const void *source);
 nmea_error_t nmea_encode_DPT(char *message_data, const void *source);
 nmea_error_t nmea_encode_MWD(char *message_data, const void *source);
 nmea_error_t nmea_encode_MWV(char *message_data, const void *source);
-nmea_error_t nmea_decode_RMC(char *message_data, nmea_message_data_RMC_t *result);
+nmea_error_t nmea_decode_RMC(const char *message_data, nmea_message_data_RMC_t *result);
 nmea_error_t nmea_encode_RMC(char *message_data, const void *source);
-nmea_error_t nmea_decode_VDM(char *message_data, nmea_message_data_VDM_t *result);
+nmea_error_t nmea_decode_VDM(const char *message_data, nmea_message_data_VDM_t *result);
 nmea_error_t nmea_encode_VDM(char *message_data, const void *source);
-nmea_error_t nmea_decode_RMB(char *message_data, nmea_message_data_RMB_t *result);
+nmea_error_t nmea_decode_RMB(const char *message_data, nmea_message_data_RMB_t *result);
 nmea_error_t nmea_encode_VLW(char *message_data, const void *source);
 nmea_error_t nmea_encode_VHW(char *message_data,  const void *source);
 nmea_error_t nmea_encode_XDR(char *message_data, const void *source);

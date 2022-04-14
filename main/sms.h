@@ -38,9 +38,9 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
-/****************
-*** CONSTANTS ***
-****************/
+/**************
+*** DEFINES ***
+**************/
 
 #define SMS_MAX_PHONE_NUMBER_LENGTH		24UL
 

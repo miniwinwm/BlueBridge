@@ -37,17 +37,15 @@ SOFTWARE.
 *** DEFINES ***
 **************/
 
-/****************
-*** CONSTANTS ***
-****************/
-
 /************
 *** TYPES ***
 ************/
 
-/***********************
-*** GLOBAL VARIABLES ***
-***********************/
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
+static void led_timer_callback(xTimerHandle pxTimer);
 
 /**********************
 *** LOCAL VARIABLES ***
@@ -56,11 +54,13 @@ SOFTWARE.
 static xTimerHandle timer_led;
 static uint32_t current_period;
 
-/********************************
-*** LOCAL FUNCTION PROTOTYPES ***
-********************************/
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
 
-static void led_timer_callback(xTimerHandle pxTimer);
+/****************
+*** CONSTANTS ***
+****************/
 
 /**********************
 *** LOCAL FUNCTIONS ***

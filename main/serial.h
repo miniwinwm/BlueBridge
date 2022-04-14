@@ -38,9 +38,9 @@ SOFTWARE.
 #include <stdint.h>
 #include <stddef.h>
 
-/****************
-*** CONSTANTS ***
-****************/
+/**************
+*** DEFINES ***
+**************/
 
 /************
 *** TYPES ***

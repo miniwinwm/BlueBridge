@@ -37,11 +37,11 @@ extern "C" {
 
 #include <stdint.h>
 
-/****************
-*** CONSTANTS ***
-****************/
+/**************
+*** DEFINES ***
+**************/
 
-#define SETTINGS_MQTT_BROKER_ADDRESS_MAX_LENGTH	32UL		
+#define SETTINGS_MQTT_BROKER_ADDRESS_MAX_LENGTH			32UL		
 
 /************
 *** TYPES ***

@@ -38,9 +38,9 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
-/****************
-*** CONSTANTS ***
-****************/
+/**************
+*** DEFINES ***
+**************/
 
 /************
 *** TYPES ***

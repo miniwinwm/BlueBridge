@@ -37,17 +37,13 @@ SOFTWARE.
 *** DEFINES ***
 **************/
 
-/****************
-*** CONSTANTS ***
-****************/
-
 /************
 *** TYPES ***
 ************/
 
-/***********************
-*** GLOBAL VARIABLES ***
-***********************/
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
 
 /**********************
 *** LOCAL VARIABLES ***
@@ -60,9 +56,13 @@ static PingResponseCallback_t pingCallback;
 static SubscribeResponseCallback_t subscribeCallback;
 static UnsubscribeResponseCallback_t unsubscribeCallback;
 
-/********************************
-*** LOCAL FUNCTION PROTOTYPES ***
-********************************/
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
+/****************
+*** CONSTANTS ***
+****************/
 
 /**********************
 *** LOCAL FUNCTIONS ***

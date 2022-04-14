@@ -37,9 +37,9 @@ extern "C" {
 
 #include <stdint.h>
 
-/****************
-*** CONSTANTS ***
-****************/
+/**************
+*** DEFINES ***
+**************/
 
 #define MQTT_CONNECT_REQ_PACKET_ID		0x10U
 #define MQTT_CONNECT_ACK_PACKET_ID		0x20U

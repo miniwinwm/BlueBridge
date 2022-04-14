@@ -30,8 +30,28 @@ SOFTWARE.
 #ifdef __cplusplus
  extern "C" {
 #endif
+
+/***************
+*** INCLUDES ***
+***************/
  
 #include <stdlib.h>
+
+/**************
+*** DEFINES ***
+**************/
+
+/************
+*** TYPES ***
+************/
+
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
 
 size_t spp_write(const uint8_t *buffer, size_t size);
 int spp_read(void);

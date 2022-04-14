@@ -31,8 +31,16 @@ SOFTWARE.
 extern "C" {
 #endif
 
+/***************
+*** INCLUDES ***
+***************/
+
 #include <stdbool.h>
 #include <stdint.h>
+
+/**************
+*** DEFINES ***
+**************/
 
 #define MODEM_MAX_URC_LENGTH					50UL		// maximum length of URC accepted
 #define MODEM_URC_TIMEOUT_MS					25UL		// how long to wait for URC reception to finish after it has started
@@ -52,6 +60,10 @@ extern "C" {
 #define MODEM_SMS_MAX_PDU_LENGTH_ASCII_HEX		(MODEM_SMS_MAX_PDU_LENGTH_BINARY * 2)
 #define MODEM_MAX_IMEI_LENGTH					16UL
 #define MODEM_MAX_PHONE_NUMBER_LENGTH			20UL
+
+/************
+*** TYPES ***
+************/
 
 typedef enum
 {
@@ -114,6 +126,14 @@ typedef struct
 	uint8_t data[MODEM_MAX_AT_RESPONSE_SIZE];
 } AtResponsePacket_t;
 
+/*************************
+*** EXTERNAL VARIABLES ***
+*************************/
+
+/***************************
+*** FUNCTIONS PROTOTYPES ***
+***************************/
+
 void DoModemTask(void);
 void ModemReset(void);
 void ModemDelete(void);
@@ -123,7 +143,7 @@ ModemStatus_t ModemHello(uint32_t timeoutMs);
 ModemStatus_t ModemSetSmsPduMode(uint32_t timeoutMs);
 ModemStatus_t ModemSetSmsReceiveMode(uint32_t timeoutMs);
 ModemStatus_t ModemSmsReceiveMessage(uint8_t smsId, size_t *lengthRead, uint8_t *buffer, uint32_t timeoutMs);
-ModemStatus_t ModemSmsSendMessage(char *buffer, uint32_t timeoutMs);
+ModemStatus_t ModemSmsSendMessage(const char *buffer, uint32_t timeoutMs);
 ModemStatus_t ModemSmsDeleteAllMessages(uint32_t timeoutMs);
 ModemStatus_t ModemGetNetworkRegistrationStatus(bool *registered, uint32_t timeoutMs);
 ModemStatus_t ModemGetSignalStrength(uint8_t *strength, uint32_t timeoutMs);

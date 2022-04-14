@@ -38,9 +38,9 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
-/****************
-*** CONSTANTS ***
-****************/
+/**************
+*** DEFINES ***
+**************/
 
 #define MODEM_INTERFACE_LOG_SERIAL			
 #define MODEM_INTERFACE_WAIT_FOREVER       portMAX_DELAY  

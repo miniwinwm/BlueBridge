@@ -45,17 +45,15 @@ SOFTWARE.
 #define MODEM_TX_GPIO		GPIO_NUM_26
 #define MODEM_RX_GPIO		GPIO_NUM_27
 
-/****************
-*** CONSTANTS ***
-****************/
-
 /************
 *** TYPES ***
 ************/
 
-/***********************
-*** GLOBAL VARIABLES ***
-***********************/
+/********************************
+*** LOCAL FUNCTION PROTOTYPES ***
+********************************/
+
+static void modem_interface_task(void *parameters);
 
 /**********************
 *** LOCAL VARIABLES ***
@@ -67,11 +65,13 @@ static QueueHandle_t responseQueueHandle;
 static SemaphoreHandle_t modemMutexHandle;
 static modem_task_t modem_task;
 
-/********************************
-*** LOCAL FUNCTION PROTOTYPES ***
-********************************/
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
 
-static void modem_interface_task(void *parameters);
+/****************
+*** CONSTANTS ***
+****************/
 
 /**********************
 *** LOCAL FUNCTIONS ***
@@ -309,6 +309,7 @@ void *modem_interface_malloc(size_t length)
 void modem_interface_free(void *address)
 {
 	vPortFree(address);
+	address = NULL;
 }
 
 

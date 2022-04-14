@@ -44,7 +44,6 @@ SOFTWARE.
 #include "boat_iot.h"
 #include "settings.h"
 #include "sms.h"
-#include "blue_thing.h"
 #include "led.h"
 
 /**************
@@ -74,9 +73,9 @@ typedef struct
 *** LOCAL FUNCTION PROTOTYPES ***
 ********************************/
 
-static void RMC_receive_callback(char *data);
-static void VDM_receive_callback(char *data);
-static void GGA_receive_callback(char *data);
+static void RMC_receive_callback(const char *data);
+static void VDM_receive_callback(const char *data);
+static void GGA_receive_callback(const char *data);
 static void RMC_transmit_callback(void);
 static void XDR_transmit_callback(void);
 static void MDA_transmit_callback(void);
@@ -127,6 +126,32 @@ static nmea_message_data_VLW_t nmea_message_data_VLW;
 static nmea_message_data_MWV_t nmea_message_data_MWV;
 static nmea_message_data_MWD_t nmea_message_data_MWD;
 
+/***********************
+*** GLOBAL VARIABLES ***
+***********************/
+
+volatile float variation_wmm_data;
+volatile float pressure_data;
+volatile float speed_over_ground_data;
+volatile float latitude_data;
+volatile float longitude_data;
+volatile int16_t course_over_ground_data;
+volatile float depth_data;
+volatile float heading_true_data;
+volatile float boat_speed_data;
+volatile float apparent_wind_speed_data;
+volatile float apparent_wind_angle_data;
+volatile float true_wind_speed_data;
+volatile float true_wind_angle_data;
+volatile float trip_data;
+volatile float total_distance_data;
+volatile float seawater_temeperature_data;
+volatile float wind_direction_magnetic_data;
+volatile float wind_direction_true_data;
+volatile my_time_t gmt_data;
+volatile my_date_t date_data;
+volatile boat_data_reception_time_t boat_data_reception_time;
+
 /****************
 *** CONSTANTS ***
 ****************/
@@ -167,32 +192,6 @@ static const nmea_receive_message_details_t nmea_receive_message_details_RMC = {
 static const transmit_message_details_t nmea_transmit_message_details_RMC_bluetooth = {nmea_message_RMC, PORT_BLUETOOTH, 1000UL, RMC_transmit_callback, &nmea_message_data_RMC, (nmea_encoder_function_t)nmea_encode_RMC};
 static const transmit_message_details_t nmea_transmit_message_details_XDR = {nmea_message_XDR,	PORT_BLUETOOTH, 10000UL, XDR_transmit_callback,	&nmea_message_data_XDR,	(nmea_encoder_function_t)nmea_encode_XDR};
 static const transmit_message_details_t nmea_transmit_message_details_MDA = {nmea_message_MDA,	PORT_BLUETOOTH, 10000UL, MDA_transmit_callback,	&nmea_message_data_MDA,	(nmea_encoder_function_t)nmea_encode_MDA};
-
-/***********************
-*** GLOBAL VARIABLES ***
-***********************/
-
-volatile float variation_wmm_data;
-volatile float pressure_data;
-volatile float speed_over_ground_data;
-volatile float latitude_data;
-volatile float longitude_data;
-volatile int16_t course_over_ground_data;
-volatile float depth_data;
-volatile float heading_true_data;
-volatile float boat_speed_data;
-volatile float apparent_wind_speed_data;
-volatile float apparent_wind_angle_data;
-volatile float true_wind_speed_data;
-volatile float true_wind_angle_data;
-volatile float trip_data;
-volatile float total_distance_data;
-volatile float seawater_temeperature_data;
-volatile float wind_direction_magnetic_data;
-volatile float wind_direction_true_data;
-volatile my_time_t gmt_data;
-volatile my_date_t date_data;
-volatile boat_data_reception_time_t boat_data_reception_time;
 
 /**********************
 *** LOCAL FUNCTIONS ***
@@ -321,7 +320,7 @@ static void DPT_transmit_callback(void)
 }
 
 /* GGA receive */
-static void GGA_receive_callback(char *data)
+static void GGA_receive_callback(const char *data)
 {
 	if (nmea_decode_GGA(data, &nmea_message_data_GGA) == nmea_error_none)
 	{
@@ -335,7 +334,7 @@ static void GGA_transmit_callback(void)
 }
 
 /* VDM - receive */
-static void VDM_receive_callback(char *data)
+static void VDM_receive_callback(const char *data)
 {
 	if (nmea_decode_VDM(data, &nmea_message_data_VDM) == nmea_error_none)
 	{
@@ -349,7 +348,7 @@ static void VDM_transmit_callback(void)
 }
 
 /* RMC receive */
-static void RMC_receive_callback(char *data)
+static void RMC_receive_callback(const char *data)
 {
 	uint32_t time_ms = timer_get_time_ms();	
 	

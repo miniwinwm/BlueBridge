@@ -12,10 +12,8 @@ Make buffer handling safe in nmea.c
 
 Todo tidy up
 ------------
-Add standard headers to c/c++ source files and reorder sections
 Tidy up javascript code
 Create a new website with BlueThing name
-Check all pointer parameters are const where possible
 
 
 Todo testing
@@ -107,3 +105,6 @@ Change strcpy for safe_strcpy
 Change strcat for safe_strcat
 After receiving a start command publish first MQTT message immediately
 Rotate boat shape according to heading in javascript 
+Change constants standard header in include files to defines
+Add standard headers to c/c++ source files and reorder sections
+Check all pointer parameters are const where possible
