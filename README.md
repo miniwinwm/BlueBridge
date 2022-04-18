@@ -4,6 +4,6 @@ NMEA2000 to NMEA0183 format converter with the converted messages sent out via B
 A webpage is provided that reads the data from the broker and displays the read values. Source code found under website folder.<br>
 Android anchor watching app that reads NMEA0183 format data via Bluetooth. Android Studio code found under app folder.<br>
 Hardware schematic and layout done in DesignSpark. Design files and PDF prints for each under hw folder.<br>
-This project has not reached alpha yet and many changes will occur. 
+This project has not reached alpha yet and many changes will occur. To see a list of outstanding work and changes to come see todo.txt.
 
 
