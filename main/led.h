@@ -53,7 +53,17 @@ extern "C" {
 *** FUNCTIONS PROTOTYPES ***
 ***************************/
 
+/**
+ * Initialize the LED driver. Call once before using other functions.
+ */
 void led_init(void);
+
+/**
+ * Flash the LED
+ *
+ * @param ms Time to flash the LED for in milliseconds
+ * @note Calling with a short flash length while a longer flash is in progress will be ignored. 
+ */
 void led_flash(uint32_t ms);
 
 #ifdef __cplusplus

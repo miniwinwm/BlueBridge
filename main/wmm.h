@@ -41,12 +41,15 @@ extern "C" {
 *** DEFINES ***
 **************/
 
-#define WMM_EPOCH		2020.0f
+#define WMM_EPOCH		2020.0f			///< the start year of the model coefficients
 
 /************
 *** TYPES ***
 ************/
 
+/**
+ * A field in the model coefficients table 
+ */
 typedef struct
 {
 	float gnm;
@@ -59,14 +62,35 @@ typedef struct
 *** EXTERNAL VARIABLES ***
 *************************/
 
+extern const uint8_t wmm_cof_entries_encoded[];		///< the encoded coefficients table
+
 /***************************
 *** FUNCTIONS PROTOTYPES ***
 ***************************/
 
-extern const uint8_t wmm_cof_entries_encoded[];
-
+/**
+ * Get magnetic declination for a time and location 
+ *
+ * @param glat Latitude in degrees and fraction degrees, negative for south, 0-90
+ * @param glat Longitude in degrees and fraction degrees, negative for west, -180 to 180
+ * @param time time in years and fractional years
+ * @param pointer to float for result, declination in degrees, west negative
+ */
 void E0000(float glat, float glon, float time_years, float *dec);
+
+/**
+ * Initialize the model. Call once before calling other functions
+ */
 void wmm_init(void);
+
+/**
+ * Get the date in the years and fractional years
+ *
+ * @param year 2 digit format
+ * @param month 1-12
+ * @param date 1-31
+ * @return Date in years and fractional years
+ */
 float wmm_get_date(uint8_t year, uint8_t month, uint8_t date);
 
 #ifdef __cplusplus

@@ -44,7 +44,7 @@ SOFTWARE.
 
 #define I2C_PRESSURE_SENSOR_ADDRESS			0x76U
 #define I2C_MEASUREMENT_START_WAIT_MS       500
-#define I2C_MEASUREMENT_PERIOD_MS           1000U
+#define I2C_MEASUREMENT_PERIOD_MS           1000U		// todo move this to h file
 #define I2C_TIMEOUT_MS                      1000U
 
 /************

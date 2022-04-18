@@ -42,27 +42,33 @@ extern "C" {
 *** DEFINES ***
 **************/
 
-#define MODEM_INTERFACE_LOG_SERIAL			
-#define MODEM_INTERFACE_WAIT_FOREVER       portMAX_DELAY  
+#define MODEM_INTERFACE_LOG_SERIAL							///< Log serial data received to the ESP32 terminal
+#define MODEM_INTERFACE_WAIT_FOREVER       portMAX_DELAY  	///< Redefine FreeRTOS wait forever name to a more readable value
 
 /************
 *** TYPES ***
 ************/
 
+/**
+ * Enum to identify which queue is to be referernced in queue handling functions
+ */
 typedef enum
 {
-	MODEM_INTERFACE_COMMAND_QUEUE,
-	MODEM_INTERFACE_RESPONSE_QUEUE
+	MODEM_INTERFACE_COMMAND_QUEUE,			///< Reference the modem command queue
+	MODEM_INTERFACE_RESPONSE_QUEUE			///< Reference the modem response queue
 } modem_interface_queue_t;
 
+/**
+ * Modem interface error codes
+ */
 typedef enum
 {
-	MODEM_INTERFACE_OK,
-	MODEM_INTERFACE_ERROR,
-	MODEM_INTERFACE_TIMEOUT
+	MODEM_INTERFACE_OK,						///< No modem interface error
+	MODEM_INTERFACE_ERROR,					///< Modem interface error other trhan timeout
+	MODEM_INTERFACE_TIMEOUT					///< Modem interface timeout error
 } modem_interface_status_t;
 
-typedef void (*modem_task_t)(void);
+typedef void (*modem_task_t)(void);			///< Declare a pointer to a function that will call the modem task
 
 /*************************
 *** EXTERNAL VARIABLES ***
@@ -73,22 +79,26 @@ typedef void (*modem_task_t)(void);
 ***************************/
 
 /**
- * Call this once before using the rest of the API
+ * Initialize the modem interface. Call this once before using the rest of the API
  */
 void modem_interface_serial_init(void);
 
 /**
- * 
+ * Close the modem interface serial port
  */
 void modem_interface_serial_close(void);
 
 /**
+ * Initialize modem interface operating system provided objects
  *
+ * @param command_queue_packet_size Size in  bytes of packets on the command queue
+ * @param command_queue_packet_size Size in  bytes of packets on the response queue
+ * @param task Pointer to function that implements the modem task
  */
 void modem_interface_os_init(size_t command_queue_packet_size, size_t response_queue_command_size, modem_task_t task);
 
 /**
- *
+ * Clean up all operating system objects created in modem_interface_os_init()
  */
 void modem_interface_os_deinit(void);
 
@@ -118,47 +128,70 @@ size_t modem_interface_serial_read_data(size_t buffer_length, uint8_t *data);
 size_t modem_interface_serial_received_bytes_waiting(void);
 
 /**
- *
+ * Delay the calling task by specified time
+ * 
+ * @param delay_ms Milliseconds to delay the calling task
  */
 void modem_interface_task_delay(uint32_t delay_ms);
 
 /**
+ * Get the system time since start up in milliseconds
  *
+ * @return Time in milliseconds
  */
 uint32_t modem_interface_get_time_ms(void);
 
 /**
+ * Add an item to one of the modem queues
  *
+ * @param modem_interface_queue The queue to add the item to
+ * @param msg_ptr The item to add
+ * @param timeout The time to wait for space to become available on the queue in operating system ticks where MODEM_INTERFACE_WAIT_FOREVER is the longest possible delay
+ * @return Any one of the error codes defined above
  */
 modem_interface_status_t modem_interface_queue_put(modem_interface_queue_t modem_interface_queue, const void *msg_ptr, uint32_t timeout);
 
 /**
+ * Retrieve an item from one of the modem queues
  *
- */
+ * @param modem_interface_queue The queue to retrieve the item from
+ * @param msg_ptr A buffer to hold the retrieved item
+ * @param timeout The time to wait for an item to become available on the queue in operating system ticks where MODEM_INTERFACE_WAIT_FOREVER is the longest possible delay
+ * @return Any one of the error codes defined above */
 modem_interface_status_t modem_interface_queue_get(modem_interface_queue_t modem_interface_queue, void *msg_ptr, uint32_t timeout);
 
 /**
+ * Get a modem mutex from the operating system
  *
+ * @param timeout The time to wait for the mutex to become available
+ * @return Any one of the error codes defined above
  */
 modem_interface_status_t modem_interface_acquire_mutex(uint32_t timeout);
 
 /**
- *
+ * Release a modem mutex
  */
 modem_interface_status_t modem_interface_release_mutex(void);
 
 /**
- *
+ * Allocate memory using an operating system defined allocation function
+ * 
+ * @param length
+ * @return The allocated memory or NULL is unsuccessful
  */
 void *modem_interface_malloc(size_t length);
  
 /**
+ * Free memory previously allocated by modem_interface_malloc
  *
+ * @param address The address to free
  */
 void modem_interface_free(void *address);
 
 /**
+ * Log a message to an interface defined output
  *
+ * @param message String containing the message to log
  */
 void modem_interface_log(const char *message);
 

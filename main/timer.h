@@ -53,7 +53,18 @@ extern "C" {
 *** FUNCTIONS PROTOTYPES ***
 ***************************/
 
+/**
+ * Get system up time in milliseconds 
+ * 
+ * @return Time in milliseconds 
+ */
 uint32_t timer_get_time_ms();
+
+/**
+ * Get system up time in seconds 
+ * 
+ * @return Time in seconds 
+ */
 uint32_t timer_get_time_s();
 
 #ifdef __cplusplus

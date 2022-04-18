@@ -46,6 +46,13 @@ extern "C" {
 *** TYPES ***
 ************/
 
+/**
+ * Callback function called by parser when a key/value pair or command is found.
+ *
+ * @param key String containg the key or command
+ * @param value String containing the value or empty string for a command
+ * @note All \n and = values are removed
+ */
 typedef bool (*parser_callback_t)(char *key, char *value);
 
 /*************************
@@ -56,6 +63,14 @@ typedef bool (*parser_callback_t)(char *key, char *value);
 *** FUNCTIONS PROTOTYPES ***
 ***************************/
 
+/**
+ * Parse key/value pairs in format key=value\n. There can be multiple key/value pairs. Also parses commands in
+ * format command\n. In this case the returned value is an empty string.
+ *
+ * @param str The string to parse. The last item does not need to end in a \n.
+ * @param parser_callback A callback function that is called when a key/value pair or a command is found
+ * @return The number of key/value and commands found.
+ */
 uint16_t property_parse(char *str, parser_callback_t parser_callback);
 
 #ifdef __cplusplus

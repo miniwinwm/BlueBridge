@@ -36,19 +36,19 @@ SOFTWARE.
 *** DEFINES ***
 **************/
 
-#define PI_CONST 				3.14159265359f
-#define RADIANS_TO_DEGREES 		0.017453292f
-#define DEGREES_TO_RADIANS 		(PI_CONST / 180.0f)
-#define A_CONST 				6378.137f
-#define A2_CONST 				(A_CONST * A_CONST)
-#define B_CONST 				6356.7523142f
-#define B2_CONST 				(B_CONST * B_CONST)
-#define RE_CONST 				6371.2f
-#define A4_CONST 				(A2_CONST * A2_CONST)
-#define B4_CONST 				(B2_CONST * B2_CONST)
-#define C2_CONST 				(A2_CONST - B2_CONST)
-#define C4_CONST 				(A4_CONST - B4_CONST)
-#define COEFFICIENTS_COUNT		90U
+#define PI_CONST 				3.14159265359f			///< pi
+#define RADIANS_TO_DEGREES 		0.017453292f			///< radians in a degree
+#define DEGREES_TO_RADIANS 		(PI_CONST / 180.0f)		///< degrees in a radian
+#define A_CONST 				6378.137f				///< model constant
+#define A2_CONST 				(A_CONST * A_CONST)		///< model constant
+#define B_CONST 				6356.7523142f			///< model constant
+#define B2_CONST 				(B_CONST * B_CONST)		///< model constant
+#define RE_CONST 				6371.2f					///< model constant
+#define A4_CONST 				(A2_CONST * A2_CONST)	///< model constant
+#define B4_CONST 				(B2_CONST * B2_CONST)	///< model constant
+#define C2_CONST 				(A2_CONST - B2_CONST)	///< model constant
+#define C4_CONST 				(A4_CONST - B4_CONST)	///< model constant
+#define COEFFICIENTS_COUNT		90U						///< number of rows in coefficients table
 
 /************
 *** TYPES ***
@@ -64,13 +64,13 @@ static float convert_varint_to_float(char **bytes);
 *** LOCAL VARIABLES ***
 **********************/
 
-static float c[13][13];
-static float cd[13][13];
-static float k[13][13];
-static float snorm[169];
-static float fn[13];
-static float fm[13];
-static wmm_cof_record_t wmm_cof_entries[COEFFICIENTS_COUNT];
+static float c[13][13];											///< model intermediate table
+static float cd[13][13];										///< model intermediate table
+static float k[13][13];											///< model intermediate table
+static float snorm[169];										///< model intermediate vector
+static float fn[13];											///< model intermediate vector
+static float fm[13];											///< model intermediate vector
+static wmm_cof_record_t wmm_cof_entries[COEFFICIENTS_COUNT];  	///< record from coefficients table 
 
 /***********************
 *** GLOBAL VARIABLES ***
@@ -84,6 +84,12 @@ static wmm_cof_record_t wmm_cof_entries[COEFFICIENTS_COUNT];
 *** LOCAL FUNCTIONS ***
 **********************/
 
+/**
+ * Convert an encoded variable length int in coefficients table to a float
+ *
+ * @param Pointer to pointer to the variable length int
+ * @return Floating point value represented by the variable length int 
+ */
 static float convert_varint_to_float(char **bytes)
 {
 	float result;

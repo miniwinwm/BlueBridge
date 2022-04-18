@@ -51,8 +51,8 @@ static void led_timer_callback(xTimerHandle pxTimer);
 *** LOCAL VARIABLES ***
 **********************/
 
-static xTimerHandle timer_led;
-static uint32_t current_period;
+static xTimerHandle timer_led;		///< Timer for the LED flash duration
+static uint32_t current_period;		///< Duration of the current flash set to 0 when flash finished
 
 /***********************
 *** GLOBAL VARIABLES ***
@@ -66,8 +66,15 @@ static uint32_t current_period;
 *** LOCAL FUNCTIONS ***
 **********************/
 
+/**
+ * Timer callback called when the LED flash ends and needs to be switched off
+ *
+ * @param pxTimer Unused
+ */
 static void led_timer_callback(xTimerHandle pxTimer)
 {
+	(void) pxTimer;
+	
 	gpio_set_level(GPIO_NUM_17, 0UL);	
 	current_period = 0UL;
 }

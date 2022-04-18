@@ -53,9 +53,22 @@ SOFTWARE.
 *** FUNCTIONS PROTOTYPES ***
 ***************************/
 
+/**
+ * Initialize the pressure sensor driver. Call this once at startup before using other functions.
+ */
 void pressure_sensor_init(void);
+
+// todo move these to c file
 bool pressure_sensor_start_measurement_mb(void);
 bool pressure_sensor_get_measurement_mb(float *read_measurement);
+
+/**
+ * Task that performs periodic pressure measurements
+ *
+ * @param parameters Pointer to data sent to task at startup
+ * @note The parameters parameter must contain a pointer to a queue handle that has a single float as each payload. 
+ *       A copy is made of the queue handle pointed to by parameters.
+ */
 void pressure_sensor_task(void *parameters);
 
 #ifdef __cplusplus

@@ -309,7 +309,6 @@ void *modem_interface_malloc(size_t length)
 void modem_interface_free(void *address)
 {
 	vPortFree(address);
-	address = NULL;
 }
 
 

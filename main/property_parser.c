@@ -39,12 +39,15 @@ SOFTWARE.
 *** TYPES ***
 ************/
 
+/** 
+ * Parser state machine states 
+ */
 typedef enum 
 {
-	NOT_STARTED,
-	IN_KEY,
-	RECEIVED_EQUALS,
-	IN_VALUE,
+	NOT_STARTED,		///< Not started in a new key/value or command
+	IN_KEY,				///< In a key or command
+	RECEIVED_EQUALS,	///< Received a = between key and value
+	IN_VALUE,			///< In a value
 } parse_state_t;
 
 /********************************

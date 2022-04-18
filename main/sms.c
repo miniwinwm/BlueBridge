@@ -55,7 +55,7 @@ static void sms_notification_callback(uint32_t sms_id);
 *** LOCAL VARIABLES ***
 **********************/
 
-static QueueHandle_t sms_waiting_id_queue_handle;
+static QueueHandle_t sms_waiting_id_queue_handle;		///< Queue of id's of received SMS messages
 
 /***********************
 *** GLOBAL VARIABLES ***
@@ -69,6 +69,11 @@ static QueueHandle_t sms_waiting_id_queue_handle;
 *** LOCAL FUNCTIONS ***
 **********************/
 
+/**
+ * Call back function called by modem when a new SMS has been received
+ *
+ * @param sms_id The id of the received message
+ */
 static void sms_notification_callback(uint32_t sms_id)
 {
 	ESP_LOGI(pcTaskGetName(NULL), "SMS received notification, SMS Id is %u", sms_id);		

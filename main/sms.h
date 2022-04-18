@@ -42,7 +42,7 @@ extern "C" {
 *** DEFINES ***
 **************/
 
-#define SMS_MAX_PHONE_NUMBER_LENGTH		24UL
+#define SMS_MAX_PHONE_NUMBER_LENGTH		24UL		///< Maximum number of characters in a phone number including international part
 
 /************
 *** TYPES ***
@@ -56,9 +56,37 @@ extern "C" {
 *** FUNCTIONS PROTOTYPES ***
 ***************************/
 
+/**
+ * Initialize the SMS library. Call once before using other functions.
+ */
 void sms_init(void);
+
+/**
+ * Check if there is a waiting SMS message and get its id if there is.
+ *
+ * @param sms_id Pointer to where the id of a waiting message will be saved.
+ * @return true if there is a waiting message or false if not or sms_id is NULL.
+ * @note If there is no waiting message then sms_id will not be changed.
+ */
 bool sms_check_for_new(uint32_t *sms_id);
+
+/**
+ * Retrieve a received SMS message of known id
+ *
+ * @param sms_id The id of the message as previously obtained from sms_check_for_new().
+ * @param phone_number Pointer to buffer that will contain the sender's phone number of a received message.
+ * @param phone_number_buffer_length The length in bytes of phone_number
+ * @param message_text Pointer to buffer that will contained the received message text
+ * @param message_text_buffer_length The length in bytes of message_text
+ */
 bool sms_receive(uint32_t sms_id, char *phone_number, size_t phone_number_buffer_length, char *message_text, size_t message_text_buffer_length);
+
+/**
+ * Send a SMS message
+ *
+ * @param message_text The text of the message to send. Only up to 160 characters will be sent.
+ * @param phone_number The phone number of the recipient.
+ */
 bool sms_send(const char *message_text, const char *phone_number);
 
 #ifdef __cplusplus

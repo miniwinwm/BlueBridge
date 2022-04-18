@@ -53,8 +53,25 @@ SOFTWARE.
 *** FUNCTIONS PROTOTYPES ***
 ***************************/
 
+/**
+ * Initialize the flash driver. Call once before using flash functions.
+ */
 void flash_init(void);
+
+/**
+ * Load data from flash into memory
+ * 
+ * @param data Buffer to load data into
+ * @param length Length in bytes of data
+ */
 void flash_load_data(void *data, size_t length);
+
+/**
+ * Save data into flash memory
+ *
+ * @param data Buffer containing data to write into flash
+ * @param length Length in bytes of data
+ */
 void flash_store_data(const void *data, size_t length);
 
 #ifdef __cplusplus
