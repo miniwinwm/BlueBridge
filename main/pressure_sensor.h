@@ -41,6 +41,8 @@ SOFTWARE.
 *** DEFINES ***
 **************/
 
+#define I2C_MEASUREMENT_PERIOD_MS           1000U			///< Period in milliseconds to take a measurement from pressure sensor
+
 /************
 *** TYPES ***
 ************/
@@ -58,18 +60,14 @@ SOFTWARE.
  */
 void pressure_sensor_init(void);
 
-// todo move these to c file
-bool pressure_sensor_start_measurement_mb(void);
-bool pressure_sensor_get_measurement_mb(float *read_measurement);
-
 /**
- * Task that performs periodic pressure measurements
+ * Read a pressure sensor measurement if one is available
  *
- * @param parameters Pointer to data sent to task at startup
- * @note The parameters parameter must contain a pointer to a queue handle that has a single float as each payload. 
- *       A copy is made of the queue handle pointed to by parameters.
+ * @param read_measurement Pointer to float that will contain the read pressure in mb if it is available
+ * @return If a measurement is available and the parameter is not NULL then true else false
  */
-void pressure_sensor_task(void *parameters);
+bool pressure_sensor_read_measurement_mb(float *read_measurement);
+
 
 #ifdef __cplusplus
 }

@@ -9,7 +9,6 @@ Add MQTT cpability to Android app
 Remove test #defines
 Make buffer handling safe in nmea.c
 
-
 Todo tidy up
 ------------
 Tidy up javascript code
@@ -108,3 +107,4 @@ Rotate boat shape according to heading in javascript
 Change constants standard header in include files to defines
 Add standard headers to c/c++ source files and reorder sections
 Check all pointer parameters are const where possible
+Refactor pressure sensor driver to move freertos stuff from main into driver

@@ -52,7 +52,6 @@ SOFTWARE.
 
 #define PORT_N0183								0
 #define PORT_BLUETOOTH							1
-#define PRESSURE_SENSOR_TASK_STACK_SIZE			8096U
 #define BOAT_IOT_TASK_STACK_SIZE				8096U
 #define MAIN_TASK_SW_TIMER_COUNT				3
 #define SW_TIMER_25_MS							0
@@ -107,9 +106,6 @@ static void fake_data(void);
 *** LOCAL VARIABLES ***
 **********************/
 
-static StaticQueue_t pressure_sensor_queue;
-static uint8_t pressure_sensor_queue_buffer[sizeof(float)];
-static QueueHandle_t pressure_sensor_queue_handle;
 static TimerHandle_t xTimers[MAIN_TASK_SW_TIMER_COUNT];
 static TaskHandle_t main_task_handle;
 static nmea_message_data_XDR_t nmea_message_data_XDR;
@@ -638,7 +634,7 @@ static void vTimerCallback8s(TimerHandle_t xTimer)
 	(void)xTimer;
 	
 	// check if a pressure reading is available
-	if (xQueueReceive(pressure_sensor_queue_handle, (void *)&pressure_data, (TickType_t)0) == pdTRUE)
+	if (pressure_sensor_read_measurement_mb((float *)&pressure_data) == true)
 	{          
 		tN2kMsg N2kMsg;
 		SetN2kOutsideEnvironmentalParameters(N2kMsg, 1U, N2kDoubleNA, N2kDoubleNA, mBarToPascal((double)pressure_data));
@@ -992,11 +988,7 @@ extern "C" void app_main(void)
 	
 	// init all the reception times to some time a long time ago
 	(void)memset((void *)&boat_data_reception_time, 0x7f, sizeof(boat_data_reception_time));
-	
-    // pressure sensor task
-	pressure_sensor_queue_handle = xQueueCreateStatic((UBaseType_t)1, (UBaseType_t)(sizeof(float)), pressure_sensor_queue_buffer, &pressure_sensor_queue);
-    (void)xTaskCreate(pressure_sensor_task, "pressure sensor task", PRESSURE_SENSOR_TASK_STACK_SIZE, &pressure_sensor_queue_handle, (UBaseType_t)1, NULL); 
-	
+		
     // boat iot task
     (void)xTaskCreate(boat_iot_task, "boat iot task", BOAT_IOT_TASK_STACK_SIZE, NULL, (UBaseType_t)1, NULL); 	
 
