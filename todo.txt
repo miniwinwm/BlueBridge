@@ -31,7 +31,6 @@ Test on boat
 Todo documentation
 ------------------
 Create main documentation file
-Create overview diagram
 Doxygen all code
 Create doxyfile
 Create hardware build file
@@ -118,3 +117,4 @@ Refactor pressure sensor driver to move freertos stuff from main into driver
 Use size_t in mqtt for lengths
 Use uint8_t* in mqtt for non null terminated data
 Test with OpenCPN
+Create data flow diagram

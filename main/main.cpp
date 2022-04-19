@@ -50,22 +50,25 @@ SOFTWARE.
 *** DEFINES ***
 **************/
 
-#define PORT_N0183								0
-#define PORT_BLUETOOTH							1
-#define BOAT_IOT_TASK_STACK_SIZE				8096U
-#define MAIN_TASK_SW_TIMER_COUNT				3
-#define SW_TIMER_25_MS							0
-#define SW_TIMER_1_S							1
-#define SW_TIMER_8_S							2
+#define PORT_N0183								0				///< Serial port used by NMEA0183 library that corresponds to first serial port in serial driver
+#define PORT_BLUETOOTH							1				///< Serial port used by NMEA0183 library that corresponds to second serial port in serial driver
+#define BOAT_IOT_TASK_STACK_SIZE				8096U			///< Stack size for boat iot thread
+#define MAIN_TASK_SW_TIMER_COUNT				3				///< Number of FreeRTOS soft timers used
+#define SW_TIMER_25_MS							0				///< Corresponds to 25 millisecond period FreeRTOS timer
+#define SW_TIMER_1_S							1				///< Corresponds to 1 second period FreeRTOS timer
+#define SW_TIMER_8_S							2				///< Corresponds to 8 second period FreeRTOS timer
 
 /************
 *** TYPES ***
 ************/
 
+/**
+ * Struct used to hold mapping between NMEA2000 PGN number and the handler for that type of message
+ */
 typedef struct 
 {
-	unsigned int PGN;
-	void (*Handler)(const tN2kMsg &N2kMsg); 
+	unsigned int PGN;							///< NMEA2000 PGN number
+	void (*Handler)(const tN2kMsg &N2kMsg); 	///< Handler for this PGN message type
 } tNMEA2000Handler;
 
 /********************************
@@ -106,54 +109,61 @@ static void test_data(void);
 *** LOCAL VARIABLES ***
 **********************/
 
-static TimerHandle_t xTimers[MAIN_TASK_SW_TIMER_COUNT];
-static TaskHandle_t main_task_handle;
-static nmea_message_data_XDR_t nmea_message_data_XDR;
-static nmea_message_data_MDA_t nmea_message_data_MDA;
-static nmea_message_data_RMC_t nmea_message_data_RMC;
-static nmea_message_data_VDM_t nmea_message_data_VDM;
-static nmea_message_data_GGA_t nmea_message_data_GGA;
-static nmea_message_data_DPT_t nmea_message_data_DPT;
-static nmea_message_data_MTW_t nmea_message_data_MTW;
-static nmea_message_data_VHW_t nmea_message_data_VHW;
-static nmea_message_data_HDM_t nmea_message_data_HDM;
-static nmea_message_data_HDT_t nmea_message_data_HDT;
-static nmea_message_data_VLW_t nmea_message_data_VLW;
-static nmea_message_data_MWV_t nmea_message_data_MWV;
-static nmea_message_data_MWD_t nmea_message_data_MWD;
+static TimerHandle_t xTimers[MAIN_TASK_SW_TIMER_COUNT];		///< Array of all FreeRTOS timers used here
+static TaskHandle_t main_task_handle;						///< Handle of main task used by other tasks to communicate with main task
+static nmea_message_data_XDR_t nmea_message_data_XDR;		///< Message data for NMEA0183 XDR message type when received
+static nmea_message_data_MDA_t nmea_message_data_MDA;		///< Message data for NMEA0183 MDA message type when received
+static nmea_message_data_RMC_t nmea_message_data_RMC;		///< Message data for NMEA0183 RMC message type when received
+static nmea_message_data_VDM_t nmea_message_data_VDM;		///< Message data for NMEA0183 VDM message type when received
+static nmea_message_data_GGA_t nmea_message_data_GGA;		///< Message data for NMEA0183 GGA message type when received
+static nmea_message_data_DPT_t nmea_message_data_DPT;		///< Message data for NMEA0183 DPT message type when received
+static nmea_message_data_MTW_t nmea_message_data_MTW;		///< Message data for NMEA0183 MTW message type when received
+static nmea_message_data_VHW_t nmea_message_data_VHW;		///< Message data for NMEA0183 VHW message type when received
+static nmea_message_data_HDM_t nmea_message_data_HDM;		///< Message data for NMEA0183 HDM message type when received
+static nmea_message_data_HDT_t nmea_message_data_HDT;		///< Message data for NMEA0183 HDT message type when received
+static nmea_message_data_VLW_t nmea_message_data_VLW;		///< Message data for NMEA0183 VLW message type when received
+static nmea_message_data_MWV_t nmea_message_data_MWV;		///< Message data for NMEA0183 MWV message type when received
+static nmea_message_data_MWD_t nmea_message_data_MWD;		///< Message data for NMEA0183 MWD message type when received
 
 /***********************
 *** GLOBAL VARIABLES ***
 ***********************/
 
-volatile float variation_wmm_data;
-volatile float pressure_data;
-volatile float speed_over_ground_data;
-volatile float latitude_data;
-volatile float longitude_data;
-volatile int16_t course_over_ground_data;
-volatile float depth_data;
-volatile float heading_true_data;
-volatile float boat_speed_data;
-volatile float apparent_wind_speed_data;
-volatile float apparent_wind_angle_data;
-volatile float true_wind_speed_data;
-volatile float true_wind_angle_data;
-volatile float trip_data;
-volatile float total_distance_data;
-volatile float seawater_temeperature_data;
-volatile float wind_direction_magnetic_data;
-volatile float wind_direction_true_data;
-volatile my_time_t gmt_data;
-volatile my_date_t date_data;
-volatile boat_data_reception_time_t boat_data_reception_time;
+volatile float variation_wmm_data;							///< Latest value of world magnetic model variation calculated data
+volatile float pressure_data;                               ///< Latest value of atmospheric pressure data
+volatile float speed_over_ground_data;                      ///< Latest value of SOG data
+volatile float latitude_data;                               ///< Latest value of latitude data
+volatile float longitude_data;                              ///< Latest value of longitude data
+volatile int16_t course_over_ground_data;                   ///< Latest value of COG data
+volatile float depth_data;                                  ///< Latest value of depth data
+volatile float heading_true_data;                           ///< Latest value of compass heading data
+volatile float boat_speed_data;                             ///< Latest value of boat speed through water data
+volatile float apparent_wind_speed_data;                    ///< Latest value of AWS data
+volatile float apparent_wind_angle_data;                    ///< Latest value of AWA data
+volatile float true_wind_speed_data;                        ///< Latest value of TWS data
+volatile float true_wind_angle_data;                        ///< Latest value of TWA data
+volatile float trip_data;                                   ///< Latest value of trip distance data
+volatile float total_distance_data;                         ///< Latest value of total distance data
+volatile float seawater_temeperature_data;                  ///< Latest value of water temperature data
+volatile float wind_direction_magnetic_data;                ///< Latest value of wind direction magnetic data
+volatile float wind_direction_true_data;                    ///< Latest value of wind direction true data
+volatile my_time_t gmt_data;                                ///< Latest value of time data
+volatile my_date_t date_data;								///< Latest value of date data
+volatile boat_data_reception_time_t boat_data_reception_time;		///< struct that holds all boat data last received time
 
 /****************
 *** CONSTANTS ***
 ****************/
 
+/**
+ * Array of PGN's of NMEA2000 messages that are transmitted 
+ */
 static const unsigned long n2k_transmit_messages[] = {130310UL, // atmospheric pressure
 													  0UL};
+													  
+/**
+ * Array of PGN's of NMEA2000 messages that are received 
+ */													  
 static const unsigned long n2k_receive_messages[] = {127250UL, 	// heading
 													 128259UL, 	// boat speed
 													 128267UL, 	// depth
@@ -161,7 +171,10 @@ static const unsigned long n2k_receive_messages[] = {127250UL, 	// heading
 													 128275UL,	// log
 													 130310UL,	// environmental
 													 0UL};
-													 
+									
+/** 
+ * Map of NMEA2000 PGN numbers to handling functions
+ */ 
 static const tNMEA2000Handler NMEA2000Handlers[] =
 {
 	{128267UL, &depth_handler},
@@ -172,22 +185,155 @@ static const tNMEA2000Handler NMEA2000Handlers[] =
 	{130310UL, &environmental_handler}
 };
 
-static const transmit_message_details_t nmea_transmit_message_details_MWD = {nmea_message_MWD,	PORT_BLUETOOTH, 2000UL, MWD_transmit_callback, &nmea_message_data_MWD, (nmea_encoder_function_t)nmea_encode_MWD};
-static const transmit_message_details_t nmea_transmit_message_details_MWV = {nmea_message_MWV, PORT_BLUETOOTH, 1000UL, MWV_transmit_callback, &nmea_message_data_MWV, (nmea_encoder_function_t)nmea_encode_MWV};
-static const transmit_message_details_t nmea_transmit_message_details_VLW = {nmea_message_VLW, PORT_BLUETOOTH, 1000UL, VLW_transmit_callback, &nmea_message_data_VLW, (nmea_encoder_function_t)nmea_encode_VLW};
-static const transmit_message_details_t nmea_transmit_message_details_HDM = {nmea_message_HDM, PORT_BLUETOOTH, 1000UL, HDM_transmit_callback, &nmea_message_data_HDM, (nmea_encoder_function_t)nmea_encode_HDM};
-static const transmit_message_details_t nmea_transmit_message_details_HDT = {nmea_message_HDT, PORT_BLUETOOTH, 1000UL, HDT_transmit_callback, &nmea_message_data_HDT, (nmea_encoder_function_t)nmea_encode_HDT};
-static const transmit_message_details_t nmea_transmit_message_details_VHW = {nmea_message_VHW,	PORT_BLUETOOTH, 1000UL, VHW_transmit_callback, &nmea_message_data_VHW, (nmea_encoder_function_t)nmea_encode_VHW};
-static const transmit_message_details_t nmea_transmit_message_details_MTW = {nmea_message_MTW, PORT_BLUETOOTH, 2000UL, MTW_transmit_callback, &nmea_message_data_MTW, (nmea_encoder_function_t)nmea_encode_MTW};
-static const transmit_message_details_t nmea_transmit_message_details_DPT = {nmea_message_DPT,	PORT_BLUETOOTH, 500UL, DPT_transmit_callback, &nmea_message_data_DPT, (nmea_encoder_function_t)nmea_encode_DPT};
-static const nmea_receive_message_details_t nmea_receive_message_details_GGA = {nmea_message_GGA, PORT_N0183, GGA_receive_callback};
-static const transmit_message_details_t nmea_transmit_message_details_GGA = {nmea_message_GGA,	PORT_BLUETOOTH, 0UL, GGA_transmit_callback, &nmea_message_data_GGA, (nmea_encoder_function_t)nmea_encode_GGA};
-static const nmea_receive_message_details_t nmea_receive_message_details_VDM = {nmea_message_VDM, PORT_N0183, VDM_receive_callback};
-static const transmit_message_details_t nmea_transmit_message_details_VDM = {nmea_message_VDM,	PORT_BLUETOOTH, 0UL, VDM_transmit_callback, &nmea_message_data_VDM, (nmea_encoder_function_t)nmea_encode_VDM};
-static const nmea_receive_message_details_t nmea_receive_message_details_RMC = {nmea_message_RMC, PORT_N0183, RMC_receive_callback};
-static const transmit_message_details_t nmea_transmit_message_details_RMC_bluetooth = {nmea_message_RMC, PORT_BLUETOOTH, 1000UL, RMC_transmit_callback, &nmea_message_data_RMC, (nmea_encoder_function_t)nmea_encode_RMC};
-static const transmit_message_details_t nmea_transmit_message_details_XDR = {nmea_message_XDR,	PORT_BLUETOOTH, 10000UL, XDR_transmit_callback,	&nmea_message_data_XDR,	(nmea_encoder_function_t)nmea_encode_XDR};
-static const transmit_message_details_t nmea_transmit_message_details_MDA = {nmea_message_MDA,	PORT_BLUETOOTH, 10000UL, MDA_transmit_callback,	&nmea_message_data_MDA,	(nmea_encoder_function_t)nmea_encode_MDA};
+static const transmit_message_details_t nmea_transmit_message_details_MWD = 
+{
+	nmea_message_MWD,	
+	PORT_BLUETOOTH, 
+	2000UL, 
+	MWD_transmit_callback, 
+	&nmea_message_data_MWD, 
+	(nmea_encoder_function_t)nmea_encode_MWD
+};
+
+static const transmit_message_details_t nmea_transmit_message_details_MWV = 
+{
+	nmea_message_MWV, 
+	PORT_BLUETOOTH, 1000UL, 
+	MWV_transmit_callback, 
+	&nmea_message_data_MWV, 
+	(nmea_encoder_function_t)nmea_encode_MWV
+};
+
+static const transmit_message_details_t nmea_transmit_message_details_VLW = 
+{
+	nmea_message_VLW, 
+	PORT_BLUETOOTH, 
+	1000UL, 
+	VLW_transmit_callback, 
+	&nmea_message_data_VLW, 
+	(nmea_encoder_function_t)nmea_encode_VLW
+};
+
+static const transmit_message_details_t nmea_transmit_message_details_HDM = 
+{
+	nmea_message_HDM, 
+	PORT_BLUETOOTH, 
+	1000UL, 
+	HDM_transmit_callback, 
+	&nmea_message_data_HDM, 
+	(nmea_encoder_function_t)nmea_encode_HDM
+};
+
+static const transmit_message_details_t nmea_transmit_message_details_HDT = 
+{
+	nmea_message_HDT, 
+	PORT_BLUETOOTH, 
+	1000UL, 
+	HDT_transmit_callback, 
+	&nmea_message_data_HDT, 
+	(nmea_encoder_function_t)nmea_encode_HDT
+};
+
+static const transmit_message_details_t nmea_transmit_message_details_VHW = 
+{
+	nmea_message_VHW,	
+	PORT_BLUETOOTH, 
+	1000UL, 
+	VHW_transmit_callback, 
+	&nmea_message_data_VHW, 
+	(nmea_encoder_function_t)nmea_encode_VHW
+};
+
+static const transmit_message_details_t nmea_transmit_message_details_MTW = 
+{
+	nmea_message_MTW, 
+	PORT_BLUETOOTH, 
+	2000UL, 
+	MTW_transmit_callback, 
+	&nmea_message_data_MTW, 
+	(nmea_encoder_function_t)nmea_encode_MTW
+};
+
+static const transmit_message_details_t nmea_transmit_message_details_DPT = 
+{
+	nmea_message_DPT,	
+	PORT_BLUETOOTH, 
+	500UL, 
+	DPT_transmit_callback, 
+	&nmea_message_data_DPT, 
+	(nmea_encoder_function_t)nmea_encode_DPT
+};
+
+static const transmit_message_details_t nmea_transmit_message_details_GGA = 
+{
+	nmea_message_GGA,	
+	PORT_BLUETOOTH, 
+	2000UL, 
+	GGA_transmit_callback, 
+	&nmea_message_data_GGA, 
+	(nmea_encoder_function_t)nmea_encode_GGA
+};
+
+static const transmit_message_details_t nmea_transmit_message_details_VDM = 
+{
+	nmea_message_VDM,	
+	PORT_BLUETOOTH, 
+	0UL, 	// transmitted as soon as received, transmit callback does nothing
+	VDM_transmit_callback, 
+	&nmea_message_data_VDM, 
+	(nmea_encoder_function_t)nmea_encode_VDM
+};
+
+static const transmit_message_details_t nmea_transmit_message_details_RMC_bluetooth = 
+{
+	nmea_message_RMC, 
+	PORT_BLUETOOTH, 
+	1000UL, 
+	RMC_transmit_callback, 
+	&nmea_message_data_RMC, 
+	(nmea_encoder_function_t)nmea_encode_RMC
+};
+
+static const transmit_message_details_t nmea_transmit_message_details_XDR = 
+{
+	nmea_message_XDR,	
+	PORT_BLUETOOTH, 
+	10000UL, 
+	XDR_transmit_callback,	
+	&nmea_message_data_XDR,	
+	(nmea_encoder_function_t)nmea_encode_XDR
+};
+
+static const transmit_message_details_t nmea_transmit_message_details_MDA = 
+{
+	nmea_message_MDA,	
+	PORT_BLUETOOTH, 
+	10000UL, 
+	MDA_transmit_callback,	
+	&nmea_message_data_MDA,	
+	(nmea_encoder_function_t)nmea_encode_MDA
+};
+
+static const nmea_receive_message_details_t nmea_receive_message_details_GGA = 
+{
+	nmea_message_GGA, 
+	PORT_N0183, 
+	GGA_receive_callback
+};
+
+static const nmea_receive_message_details_t nmea_receive_message_details_VDM = 
+{
+	nmea_message_VDM, 
+	PORT_N0183, 
+	VDM_receive_callback
+};
+
+static const nmea_receive_message_details_t nmea_receive_message_details_RMC = 
+{
+	nmea_message_RMC, 
+	PORT_N0183, 
+	RMC_receive_callback
+};
 
 /**********************
 *** LOCAL FUNCTIONS ***
