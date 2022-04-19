@@ -6,6 +6,13 @@ Todo functional
 ---------------
 Modem SMS and TCP reads need buf lengths and checks
 Add MQTT cpability to Android app
+	Update Android app UI layout to allow extra button
+	Add extra button and implement UI logic
+	Test MQTT subscribe and receive message
+	Decode MQTT message
+	Add remote station signal strength if space allows
+	Test full functionality of remote anchor watching
+	Regression test bluetooth anchor watching functionality
 Remove test #defines
 Make buffer handling safe in nmea.c
 
@@ -18,7 +25,6 @@ Create a new website with BlueThing name
 
 Todo testing
 ------------
-Test with OpenCPN
 Test on boat
 
 
@@ -111,3 +117,4 @@ Check all pointer parameters are const where possible
 Refactor pressure sensor driver to move freertos stuff from main into driver
 Use size_t in mqtt for lengths
 Use uint8_t* in mqtt for non null terminated data
+Test with OpenCPN

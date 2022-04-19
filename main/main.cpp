@@ -98,8 +98,8 @@ static void wind_handler(const tN2kMsg &N2kMsg);
 static void log_handler(const tN2kMsg &N2kMsg);
 static void environmental_handler(const tN2kMsg &N2kMsg);
 static void HandleNMEA2000Msg(const tN2kMsg &N2kMsg);
-#ifdef FAKE_DATA
-static void fake_data(void);
+#ifdef TEST_DATA
+static void test_data(void);
 #endif
 
 /**********************
@@ -370,7 +370,7 @@ static void RMC_receive_callback(const char *data)
 
 			if (nmea_message_data_RMC.data_available & NMEA_RMC_SOG_PRESENT)
 			{
-#ifndef FAKE_DATA				
+#ifndef TEST_DATA				
 				speed_over_ground_data = nmea_message_data_RMC.SOG;
 				boat_data_reception_time.speed_over_ground_received_time = time_ms;				
 #endif				
@@ -378,14 +378,14 @@ static void RMC_receive_callback(const char *data)
 
 			if (nmea_message_data_RMC.data_available & NMEA_RMC_COG_PRESENT)
 			{
-#ifndef FAKE_DATA								
+#ifndef TEST_DATA								
 				course_over_ground_data = nmea_message_data_RMC.COG;
 				boat_data_reception_time.course_over_ground_received_time = time_ms;	
 #endif				
 			}
 			else		// horrible hack because COG is not present when sog = 0
 			{
-#ifndef FAKE_DATA								
+#ifndef TEST_DATA								
 				course_over_ground_data = 0;
 				boat_data_reception_time.course_over_ground_received_time = time_ms;
 #endif				
@@ -393,7 +393,7 @@ static void RMC_receive_callback(const char *data)
 
 			if (nmea_message_data_RMC.data_available & NMEA_RMC_LATITUDE_PRESENT)
 			{
-#ifndef FAKE_DATA					
+#ifndef TEST_DATA					
 				frac_part = modff(nmea_message_data_RMC.latitude / 100.0f, &int_part);
 				latitude_data = int_part;
 				latitude_data += frac_part / 0.6f;
@@ -403,7 +403,7 @@ static void RMC_receive_callback(const char *data)
 
 			if (nmea_message_data_RMC.data_available & NMEA_RMC_LONGITUDE_PRESENT)
 			{
-#ifndef FAKE_DATA								
+#ifndef TEST_DATA								
 				frac_part = modff(nmea_message_data_RMC.longitude / 100.0f, &int_part);
 				longitude_data = int_part;
 				longitude_data += frac_part / 0.6f;
@@ -850,8 +850,8 @@ static void environmental_handler(const tN2kMsg &N2kMsg)
 	}
 }
 
-#ifdef FAKE_DATA
-static void fake_data(void)
+#ifdef TEST_DATA
+static void test_data(void)
 {
 	static uint32_t i;
 
@@ -963,13 +963,13 @@ extern "C" void app_main(void)
     
     main_task_handle = xTaskGetCurrentTaskHandle();
     pressure_sensor_init();
-	serial_init(38400UL);
+	serial_init(38400UL, 0UL);
 	led_init();
 	wmm_init();
 	settings_init();
 	sms_init();
 	
-#ifdef FAKE_DATA
+#ifdef TEST_DATA
 	depth_data = 3.0f;	
 	heading_true_data = 80.0f;
 	course_over_ground_data = 220.0f;
@@ -1067,8 +1067,8 @@ extern "C" void app_main(void)
 		
 		vTaskDelay(10);        
 				
-#ifdef FAKE_DATA
-		fake_data();
+#ifdef TEST_DATA
+		test_data();
 #endif						
     }		
 }

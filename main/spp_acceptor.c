@@ -127,6 +127,7 @@ static bool spp_send_buffer()
         }
         return true;
     }
+	
     return false;
 }
 

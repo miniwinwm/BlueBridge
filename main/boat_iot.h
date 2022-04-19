@@ -51,6 +51,11 @@ extern "C" {
 *** FUNCTIONS PROTOTYPES ***
 ***************************/
 
+/**
+ * Task function for publishing boat data via MQTT and receiving SMS control messages
+ *
+ * @param parameters Pointer to any parameters sent to the task on start up
+ */
 void boat_iot_task(void *parameters);
 
 #ifdef __cplusplus

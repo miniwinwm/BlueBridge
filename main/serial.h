@@ -54,10 +54,48 @@ SOFTWARE.
 *** FUNCTIONS PROTOTYPES ***
 ***************************/
 
-void serial_init(uint32_t baud_rate_1);
+/**
+ * Initialize the serial ports, call this once at startuo before using any other functions
+ *
+ * @param baud_rate_1 Baud rate to use to initialize serial port 1
+ * @param baud_rate_2 Baud rate to use to initialize serial port 2
+ */
+void serial_init(uint32_t baud_rate_1, uint32_t baud_rate_2);
+
+/**
+ * Read data from serial port 1
+ *
+ * @param buffer_length The length of the supplied buffer
+ * @param data The buffer to read data into
+ * @return How many bytes were read
+ */
 size_t serial_1_read_data(size_t buffer_length, uint8_t *data);
+
+/**
+ * Write data to serial port 1
+ *
+ * @param length The length of data
+ * @param data The data to write
+ * @return How many bytes were written
+ */
 size_t serial_1_send_data(size_t length, const uint8_t *data);
+
+/**
+ * Read data from serial port 2
+ *
+ * @param buffer_length The length of the supplied buffer
+ * @param data The buffer to read data into
+ * @return How many bytes were read
+ */
 size_t serial_2_read_data(size_t buffer_length, uint8_t *data);
+
+/**
+ * Write data to serial port 2
+ *
+ * @param length The length of data
+ * @param data The data to write
+ * @return How many bytes were written
+ */
 size_t serial_2_send_data(size_t length, const uint8_t *data);
 
 #ifdef __cplusplus

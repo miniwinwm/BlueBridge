@@ -53,9 +53,32 @@ SOFTWARE.
 *** FUNCTIONS PROTOTYPES ***
 ***************************/
 
-size_t spp_write(const uint8_t *buffer, size_t size);
-int spp_read(void);
+/**
+ * Initialize the serial port profile Bluetooth driver
+ */
 void spp_init(void);
+
+/**
+ * Write data using the Bluetooth serial port profile driver
+ * 
+ * @param buffer The data to write
+ * @param size The length of data in buffer
+ * @return How many bytes were written
+ */
+size_t spp_write(const uint8_t *buffer, size_t size);
+
+/**
+ * Read a single byte using the Bluetooth serial port profile driver
+ * 
+ * @return The byte read or -1 if not possible
+ */
+int spp_read(void);
+
+/**
+ * Get the length of data to read from the Bluetooth serial port profile connection
+ *
+ * @return Bytes waiting to be read
+ */
 size_t spp_bytes_received_size(void);
 
 #ifdef __cplusplus

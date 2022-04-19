@@ -68,7 +68,6 @@ void pressure_sensor_init(void);
  */
 bool pressure_sensor_read_measurement_mb(float *read_measurement);
 
-
 #ifdef __cplusplus
 }
 #endif

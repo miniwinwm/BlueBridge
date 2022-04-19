@@ -65,8 +65,10 @@ SOFTWARE.
 *** GLOBAL FUNCTIONS ***
 ***********************/
 
-void serial_init(uint32_t baud_rate_1)
+void serial_init(uint32_t baud_rate_1, uint32_t baud_rate_2)
 {
+	(void)baud_rate_2;
+	
 	spp_init();
 
     uart_config_t uart_config = 
@@ -120,6 +122,7 @@ size_t serial_2_read_data(size_t buffer_length, uint8_t *data)
 	size_t bytes_available;
 	size_t bytes_to_read;
 	size_t i;
+	int result;
 	
 	bytes_available = spp_bytes_received_size();
 	
@@ -134,7 +137,13 @@ size_t serial_2_read_data(size_t buffer_length, uint8_t *data)
 	
 	for (i = (size_t)0; i < bytes_to_read; i++)
 	{
-		data[i] = spp_read();
+		result = spp_read();
+		if (result == -1)
+		{
+			return i;
+		}
+		
+		data[i] = (uint8_t)result;
 	}
 	
 	return bytes_to_read;

@@ -41,9 +41,10 @@ SOFTWARE.
 *** DEFINES ***
 **************/
 
-#define MODEM_RESET_GPIO	GPIO_NUM_25
-#define MODEM_TX_GPIO		GPIO_NUM_26
-#define MODEM_RX_GPIO		GPIO_NUM_27
+#define MODEM_TX_GPIO					GPIO_NUM_26			///< The GPIO line used for transmitting to the modem
+#define MODEM_RX_GPIO					GPIO_NUM_27			///< The GPIO line used for receiving from the modem
+#define MODEM_TASK_STACK_SIZE			16384				///< Size in words of the modem task stack
+#define MODEM_SERIAL_LOG_BUFFER_SIZE	1024				///< Size in bytes of buffer used for modem receive logging
 
 /************
 *** TYPES ***
@@ -59,11 +60,11 @@ static void modem_interface_task(void *parameters);
 *** LOCAL VARIABLES ***
 **********************/
 
-static TaskHandle_t modem_task_handle;
-static QueueHandle_t commandQueueHandle;
-static QueueHandle_t responseQueueHandle;
-static SemaphoreHandle_t modemMutexHandle;
-static modem_task_t modem_task;
+static TaskHandle_t modem_task_handle;			///< Handle of task used by modem
+static QueueHandle_t commandQueueHandle;		///< Handle of queue used by modem to receive commands from client
+static QueueHandle_t responseQueueHandle;		///< Handle of queue used by modem to send responses to client
+static SemaphoreHandle_t modemMutexHandle;		///< Handle of mutex used by modem for thread safety
+static modem_task_t modem_task;					///< Pointer to function in modem that implements the task
 
 /***********************
 *** GLOBAL VARIABLES ***
@@ -77,6 +78,11 @@ static modem_task_t modem_task;
 *** LOCAL FUNCTIONS ***
 **********************/
 
+/**
+ * Wrapper function that is called by the FreeRTOS task that is created in this interface and the task code in the modem that implements the task
+ *
+ * @param parameters Parameters passed to the FreeRTOS task create function
+ */
 static void modem_interface_task(void *parameters)
 {
 	(void)parameters;
@@ -99,7 +105,7 @@ void modem_interface_os_init(size_t command_queue_packet_size, size_t response_q
 	modemMutexHandle = xSemaphoreCreateMutex();
 	commandQueueHandle = xQueueCreate((UBaseType_t)10, (UBaseType_t)command_queue_packet_size);
 	responseQueueHandle = xQueueCreate((UBaseType_t)10, (UBaseType_t)response_queue_command_size);
-    (void)xTaskCreate(modem_interface_task, "modem task", (configSTACK_DEPTH_TYPE)16384, NULL, (UBaseType_t)0, &modem_task_handle); 
+    (void)xTaskCreate(modem_interface_task, "modem task", (configSTACK_DEPTH_TYPE)MODEM_TASK_STACK_SIZE, NULL, (UBaseType_t)0, &modem_task_handle); 
 }
 
 void modem_interface_os_deinit(void)
@@ -156,7 +162,7 @@ size_t modem_interface_serial_read_data(size_t buffer_length, uint8_t *data)
 	size = uart_read_bytes(UART_NUM_1, data, (uint32_t)buffer_length, (TickType_t )0);
 
 #ifdef MODEM_INTERFACE_LOG_SERIAL
-	static uint8_t debug_buffer[1024];
+	static uint8_t debug_buffer[MODEM_SERIAL_LOG_BUFFER_SIZE];
 	static size_t debug_buffer_length = 0;
 	
 	if (size + debug_buffer_length + 1 > sizeof(debug_buffer))
@@ -170,9 +176,8 @@ size_t modem_interface_serial_read_data(size_t buffer_length, uint8_t *data)
 		debug_buffer_length += size;
 		if (debug_buffer_length > 0 && debug_buffer[debug_buffer_length - 1] == '\n')
 		{
-util_replace_char((char *)debug_buffer,'\r', 'r');
-util_replace_char((char *)debug_buffer,'\n', 'n');
-			
+			util_replace_char((char *)debug_buffer,'\r', 'r');
+			util_replace_char((char *)debug_buffer,'\n', 'n');			
 			debug_buffer[debug_buffer_length] = '\0';
 			modem_interface_log((const char *)debug_buffer);
 			debug_buffer_length = 0;
@@ -310,5 +315,3 @@ void modem_interface_free(void *address)
 {
 	vPortFree(address);
 }
-
-

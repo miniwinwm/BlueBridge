@@ -40,40 +40,46 @@ SOFTWARE.
 *** DEFINES ***
 **************/
 
-#define WAIT_FOREVER       									portMAX_DELAY  
-#define SIGNATURE											0xDEADBEEFUL
-#define SETTINGS_DEFAULT_CAN_DEVICE_ADDRESS					22U
-#define SETTINGS_DEFAULT_APN								"data.uk"
-#define SETTINGS_DEFAULT_APN_USER_NAME						"user"
-#define SETTINGS_DEFAULT_APN_PASSWORD						"one2one"
-#define SETTINGS_DEFAULT_MQTT_BROKER_ADDRESS				"broker.emqx.io"
-#define SETTINGS_DEFAULT_MQTT_BROKER_PORT					1883U
-#define SETTINGS_DEFAULT_MQTT_PUBLISH_PERIOD				30UL
-#define SETTINGS_DEFAULT_MQTT_PUBLISH_START_ON_BOOT			true
+#define WAIT_FOREVER       									portMAX_DELAY  			///< Redefinition of FreeRTOS wait forever definition
+#define SIGNATURE											0xDEADBEEFUL			///< Settings signature in flash to determine settings have been written previously
+#define SETTINGS_DEFAULT_CAN_DEVICE_ADDRESS					22U						///< Default NMEA2000 network address 
+#define SETTINGS_DEFAULT_APN								"data.uk"				///< Default APN for the 1p operator
+#define SETTINGS_DEFAULT_APN_USER_NAME						"user"					///< Default user name for the 1p operator
+#define SETTINGS_DEFAULT_APN_PASSWORD						"one2one"				///< Default password for the 1p operator
+#define SETTINGS_DEFAULT_MQTT_BROKER_ADDRESS				"broker.emqx.io"		///< Default MQTT broker ip address
+#define SETTINGS_DEFAULT_MQTT_BROKER_PORT					1883U					///< Default MQTT broker port
+#define SETTINGS_DEFAULT_MQTT_PUBLISH_PERIOD				30UL					///< Default MQTT publish period in seconds
+#define SETTINGS_DEFAULT_MQTT_PUBLISH_START_ON_BOOT			true					///< Default timeout in seconds to close the MQTT connection used when publish period is greater than this value
 
 /************
 *** TYPES ***
 ************/
 
+/**
+ * Settings data structure in flash
+ */
 typedef struct 
 {
-    uint32_t signature;
-    uint8_t device_address;
-	char apn[MODEM_MAX_APN_LENGTH + 1];
-	char apn_user_name[MODEM_MAX_USERNAME_LENGTH + 1];
-	char apn_password[MODEM_MAX_PASSWORD_LENGTH + 1];
-	char mqtt_broker_address[SETTINGS_MQTT_BROKER_ADDRESS_MAX_LENGTH + 1];
-	uint16_t mqtt_broker_port;
-	uint32_t period_s;
+    uint32_t signature;																///< Signature to determine if settings have been written previously
+    uint8_t device_address;															///< NMEA2000 device address
+	char apn[MODEM_MAX_APN_LENGTH + 1];												///< GSM operator APN
+	char apn_user_name[MODEM_MAX_USERNAME_LENGTH + 1];								///< GSM operator user name
+	char apn_password[MODEM_MAX_PASSWORD_LENGTH + 1];								///< GSM operator password
+	char mqtt_broker_address[SETTINGS_MQTT_BROKER_ADDRESS_MAX_LENGTH + 1];			///< MQTT broker address - do not add http://, see default above
+	uint16_t mqtt_broker_port;														///< MQTT broker port for plain unencrypted TCP access, not websockets or TLS
+	uint32_t period_s;																///< MQTT publish period in seconds
 } settings_non_volatile_t;
 
+/**
+ * Settings data structure in memory, never persisted
+ */
 typedef struct
 {
-	uint32_t code;	
-	char phone_number[MODEM_MAX_PHONE_NUMBER_LENGTH + 1];
-	bool boat_iot_started;
-	bool restart_needed;
-	bool publishing_start_needed;
+	uint32_t hashed_imei;															///< Hashed device IMEI used to identify device via MQTT
+	char phone_number[MODEM_MAX_PHONE_NUMBER_LENGTH + 1];							///< SMS sender's phone number in international format
+	bool boat_iot_started;															///< If MQTT publishing has started
+	bool restart_needed;															///< If the device needs rebooting
+	bool publishing_start_needed;													///< If MQTT publishing needs starting
 } settings_volatile_t;
 
 /********************************
@@ -84,10 +90,10 @@ typedef struct
 *** LOCAL VARIABLES ***
 **********************/
 
-static settings_non_volatile_t settings_non_volatile;
-static settings_volatile_t settings_volatile;
-static SemaphoreHandle_t settings_mutex_handle;
-static bool init = false;
+static settings_non_volatile_t settings_non_volatile;								///< Memory copy of non-volatile settings read from flash
+static settings_volatile_t settings_volatile;										///< Memory copy of volatile settings never saved to flash
+static SemaphoreHandle_t settings_mutex_handle;										///< Mutex handle to ensure settings access thread safety
+static bool settings_initialized = false;											///< If the settings driver has been initialised
 
 /***********************
 *** GLOBAL VARIABLES ***
@@ -107,12 +113,12 @@ static bool init = false;
 
 void settings_init(void)
 {
-	if (init)
+	if (settings_initialized)
 	{
 		return;
 	}
 	
-	init = true;
+	settings_initialized = true;
 	settings_mutex_handle = xSemaphoreCreateMutex();	
 	flash_load_data((uint8_t *)&settings_non_volatile, sizeof(settings_non_volatile_t));
     if (settings_non_volatile.signature != SIGNATURE)
@@ -132,7 +138,7 @@ void settings_init(void)
 	settings_volatile.boat_iot_started = SETTINGS_DEFAULT_MQTT_PUBLISH_START_ON_BOOT;
 	settings_volatile.restart_needed = false;
 	settings_volatile.publishing_start_needed = false;
-	settings_volatile.code = 0UL;
+	settings_volatile.hashed_imei = 0UL;
 }
 
 uint8_t settings_get_device_address(void)
@@ -284,21 +290,21 @@ void settings_set_mqtt_broker_port(uint16_t mqtt_broker_port)
 	xSemaphoreGive(settings_mutex_handle);	
 }
 
-uint32_t settings_get_code(void)
+uint32_t settings_get_hashed_imei(void)
 {
-	uint32_t code;
+	uint32_t hashed_imei;
 	
 	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);	
-	code = settings_volatile.code;
+	hashed_imei = settings_volatile.hashed_imei;
 	xSemaphoreGive(settings_mutex_handle);		
 	
-	return code;
+	return hashed_imei;
 }
 
-void settings_set_code(uint32_t code)
+void settings_set_hashed_imei(uint32_t hashed_imei)
 {
 	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
-	settings_volatile.code = code;
+	settings_volatile.hashed_imei = hashed_imei;
 	xSemaphoreGive(settings_mutex_handle);	
 }
 

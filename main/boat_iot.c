@@ -48,8 +48,8 @@ SOFTWARE.
 *** DEFINES ***
 **************/
 
-#define MQTT_KEEPALIVE_S			600U
-#define MQTT_SHUTDOWN_PERIOD_S		300UL
+#define MQTT_KEEPALIVE_S			600U			///< MQTT protocol keep alive time in seconds - the connection will be closed by broker if quiet for this time
+#define MQTT_SHUTDOWN_PERIOD_S		300UL			///< Period in seconds that this code will close the MQTT connection if nothing sent
 
 /************
 *** TYPES ***
@@ -83,6 +83,9 @@ static void close_mqtt_connection(void);
 *** LOCAL FUNCTIONS ***
 **********************/
 
+/**
+ * Perform multiple attempts to register on the GSM network via the modem driver until registered or NETWORK_REGISTRATION_WAIT_TIME_MS has been exceeded
+ */
 static bool modem_network_register(void)
 {
 	ModemStatus_t modem_status;
@@ -109,6 +112,14 @@ static bool modem_network_register(void)
 	return registrationStatus;
 }
 
+/**
+ * Set/get GSM connection parameters and setup commands via the modem driver. Following items are performed:
+ *     IMEI is read from modem
+ *     All existing SMS messages sdtored on modem or SIM are deleted
+ *     Incoming TCP data read mode is set to manual
+ *     SMS format is set to PDU
+ *     SMS receive mode is set to URC notification
+ */
 static bool modem_set_parameters(void)
 {
 	ModemStatus_t modem_status;
@@ -120,7 +131,7 @@ static bool modem_set_parameters(void)
 	{
 		return false;
 	}	
-	settings_set_code(util_hash_djb2(imei));
+	settings_set_hashed_imei(util_hash_djb2(imei));
 	
 	modem_status = ModemSmsDeleteAllMessages(25000UL);
 	ESP_LOGI(pcTaskGetName(NULL), "Delete all SMS messages %s", ModemStatusToText(modem_status));	
@@ -153,6 +164,9 @@ static bool modem_set_parameters(void)
 	return true;
 }
 
+/**
+ * Activate the GPRS connection using the modem driver 
+ */
 static bool modem_activate_data_connection(void)
 {
 	ModemStatus_t modem_status;
@@ -179,6 +193,7 @@ static bool modem_activate_data_connection(void)
 		return false;
 	}		
 
+	// while own IP address is not needed the connection doesn't work unless it is read				// todo retest this
 	modem_status = ModemGetOwnIpAddress(ipAddress, MODEM_MAX_IP_ADDRESS_LENGTH + 1, 250UL);
 	ESP_LOGI(pcTaskGetName(NULL), "Get own IP address %s %s", ModemStatusToText(modem_status), ipAddress);	
 	if (modem_status != MODEM_OK)
@@ -189,6 +204,9 @@ static bool modem_activate_data_connection(void)
 	return true;	
 }
 
+/**
+ * Open the connection using a TCP connection to the MQTT broker
+ */
 static bool open_mqtt_connection(void)
 {
 	ModemStatus_t modem_status;
@@ -213,12 +231,18 @@ static bool open_mqtt_connection(void)
 	return true;
 }
 
+/**
+ * Close connection to MQTT broker and close TCP connection
+ */
 static void close_mqtt_connection(void)
 {
 	(void)MqttDisconnect(5000UL);
 	(void)ModemCloseTcpConnection(5000UL);
 }
 
+/**
+ * Do modem initializations to the point of ready to open TCp connection
+ */
 static bool modem_start(void)
 {
 	if (!modem_network_register())
@@ -234,6 +258,13 @@ static bool modem_start(void)
 	return true;
 }
 
+/**
+ * Perform commands or set settings as received by SMS message given an already parsed key or a key/value pair
+ *
+ * @param key String containing the setting name or command text
+ * @param value String containing a setting value or empty string for a command but must not be NULL
+ * @return If the key/command is recognised, the setting is valid and the parameters are ok then true else false
+ */
 static bool config_parser_callback(char *key, char *value)
 {
 	bool found = false;
@@ -327,7 +358,7 @@ static bool config_parser_callback(char *key, char *value)
 	{
 		ESP_LOGI(pcTaskGetName(NULL), "Command code");	
 		
-		(void)snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "Code=%08X", settings_get_code());
+		(void)snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "Code=%08X", settings_get_hashed_imei());
 		(void)sms_send(message_text, settings_get_phone_number());		
 		found = true;
 	}	
@@ -545,6 +576,8 @@ void boat_iot_task(void *parameters)
 	char mqtt_data_buf[200];	
 	char number_buf[20];
 	
+	(void)parameters;
+	
 	ESP_LOGI(pcTaskGetName(NULL), "Boat iot task started");
 	
 	// signal main task that this task has started
@@ -607,7 +640,7 @@ void boat_iot_task(void *parameters)
 			if (!loop_failed && ModemGetTcpConnectedState())
 			{				
 				// topic
-				(void)snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/all", settings_get_code());							
+				(void)snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/all", settings_get_hashed_imei());							
 				time_ms = timer_get_time_ms();			
 				
 				// signal strength

@@ -42,80 +42,122 @@ SOFTWARE.
 *** TYPES ***
 ************/
 
+/**
+ * Struct of get signal strength response data
+ */
 typedef struct
 {
-	uint8_t signalStrength;
+	uint8_t signalStrength;			///< Signal strength 1-31 or 99 unavailable
 } GetSignalStrengthResponseData_t;
 
+/**
+ * Struct of get registration staus response data
+ */
 typedef struct
 {
-	bool registrationStatus;
+	bool registrationStatus;		///< If registered oe not
 } GetRegistrationStatusResponseData_t;
 
+/**
+ * Struct of configure data connection command data
+ */
 typedef struct
 {
-	char apn[MODEM_MAX_APN_LENGTH + 1];
-	char username[MODEM_MAX_USERNAME_LENGTH + 1];
-	char password[MODEM_MAX_PASSWORD_LENGTH + 1];
+	char apn[MODEM_MAX_APN_LENGTH + 1];								///< Access point name
+	char username[MODEM_MAX_USERNAME_LENGTH + 1];					///< Data context username
+	char password[MODEM_MAX_PASSWORD_LENGTH + 1];					///< Data context password
 } ConfigureDataConnectionCommandData_t;
 
+/**
+ * Struct of open TCP connection command data
+ */
 typedef struct
 {
-	char url[MODEM_MAX_URL_ADDRESS_SIZE + 1];
-	uint16_t port;
+	char url[MODEM_MAX_URL_ADDRESS_SIZE + 1];						///< URL of remote device
+	uint16_t port;													///< IP port
 } OpenTcpConnectionCommandData_t;
 
+/**
+ * Struct of operator details response data
+ */
 typedef struct
 {
-	char operatorDetails[MODEM_MAX_OPERATOR_DETAILS_LENGTH + 1];
+	char operatorDetails[MODEM_MAX_OPERATOR_DETAILS_LENGTH + 1];	///< Contains operator name
 } GetOperatorDetailsResponseData_t;
 
+/**
+ * Struct of ip address response data
+ */
 typedef struct
 {
-	char ipAddress[MODEM_MAX_IP_ADDRESS_LENGTH + 1];
+	char ipAddress[MODEM_MAX_IP_ADDRESS_LENGTH + 1];				///< In x.x.x.x format
 } GetOwnIpAddressResponseData_t;
 
+/**
+ * Struct of TCP write command data
+ */
 typedef struct
 {
-	uint8_t data[MODEM_MAX_TCP_WRITE_SIZE];
-	size_t length;
-} TcpWriteCommandData_t;
+	uint8_t data[MODEM_MAX_TCP_WRITE_SIZE];							///< The data to write
+	size_t length;													///< How many bytes from data to write
+} TcpWriteCommandData_t;							
 
+/**
+ * Struct of TCP received bytes waiting response data
+ */
 typedef struct
 {
-	size_t length;
+	size_t length;													///< Number of bytes that can be read
 } GetTcpReadDataWaitinghResponseData_t;
 
+/**
+ * Struct of receive SMS command data
+ */
 typedef struct
 {
-	uint8_t smsId;
+	uint8_t smsId;													///< The id of the SMS to read
 } SmsReceiveCommandData_t;
 
+/**
+ * Struct of read SMS response data
+ */
 typedef struct
 {
-	size_t length;
-	uint8_t data[MODEM_SMS_MAX_PDU_LENGTH_ASCII_HEX + 1];
+	size_t length;													///< Length of contents of data
+	uint8_t data[MODEM_SMS_MAX_PDU_LENGTH_ASCII_HEX + 1];			///< The SMS PDU in ascii hex format
 } SmsReadResponseData_t;
 
+/**
+ * Struct of send SMS command data
+ */
 typedef struct
 {
-	char pdu[MODEM_SMS_MAX_PDU_LENGTH_ASCII_HEX + 1];
+	char pdu[MODEM_SMS_MAX_PDU_LENGTH_ASCII_HEX + 1];				///< The SMS PDU in ascii hex formast
 } SmsSendMessageCommandData_t;
 
+/**
+ * Struct of TCP read command data
+ */
 typedef struct
 {
-	size_t lengthToRead;
+	size_t lengthToRead;											///< How many bytes to read
 } TcpReadCommandData_t;
 
+/**
+ * Struct of TCP read response data
+ */
 typedef struct
 {
-	size_t lengthRead;
-	uint8_t data[MODEM_MAX_TCP_READ_SIZE];
+	size_t lengthRead;												///< How many bytes in data
+	uint8_t data[MODEM_MAX_TCP_READ_SIZE];							///< The read data
 } TcpReadResponseData_t;
 
+/**
+ * Struct of get IMEI response data
+ */
 typedef struct
 {
-	char imei[MODEM_MAX_IMEI_LENGTH + 1];
+	char imei[MODEM_MAX_IMEI_LENGTH + 1];							///< The IMEI string
 } GetImeiResponseData_t;
 
 /********************************
@@ -161,10 +203,10 @@ static bool ModemStrcpy(char *dest, size_t size, const char *src);
 *** LOCAL VARIABLES ***
 **********************/
 
-static uint8_t echoOrUrc[MODEM_MAX_AT_COMMAND_SIZE];
-static AtCommandPacket_t atCommandPacket;
-static AtResponsePacket_t atResponsePacket;
-static SmsNotificationCallback_t mySmsNotificationCallback;
+static uint8_t echoOrUrc[MODEM_MAX_AT_COMMAND_SIZE];			///< Buffer to contain an echoed command or a URC received from modem
+static AtCommandPacket_t atCommandPacket;						///< Struct of data of a command sent from client to server that will become at AT command
+static AtResponsePacket_t atResponsePacket;						///< Struct of data of a response sent from server to client that was obtained from an AT response
+static SmsNotificationCallback_t mySmsNotificationCallback;		///< Pointer to function to call when a SMS notification is received
 
 /***********************
 *** GLOBAL VARIABLES ***
@@ -178,6 +220,14 @@ static SmsNotificationCallback_t mySmsNotificationCallback;
 *** LOCAL FUNCTIONS ***
 **********************/
 
+/**
+ * Perform a safe equivalent of strcat
+ * 
+ * @param dest Buffer to hold the concatenated string
+ * @param size Size in bytes of dest
+ * @param src The source string to append to what already exists in dest
+ * @return true if string concatenated successfully
+ */
 static bool ModemStrcat(char *dest, size_t size, const char *src)
 {
     if (dest == NULL || src == NULL || (strlen(dest) + strlen(src) + (size_t)1 > size))
@@ -188,6 +238,11 @@ static bool ModemStrcat(char *dest, size_t size, const char *src)
 	return (strncat((dest), (src), (size - strlen(dest) - (size_t)1U)));
 }
 
+/**
+ * Handle an Unrequested Response Code that has been received from the modem
+ *
+ * @param length Length of the URC
+ */
 static void ServerHandleURC(size_t length)
 {
 	if (memcmp(echoOrUrc, "CONNECT OK\r\n", 12) == 0)
@@ -215,6 +270,13 @@ static void ServerHandleURC(size_t length)
 	// add more URC handling here if needed
 }
 
+/**
+ * Perform a safe equivalent of strcpy.
+ *
+ * @param dest Pointer to destination string
+ * @param size The size of the dest buffer
+ * @param src Pointer to source string to copy
+ */
 static bool ModemStrcpy(char *dest, size_t size, const char *src)
 {
     size_t i;
@@ -236,6 +298,13 @@ static bool ModemStrcpy(char *dest, size_t size, const char *src)
     return true;
 }
 
+/**
+ * Send a basic AT command that results in one of the standard single known responses
+ *
+ * @param command The text of the AT command to send
+ * @param timeoutMs Maximum length of time in milliseconds to wait for the command sequence to complete
+ * @return an enum status representing one of the standard AT responses or error
+ */
 static ModemStatus_t ServerSendBasicCommandResponse(const char *command, uint32_t timeoutMs)
 {
 	size_t length = strlen(command);
@@ -255,6 +324,15 @@ static ModemStatus_t ServerSendBasicCommandResponse(const char *command, uint32_
 	return ServerGetStandardResponse(timeoutMs);
 }
 
+/**
+ * Send a basic AT command that results in a single line of text as a response followed by one of the standard single known responses
+ *
+ * @param command The text of the AT command to send
+ * @param response Buffer to read intermediate text response into
+ * @param response_length Size of response buffer
+ * @param timeoutMs Maximum length of time in milliseconds to wait for the command sequence to complete
+ * @return an enum status representing one of the standard AT responses or error
+ */
 static ModemStatus_t ServerSendBasicCommandTextResponse(const char *command, char *response, size_t response_length, uint32_t timeoutMs)
 {
 	size_t length = strlen(command);
@@ -302,6 +380,11 @@ static ModemStatus_t ServerSendBasicCommandTextResponse(const char *command, cha
 	return ServerGetStandardResponse(timeoutMs);
 }
 
+/**
+ * Read and ignore all data waiting to be read on serial data line from modem if there is an error
+ *
+ * @param modemStatus The modem status which indicates an error if negative
+ */
 static void ServerFlushReadBufferOnError(ModemStatus_t modemStatus)
 {
 	uint8_t byte;
@@ -320,6 +403,13 @@ static void ServerFlushReadBufferOnError(ModemStatus_t modemStatus)
 	while (byte != '\n' && modem_interface_serial_received_bytes_waiting() > (size_t)0);
 }
 
+/**
+ * Read the echo of a sent AT command and check that the echo matches the command
+ *
+ * @param command The text of the AT command sent
+ * @param timeoutMs Maximum length of time in milliseconds to wait for the echo to arrive
+ * @return an enum status representing one of the standard AT responses or error
+ */
 static ModemStatus_t ServerGetEcho(const char *command, uint32_t timeoutMs)
 {
 	size_t length = strlen(command);
@@ -392,6 +482,14 @@ static ModemStatus_t ServerGetEcho(const char *command, uint32_t timeoutMs)
 	return MODEM_OK;
 }
 
+/**
+ * Read a standard AT response and return a status depending on the response
+ *
+ * @param timeoutMs Maximum length of time in milliseconds to wait for response to arrive
+ * @return an enum status representing one of the standard AT responses or error
+ * @note Blank lines are read and ignored as these are sometimes interspersed in the command/response sequence by the modem
+ *       before the final standard response
+ */
 static ModemStatus_t ServerGetStandardResponse(uint32_t timeoutMs)
 {
 	size_t i = (size_t)0;
@@ -460,6 +558,13 @@ static ModemStatus_t ServerGetStandardResponse(uint32_t timeoutMs)
 	}
 }
 
+/**
+ * Client side code to send a basic command and receive a standard response
+ *
+ * @param atCommand Packaged up command details
+ * @param timeoutMs Maximum length of time in milliseconds to wait for the command sequence to complete
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static ModemStatus_t ClientSendBasicCommandResponse(AtCommand_t atCommand, uint32_t timeoutMs)
 {
 	AtCommandPacket_t atCommandPacket;
@@ -480,6 +585,12 @@ static ModemStatus_t ClientSendBasicCommandResponse(AtCommand_t atCommand, uint3
 	return atResponsePacket.atResponse;
 }
 
+/**
+ * Server side of command to send a modem bare AT command and ger response to confirm that the AT interface is working
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerModemHello(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT", timeoutMs);
@@ -487,6 +598,12 @@ static void ServerModemHello(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to get signal strength
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerGetSignalStrength(uint32_t timeoutMs)
 {
 	GetSignalStrengthResponseData_t signalStrengthResponseData;
@@ -510,6 +627,12 @@ static void ServerGetSignalStrength(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to get network registration status
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerNetworkRegistrationStatus(uint32_t timeoutMs)
 {
 	GetRegistrationStatusResponseData_t registrationStatusResponseData;
@@ -543,6 +666,12 @@ static void ServerNetworkRegistrationStatus(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to set TCP data recive mode to manual
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerSetManualDataReceive(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT+CIPRXGET=1", timeoutMs);
@@ -550,6 +679,12 @@ static void ServerSetManualDataReceive(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to set SMS format to PDU
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerSetSmsPduMode(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT+CMGF=0", timeoutMs);
@@ -557,6 +692,12 @@ static void ServerSetSmsPduMode(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to set SMS receive mode to URC
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerSetSmsReceiveMode(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT+CNMI=1,1,0,0,0", timeoutMs);
@@ -564,6 +705,12 @@ static void ServerSetSmsReceiveMode(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to power doen the modem
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerPowerDown(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT+CPOWD=1", timeoutMs);
@@ -571,6 +718,12 @@ static void ServerPowerDown(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to activate the data connection
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerActivateDataConnection(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT+CIICR", timeoutMs);
@@ -578,6 +731,12 @@ static void ServerActivateDataConnection(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to configure the data connection
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerConfigureDataConnection(uint32_t timeoutMs)
 {
 	ConfigureDataConnectionCommandData_t configureDataConnectionCommandData;
@@ -597,6 +756,12 @@ static void ServerConfigureDataConnection(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to deactivate the data connection
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerDeactivateDataConnection(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT+CIPSHUT", timeoutMs);
@@ -604,6 +769,12 @@ static void ServerDeactivateDataConnection(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to open a TCP connection
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerOpenTcpConnection(uint32_t timeoutMs)
 {
 	OpenTcpConnectionCommandData_t openTcpConnectionCommandData;
@@ -623,6 +794,12 @@ static void ServerOpenTcpConnection(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to close a TCP connection
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerCloseTcpConnection(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT+CIPCLOSE", timeoutMs);
@@ -634,6 +811,12 @@ static void ServerCloseTcpConnection(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to set operator details
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerGetOperatorDetails(uint32_t timeoutMs)
 {
 	GetOperatorDetailsResponseData_t getOperatorDetailsResponseData;
@@ -652,6 +835,12 @@ static void ServerGetOperatorDetails(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to get own IP address
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerGetOwnIpAddress(uint32_t timeoutMs)
 {
 	GetOwnIpAddressResponseData_t getOwnIpAddressResponseData;
@@ -707,6 +896,12 @@ static void ServerGetOwnIpAddress(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to write a section of TCP data 
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static ModemStatus_t ClientTcpWriteSection(const uint8_t *data, size_t length, uint32_t timeoutMs)
 {
 	AtCommandPacket_t atCommandPacket;
@@ -732,6 +927,12 @@ static ModemStatus_t ClientTcpWriteSection(const uint8_t *data, size_t length, u
 	return atResponsePacket.atResponse;
 }
 
+/**
+ * Server side of command to write TCP data
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerTcpWrite(uint32_t timeoutMs)
 {
 	TcpWriteCommandData_t tcpWriteCommandData;
@@ -837,6 +1038,12 @@ static void ServerTcpWrite(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to read how many bytes of data are waiting to be read by TCP
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerGetTcpReadDataWaitingLength(uint32_t timeoutMs)
 {
 	GetTcpReadDataWaitinghResponseData_t getTcpReadDataWaitinghResponseData;
@@ -860,6 +1067,12 @@ static void ServerGetTcpReadDataWaitingLength(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to read a received SMS message
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerSmsReceiveMessage(uint32_t timeoutMs)
 {
 	SmsReceiveCommandData_t smsReceiveCommandData;
@@ -970,6 +1183,12 @@ static void ServerSmsReceiveMessage(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);	
 }
 
+/**
+ * Server side of command to send a SMS message
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerSmsSendMessage(uint32_t timeoutMs)
 {
 	SmsSendMessageCommandData_t smsSendMessageCommandData;
@@ -1137,6 +1356,12 @@ static void ServerSmsSendMessage(uint32_t timeoutMs)
 }
 
 
+/**
+ * Server side of command to delete all SMS messages on device
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerSmsDeleteAllMessages(uint32_t timeoutMs)
 {
 	atResponsePacket.atResponse = ServerSendBasicCommandResponse("AT+CMGD=1,4", timeoutMs);
@@ -1144,6 +1369,12 @@ static void ServerSmsDeleteAllMessages(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to read a section of received TCP data
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static ModemStatus_t ClientTcpReadSection(size_t lengthToRead, size_t *lengthRead, uint8_t *buffer, uint32_t timeoutMs)
 {
 	AtCommandPacket_t atCommandPacket;
@@ -1173,6 +1404,12 @@ static ModemStatus_t ClientTcpReadSection(size_t lengthToRead, size_t *lengthRea
 	return atResponsePacket.atResponse;
 }
 
+/**
+ * Server side of command to read received TCP data
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerTcpRead(uint32_t timeoutMs)
 {
 	TcpReadCommandData_t tcpReadCommandData;
@@ -1276,6 +1513,12 @@ static void ServerTcpRead(uint32_t timeoutMs)
 	modem_interface_queue_put(MODEM_INTERFACE_RESPONSE_QUEUE, &atResponsePacket, 0UL);
 }
 
+/**
+ * Server side of command to get the modem's IMEI
+ *
+ * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
+ * @return an enum status representing one of the standard AT responses or error
+ */ 
 static void ServerGetImei(uint32_t timeoutMs)
 {
 	GetImeiResponseData_t getImeiResponseData;
