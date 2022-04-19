@@ -45,16 +45,17 @@ SOFTWARE.
 *** LOCAL FUNCTION PROTOTYPES ***
 ********************************/
 
+static uint8_t EncodeRemainingLength(size_t remainingLength, uint8_t buffer[4]);	
+static size_t DecodeRemainingLength(uint8_t buffer[4]);
+
 /**********************
 *** LOCAL VARIABLES ***
 **********************/
 
-static uint8_t EncodeRemainingLength(uint32_t remainingLength, uint8_t buffer[4]);
-static uint32_t DecodeRemainingLength(uint8_t buffer[4]);
-static PublishCallback_t publishCallback;
-static PingResponseCallback_t pingCallback;
-static SubscribeResponseCallback_t subscribeCallback;
-static UnsubscribeResponseCallback_t unsubscribeCallback;
+static PublishCallback_t publishCallback;						///< Copy of suppled publish callback function pointer
+static PingResponseCallback_t pingCallback;						///< Copy of suppled ping callback function pointer
+static SubscribeResponseCallback_t subscribeCallback;			///< Copy of suppled subscribe acknowledge callback function pointer
+static UnsubscribeResponseCallback_t unsubscribeCallback;		///< Copy of suppled unsubscribe acknowledge callback function pointer
 
 /***********************
 *** GLOBAL VARIABLES ***
@@ -67,6 +68,61 @@ static UnsubscribeResponseCallback_t unsubscribeCallback;
 /**********************
 *** LOCAL FUNCTIONS ***
 **********************/
+
+/**
+ * Encode a remaining length value into a variable length integer array
+ *
+ * @param remainingLength The value to encode
+ * @param buffer Buffer to put result
+ * @return The number of bytes encoded into buffer
+ */
+static uint8_t EncodeRemainingLength(size_t remainingLength, uint8_t buffer[4])
+{
+	uint8_t i = 0U;
+	uint8_t encodedByte;
+
+	do
+	{
+		encodedByte = (uint8_t)(remainingLength % (size_t)0x80);
+		remainingLength = remainingLength / (size_t)0x80;
+
+		// if there are more data to encode, set the top bit of this byte
+		if (remainingLength > (size_t)0)
+		{
+			encodedByte = encodedByte | 0x80U;
+		}
+		buffer[i] = encodedByte;
+		i++;
+	}
+	while (remainingLength > (size_t)0);
+
+	return i;
+}
+
+/**
+ * Decode a variable length integer
+ * 
+ * @param buffer Buffer containing the variable length integer
+ * @return The decoded integer representation of buffer
+ */
+static size_t DecodeRemainingLength(uint8_t buffer[4])
+{
+    size_t multiplier = (size_t)1;
+    size_t value = (size_t)0;
+    uint8_t i = 0U;
+    uint8_t encodedByte;
+
+    do
+    {
+         encodedByte = buffer[i];
+         i++;
+         value += (size_t)(encodedByte & 0x7fU) * multiplier;
+         multiplier *= (size_t)0x80;
+    }
+    while ((encodedByte & 0x80U) != 0U);
+
+	return value;
+}
 
 /***********************
 *** GLOBAL FUNCTIONS ***
@@ -95,40 +151,40 @@ void MqttSetUnsubscribeResponseCallback(UnsubscribeResponseCallback_t callback)
 MqttStatus_t MqttConnect(const char *clientId, const char *username, const char *password, uint16_t keepAlive, uint32_t timeoutMs)
 {
 	uint8_t remainingLengthBuffer[4];
-	uint32_t remainingLength;
-	uint32_t packetLength;
+	size_t remainingLength;
+	size_t packetLength;
 	uint8_t remainingLengthLength;
 	uint8_t *packet;
-	uint16_t p = 0U;
+	uint32_t p = 0UL;
 	uint32_t startTime = modem_interface_get_time_ms();
 	MqttStatus_t mqttStatus;
 
 	// check parameters
-	if (!clientId)
+	if (clientId == NULL)
 	{
 		return MQTT_BAD_PARAMETER;
 	}
 
 	// calculate remaining length
-	remainingLength = 12UL + (uint32_t)strlen(clientId);
+	remainingLength = (size_t)12 + strlen(clientId);
 	if (username)
 	{
-		remainingLength += 2UL;
-		remainingLength += (uint32_t)strlen(username);
+		remainingLength += (size_t)2;
+		remainingLength += strlen(username);
 	}
 	if (password)
 	{
-		remainingLength += 2UL;
-		remainingLength += (uint32_t)strlen(password);
+		remainingLength += (size_t)2;
+		remainingLength += strlen(password);
 	}
 
 	// encode remaining length
 	remainingLengthLength = EncodeRemainingLength(remainingLength, remainingLengthBuffer);
 
 	// calculate length of packet and allocate memory
-	packetLength = 1UL + (uint32_t)remainingLengthLength + remainingLength;
+	packetLength = (size_t)1 + (size_t)remainingLengthLength + remainingLength;
 	packet = modem_interface_malloc(packetLength);
-	if (!packet)
+	if (packet == NULL)
 	{
 		return MQTT_NO_MEMORY;
 	}
@@ -163,9 +219,9 @@ MqttStatus_t MqttConnect(const char *clientId, const char *username, const char 
 	p++;
 
 	// client id length
-	packet[p] = strlen(clientId) / 0xffU;
+	packet[p] = (uint8_t)(strlen(clientId) / (size_t)0xff);
 	p++;
-	packet[p] = strlen(clientId) & 0xffU;
+	packet[p] = (uint8_t)(strlen(clientId) & (size_t)0xff);
 	p++;
 
 	// client id
@@ -175,9 +231,9 @@ MqttStatus_t MqttConnect(const char *clientId, const char *username, const char 
 	// username if supplied
 	if (username)
 	{
-		packet[p] = strlen(username) / 0xffU;
+		packet[p] = (uint8_t)(strlen(username) / (size_t)0xff);
 		p++;
-		packet[p] = strlen(username) & 0xffU;
+		packet[p] = (uint8_t)(strlen(username) & (size_t)0xff);
 		p++;
 
 		(void)memcpy(&packet[p], username, strlen(username));
@@ -187,9 +243,9 @@ MqttStatus_t MqttConnect(const char *clientId, const char *username, const char 
 	// password if supplied
 	if (password)
 	{
-		packet[p] = strlen(password) / 0xffU;
+		packet[p] = (uint8_t)(strlen(password) / (size_t)0xff);
 		p++;
-		packet[p] = strlen(password) & 0xffU;
+		packet[p] = (uint8_t)(strlen(password) & (size_t)0xff);
 		p++;
 
 		(void)memcpy(&packet[p], password, strlen(password));
@@ -235,7 +291,7 @@ MqttStatus_t MqttPing(uint32_t timeoutMs)
 	const uint8_t packet[2] = {MQTT_PING_REQ_PACKET_ID, 0x00U};
 
 	// send packet
-	if (ModemTcpWrite(packet, 2UL, timeoutMs) != MODEM_SEND_OK)
+	if (ModemTcpWrite(packet, (size_t)2, timeoutMs) != MODEM_SEND_OK)
 	{
 		return MQTT_TCP_ERROR;
 	}
@@ -246,11 +302,11 @@ MqttStatus_t MqttPing(uint32_t timeoutMs)
 MqttStatus_t MqttSubscribe(const char *topic, uint16_t packetIdentifier, uint32_t timeoutMs)
 {
 	uint8_t *packet;
-	uint32_t remainingLength;
-	uint32_t packetLength;
+	size_t remainingLength;
+	size_t packetLength;
 	uint8_t remainingLengthBuffer[4];
 	uint8_t remainingLengthLength;
-	uint8_t p = 0U;
+	uint32_t p = 0UL;
 
 	// check parameters
 	if (topic == NULL || strlen(topic) == (size_t)0 || strlen(topic) > (size_t)250)
@@ -259,11 +315,11 @@ MqttStatus_t MqttSubscribe(const char *topic, uint16_t packetIdentifier, uint32_
 	}
 
 	// encode remaining length
-	remainingLength = 5UL + (uint32_t)strlen(topic);
+	remainingLength = (size_t)5 + strlen(topic);
 	remainingLengthLength = EncodeRemainingLength(remainingLength, remainingLengthBuffer);
 
 	// calculate packet length and allocate memory
-	packetLength = 1UL + (uint32_t)remainingLengthLength + remainingLength;
+	packetLength = (size_t)1 + (uint32_t)remainingLengthLength + remainingLength;
 	packet = modem_interface_malloc(packetLength);
 	if (packet == NULL)
 	{
@@ -285,14 +341,14 @@ MqttStatus_t MqttSubscribe(const char *topic, uint16_t packetIdentifier, uint32_
 	p++;
 
 	// topic length
-	packet[p] = 0x00;
+	packet[p] = 0x00U;
 	p++;
 	packet[p] = (uint8_t)strlen(topic);
 	p++;
 
 	// topic
 	(void)memcpy(&packet[p], topic, strlen(topic));
-	p += strlen(topic);
+	p += (uint32_t)strlen(topic);
 
 	// qos
 	packet[p] = 0x00U;
@@ -313,11 +369,11 @@ MqttStatus_t MqttSubscribe(const char *topic, uint16_t packetIdentifier, uint32_
 MqttStatus_t MqttUnsubscribe(const char *topic, uint16_t packetIdentifier, uint32_t timeoutMs)
 {
 	uint8_t *packet;
-	uint32_t remainingLength;
-	uint32_t packetLength;
+	size_t remainingLength;
+	size_t packetLength;
 	uint8_t remainingLengthBuffer[4];
 	uint8_t remainingLengthLength;
-	uint8_t p = 0U;
+	uint32_t p = 0UL;
 
 	// check parameters
 	if (topic == NULL || strlen(topic) == (size_t)0 || strlen(topic) > (size_t)250)
@@ -326,11 +382,11 @@ MqttStatus_t MqttUnsubscribe(const char *topic, uint16_t packetIdentifier, uint3
 	}
 
 	// encode remaining length
-	remainingLength = 4UL + (uint32_t)strlen(topic);
+	remainingLength = (size_t)4 + strlen(topic);
 	remainingLengthLength = EncodeRemainingLength(remainingLength, remainingLengthBuffer);
 
 	// calculate packet length and allocate memory
-	packetLength = 1UL + (uint32_t)remainingLengthLength + remainingLength;
+	packetLength = (size_t)1 + (uint32_t)remainingLengthLength + remainingLength;
 	packet = modem_interface_malloc(packetLength);
 	if (packet == NULL)
 	{
@@ -359,7 +415,7 @@ MqttStatus_t MqttUnsubscribe(const char *topic, uint16_t packetIdentifier, uint3
 
 	// topic
 	(void)memcpy(&packet[p], topic, strlen(topic));
-	p += strlen(topic);
+	p += (uint32_t)strlen(topic);
 
 	// send packet
 	if (ModemTcpWrite(packet, packetLength, timeoutMs) != MODEM_SEND_OK)
@@ -376,12 +432,12 @@ MqttStatus_t MqttUnsubscribe(const char *topic, uint16_t packetIdentifier, uint3
 
 MqttStatus_t MqttPublish(const char *topic, const uint8_t *payload, uint32_t payloadLength, bool retain, uint32_t timeoutMs)
 {
-	uint32_t remainingLength;
-	uint32_t packetLength;
+	size_t remainingLength;
+	size_t packetLength;
 	uint8_t remainingLengthBuffer[4] = {0};
 	uint8_t remainingLengthLength;
 	uint8_t *packet;
-	uint32_t p = 0U;
+	uint32_t p = 0UL;
 
 	// check parameters
 	if (topic == NULL || payload == NULL || strlen(topic) == (size_t)0 || strlen(topic) > (size_t)250)
@@ -390,11 +446,11 @@ MqttStatus_t MqttPublish(const char *topic, const uint8_t *payload, uint32_t pay
 	}
 
 	// encode remaining length
-	remainingLength = 2UL + (uint32_t)strlen(topic) + payloadLength;
+	remainingLength = (size_t)2 + strlen(topic) + payloadLength;
 	remainingLengthLength = EncodeRemainingLength(remainingLength, remainingLengthBuffer);
 
 	// calculate packet length and allocate memory
-	packetLength = 1UL + (uint32_t)remainingLengthLength + remainingLength;
+	packetLength = (size_t)1 + (uint32_t)remainingLengthLength + remainingLength;
 	packet = modem_interface_malloc(packetLength);
 	if (packet == NULL)
 	{
@@ -456,13 +512,13 @@ MqttStatus_t MqttDisconnect(uint32_t timeoutMs)
 MqttStatus_t MqttHandleResponse(uint32_t timeoutMs)
 {
 	uint8_t packetType;
-	uint32_t lengthRead;
+	size_t lengthRead;
 	uint8_t remainingLengthBuffer[4];
 	uint32_t startTime = modem_interface_get_time_ms();
-	uint32_t bytesWaiting;
+	size_t bytesWaiting;
 	uint8_t i = 0U;
-	uint32_t bytesRead;
-	uint32_t remainingLength;
+	size_t bytesRead;
+	size_t remainingLength;
 	uint8_t *remainingData = NULL;
 	MqttStatus_t mqttStatus;
 
@@ -470,10 +526,10 @@ MqttStatus_t MqttHandleResponse(uint32_t timeoutMs)
 	{
 		timeoutMs -= (modem_interface_get_time_ms() - startTime);
 
-		if (bytesWaiting > 0UL)
+		if (bytesWaiting > (size_t)0)
 		{
 			// read response type
-			if (ModemTcpRead(1UL, &lengthRead, &packetType, timeoutMs) != MODEM_OK)
+			if (ModemTcpRead((size_t)1, &lengthRead, &packetType, timeoutMs) != MODEM_OK)
 			{
 				return MQTT_TCP_ERROR;
 			}
@@ -488,9 +544,9 @@ MqttStatus_t MqttHandleResponse(uint32_t timeoutMs)
 				}
 				timeoutMs -= (modem_interface_get_time_ms() - startTime);
 
-				if (bytesWaiting > 0UL)
+				if (bytesWaiting > (size_t)0)
 				{
-					if (ModemTcpRead(1UL, &bytesRead, &remainingLengthBuffer[i], timeoutMs) != MODEM_OK)
+					if (ModemTcpRead((size_t)1, &bytesRead, &remainingLengthBuffer[i], timeoutMs) != MODEM_OK)
 					{
 						return MQTT_TCP_ERROR;
 					}
@@ -520,7 +576,7 @@ MqttStatus_t MqttHandleResponse(uint32_t timeoutMs)
 
 			// decode remaining length
 			remainingLength = DecodeRemainingLength(remainingLengthBuffer);
-			if (remainingLength > 0UL)
+			if (remainingLength > (size_t)0)
 			{
 				remainingData = modem_interface_malloc(remainingLength);
 				if (remainingData == NULL)
@@ -563,17 +619,19 @@ MqttStatus_t MqttHandleResponse(uint32_t timeoutMs)
 
 			if ((packetType & MQTT_PACKET_ID_MASK) == MQTT_PUBLISH_PACKET_ID && publishCallback)
 			{
-				if (remainingLength < 6UL)
+				if (remainingLength < (size_t)6)
 				{
 					mqttStatus = MQTT_UNEXPECTED_RESPONSE;
 				}
 				else
 				{
+					// create a NULL terminated string for topic, this overwrites payload length first byte but it's not being used
+					remainingData[(uint32_t)remainingData[1] + 2UL] = '\0';
+					
 					// publish response
 					publishCallback((char *)&remainingData[2], 					// topic starts at byte 3
-							remainingData[1], 									// topic length is byte 0, byte 1 but byte 0 is always 0
 							remainingData + (uint32_t)remainingData[1] + 2UL, 	// payload starts at byte (topic length + 2)
-							remainingLength - remainingData[1] - 2UL);
+							remainingLength - (size_t)remainingData[1] - (size_t)2UL);
 					mqttStatus = MQTT_PUBLISH;
 				}
 			}
@@ -586,7 +644,7 @@ MqttStatus_t MqttHandleResponse(uint32_t timeoutMs)
 			else if ((packetType & MQTT_PACKET_ID_MASK) == MQTT_SUBSCRIBE_ACK_PACKET_ID && subscribeCallback)
 			{
 				// subscribe ack
-				if (remainingLength != 3UL || (remainingData[2] != 0x00U && remainingData[2] != 0x80U))
+				if (remainingLength != (size_t)3 || (remainingData[2] != 0x00U && remainingData[2] != 0x80U))
 				{
 					mqttStatus = MQTT_UNEXPECTED_RESPONSE;
 				}
@@ -599,7 +657,7 @@ MqttStatus_t MqttHandleResponse(uint32_t timeoutMs)
 			else if ((packetType & MQTT_PACKET_ID_MASK) == MQTT_UNSUBSCRIBE_ACK_PACKET_ID && unsubscribeCallback)
 			{
 				// unsubscribe ack
-				if (remainingLength != 2UL)
+				if (remainingLength != (size_t)2)
 				{
 					mqttStatus = MQTT_UNEXPECTED_RESPONSE;
 				}
@@ -611,11 +669,11 @@ MqttStatus_t MqttHandleResponse(uint32_t timeoutMs)
 			}
 			else if ((packetType & MQTT_PACKET_ID_MASK) == MQTT_CONNECT_ACK_PACKET_ID)
 			{
-				if (remainingLength != 2U)
+				if (remainingLength != (size_t)2)
 				{
 					mqttStatus = MQTT_UNEXPECTED_RESPONSE;
 				}
-				if (remainingData[0] != 0U)
+				if (remainingData[0] != 0x00U)
 				{
 					mqttStatus = MQTT_CONNECTION_REFUSED;
 				}
@@ -635,48 +693,6 @@ MqttStatus_t MqttHandleResponse(uint32_t timeoutMs)
 	}
 
 	return MQTT_NO_RESPONSE;
-}
-
-static uint8_t EncodeRemainingLength(uint32_t remainingLength, uint8_t buffer[4])
-{
-	uint8_t i = 0U;
-	uint8_t encodedByte;
-
-	do
-	{
-		encodedByte = (uint8_t)(remainingLength % (uint32_t)0x80);
-		remainingLength = remainingLength / (uint32_t)0x80;
-
-		// if there are more data to encode, set the top bit of this byte
-		if (remainingLength > 0UL)
-		{
-			encodedByte = encodedByte | 0x80U;
-		}
-		buffer[i] = encodedByte;
-		i++;
-	}
-	while (remainingLength > 0UL);
-
-	return i;
-}
-
-static uint32_t DecodeRemainingLength(uint8_t buffer[4])
-{
-    uint32_t multiplier = 1UL;
-    uint32_t value = 0UL;
-    uint8_t i = 0U;
-    uint8_t encodedByte;
-
-    do
-    {
-         encodedByte = buffer[i];
-         i++;
-         value += (encodedByte & 0x7fU) * multiplier;
-         multiplier *= 0x80UL;
-    }
-    while ((encodedByte & 0x80U) != 0U);
-
-	return value;
 }
 
 const char *MqttStatusToText(MqttStatus_t mqttStatus)
