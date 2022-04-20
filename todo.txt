@@ -34,7 +34,6 @@ Test local MQTT broker
 Todo documentation
 ------------------
 Create main documentation file
-Doxygen all code
 Create hardware build file
 
 
@@ -123,3 +122,4 @@ Create data flow diagram
 Test new GSM aerial
 Add LED holder to bom
 Create doxyfile
+Doxygen all code ESP32 code

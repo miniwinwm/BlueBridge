@@ -71,24 +71,27 @@ with the ESP32-IDF framework.
 *** DEFINES ***
 **************/
 
-#define SPP_SERVER_NAME 			"SPP_SERVER"
-#define DEVICE_NAME 				"BlueBridge"
-#define RX_QUEUE_SIZE 				512
-#define TX_QUEUE_SIZE 				32
-#define SPP_NOT_CONGESTED   		0x04
-#define SPP_TX_QUEUE_TIMEOUT 		1000
-#define SPP_TX_DONE_TIMEOUT 		1000
-#define SPP_NOT_CONGESTED_TIMEOUT 	1000
-#define SPP_TX_MAX 					330
+#define SPP_SERVER_NAME 			"SPP_SERVER"		///< BlueDroid bluetooth serial server name, not apparent externally
+#define DEVICE_NAME 				"BlueBridge"		///< Bluetooth device name as seen by remote device
+#define RX_QUEUE_SIZE 				512					///< Queue size for incoming data in bytes
+#define TX_QUEUE_SIZE 				32					///< Queue size for outgoing data in packets
+#define SPP_NOT_CONGESTED   		0x04				///< Event group for when transmit is not busy
+#define SPP_TX_QUEUE_TIMEOUT 		1000				///< Transmit timeout for space to become available on transmit queue in OS ticks
+#define SPP_TX_DONE_TIMEOUT 		1000				///< Transmit timeout for completion in OS ticks
+#define SPP_NOT_CONGESTED_TIMEOUT 	1000				///< Transmit timeout for congestion to clear in OS ticks
+#define SPP_TX_MAX 					330					///< Transmit buffer size
 
 /************
 *** TYPES ***
 ************/
 
+/**
+ * Transmit packet structure
+ */
 typedef struct
 {
-	size_t len;
-	uint8_t data[];
+	size_t len;				///< Length of data in bytes
+	uint8_t data[];			///< The data to transmit
 } spp_packet_t;
 
 /********************************
@@ -104,14 +107,14 @@ static void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *pa
 *** LOCAL VARIABLES ***
 **********************/
 
-static xQueueHandle spp_rx_queue;
-static xQueueHandle spp_tx_queue;
-static EventGroupHandle_t spp_event_group;
-static SemaphoreHandle_t spp_tx_done;
-static TaskHandle_t spp_task_handle;
-static uint32_t spp_client;
-static uint8_t spp_tx_buffer[SPP_TX_MAX];
-static uint16_t spp_tx_buffer_len = 0;
+static xQueueHandle spp_rx_queue;				///< Receive queue OS object
+static xQueueHandle spp_tx_queue;				///< Transmit queue OS object
+static EventGroupHandle_t spp_event_group;		///< OS object used for flow control 
+static SemaphoreHandle_t spp_tx_done;			///< Sempahore released when transmission completed
+static TaskHandle_t spp_task_handle;			///< OS handle of the task that this code runs in
+static uint32_t spp_client;						///< Handle of client of SPP library object
+static uint8_t spp_tx_buffer[SPP_TX_MAX];		///< Transmit buffer
+static uint16_t spp_tx_buffer_len = 0;			///< Current data length in transmit buffer
 
 /***********************
 *** GLOBAL VARIABLES ***
@@ -125,6 +128,11 @@ static uint16_t spp_tx_buffer_len = 0;
 *** LOCAL FUNCTIONS ***
 **********************/
 
+/**
+ * Send the contents of the transmit buffer
+ *
+ * @return If sent ok true else false
+ */
 static bool spp_send_buffer()
 {
     if ((xEventGroupWaitBits(spp_event_group, SPP_NOT_CONGESTED, pdFALSE, pdTRUE, SPP_NOT_CONGESTED_TIMEOUT) & SPP_NOT_CONGESTED) != 0)
@@ -152,41 +160,10 @@ static bool spp_send_buffer()
     return false;
 }
 
-size_t spp_write(const uint8_t *buffer, size_t size)
-{
-    if (buffer == NULL || size == (size_t)0 || spp_tx_queue == NULL)
-    {
-        return (size_t)0;
-    }
-
-    spp_packet_t *packet = (spp_packet_t *)pvPortMalloc(sizeof(spp_packet_t) + size);
-    if (!packet)
-    {
-        return (size_t)0;
-    }
-    packet->len = size;
-    (void)memcpy(packet->data, buffer, size);
-    if (xQueueSend(spp_tx_queue, &packet, SPP_TX_QUEUE_TIMEOUT) != pdPASS)
-    {
-        vPortFree(packet);
-        return (size_t)0;
-    }
-
-    return size;
-}
-
-int spp_read(void)
-{
-    uint8_t c;
-
-    if (spp_rx_queue && xQueueReceive(spp_rx_queue, &c, 0) == pdTRUE)
-    {
-        return c;
-    }
-
-    return -1;
-}
-
+/**
+ * Task function running the bluetooth code
+ * @param arg Unused
+ */
 static void spp_tx_task(void *arg)
 {
     spp_packet_t *packet = NULL;
@@ -249,6 +226,12 @@ static void spp_tx_task(void *arg)
     }
 }
 
+/**
+ * Callback function called from the bluetooth stack when an event has happened
+ *
+ * @param event The event that has happened
+ * @param param Data that corresponds to the event
+ */
 static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
 {
     switch (event)
@@ -348,6 +331,12 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
     }
 }
 
+/**
+ * Callback funcgtion called from the bluetooth stack when a General Access Protocol event has happened
+ *
+ * @param event The event that has happened
+ * @param param Data that corresponds to the event
+ */
 static void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
 {
     switch (event)
@@ -476,6 +465,41 @@ void spp_init()
     esp_bt_pin_type_t pin_type = ESP_BT_PIN_TYPE_VARIABLE;
     esp_bt_pin_code_t pin_code;
     esp_bt_gap_set_pin(pin_type, 0, pin_code);
+}
+
+size_t spp_write(const uint8_t *buffer, size_t size)
+{
+    if (buffer == NULL || size == (size_t)0 || spp_tx_queue == NULL)
+    {
+        return (size_t)0;
+    }
+
+    spp_packet_t *packet = (spp_packet_t *)pvPortMalloc(sizeof(spp_packet_t) + size);
+    if (!packet)
+    {
+        return (size_t)0;
+    }
+    packet->len = size;
+    (void)memcpy(packet->data, buffer, size);
+    if (xQueueSend(spp_tx_queue, &packet, SPP_TX_QUEUE_TIMEOUT) != pdPASS)
+    {
+        vPortFree(packet);
+        return (size_t)0;
+    }
+
+    return size;
+}
+
+int spp_read(void)
+{
+    uint8_t c;
+
+    if (spp_rx_queue && xQueueReceive(spp_rx_queue, &c, 0) == pdTRUE)
+    {
+        return c;
+    }
+
+    return -1;
 }
 
 size_t spp_bytes_received_size(void)
