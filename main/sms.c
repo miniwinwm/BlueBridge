@@ -121,7 +121,7 @@ bool sms_receive(uint32_t sms_id, char *phone_number, size_t phone_number_buffer
 		return false;
 	}
 	
-	ModemStatus_t modem_status = ModemSmsReceiveMessage(sms_id, &length, pdu_ascii_hex_buf, 1000UL);
+	ModemStatus_t modem_status = ModemSmsReceiveMessage(sms_id, &length, pdu_ascii_hex_buf, (size_t)(SMS_MAX_PDU_LENGTH * 2 + 1), 1000UL);
 	ESP_LOGI(pcTaskGetName(NULL), "ModemSmsReceiveMessage length=%u %s", (uint32_t)length, ModemStatusToText(modem_status));	
 	
 	if (modem_status == MODEM_OK && length > (size_t)0)

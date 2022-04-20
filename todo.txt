@@ -4,7 +4,6 @@ Todo hardware
 
 Todo functional
 ---------------
-Modem SMS and TCP reads need buf lengths and checks
 Add MQTT cpability to Android app
 	Update Android app UI layout to allow extra button
 	Add extra button and implement UI logic
@@ -123,3 +122,4 @@ Add LED holder to bom
 Create doxyfile
 Doxygen all code ESP32 code
 Make webpage broker/port enterable via webpage
+Modem SMS read need buf lengths and checks

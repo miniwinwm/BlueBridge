@@ -2143,7 +2143,7 @@ ModemStatus_t ModemGetTcpReadDataWaitingLength(size_t *length, uint32_t timeoutM
 	return atResponsePacket.atResponse;
 }
 
-ModemStatus_t ModemSmsReceiveMessage(uint8_t smsId, size_t *lengthRead, uint8_t *buffer, uint32_t timeoutMs)
+ModemStatus_t ModemSmsReceiveMessage(uint8_t smsId, size_t *lengthRead, uint8_t *buffer, size_t bufferLength, uint32_t timeoutMs)
 {
 	AtCommandPacket_t atCommandPacket;
 	AtResponsePacket_t atResponsePacket;
@@ -2174,6 +2174,11 @@ ModemStatus_t ModemSmsReceiveMessage(uint8_t smsId, size_t *lengthRead, uint8_t 
 	
 	(void)memcpy(&smsReceiveResponseData, atResponsePacket.data, sizeof(smsReceiveResponseData));
 	*lengthRead = smsReceiveResponseData.length;
+	
+	if (smsReceiveResponseData.length > bufferLength)
+	{
+		return MODEM_OVERFLOW;
+	}
 	(void)memcpy(buffer, smsReceiveResponseData.data, smsReceiveResponseData.length);	
 
 	return atResponsePacket.atResponse;	

@@ -211,10 +211,11 @@ ModemStatus_t ModemSetSmsReceiveMode(uint32_t timeoutMs);
  * @param smsId The message id as received in the new message callback
  * @param lengthRead Pointer to variable to hold the length of the message PDU
  * @param buffer Buffer to hold PDU in ascii hex format of at least (SMS_MAX_PDU_LENGTH * 2 + 1) bytes length
+ * @param bufferLength Length of buffer in bytes
  * @param timeoutMs Time to wait in milliseconds for the command to complete
  * @return A status or error code
  */  
-ModemStatus_t ModemSmsReceiveMessage(uint8_t smsId, size_t *lengthRead, uint8_t *buffer, uint32_t timeoutMs);
+ModemStatus_t ModemSmsReceiveMessage(uint8_t smsId, size_t *lengthRead, uint8_t *buffer, size_t bufferLength, uint32_t timeoutMs);
 
 /**
  * Send a SMS message complete PDU
