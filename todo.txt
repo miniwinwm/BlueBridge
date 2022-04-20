@@ -15,7 +15,6 @@ Add MQTT cpability to Android app
 	Regression test bluetooth anchor watching functionality
 Remove test #defines
 Make buffer handling safe in nmea.c
-Make webpage broker/port enterable via dialog
 safe strncat needs sorting in utils and nmea0183 library
 
 
@@ -123,3 +122,4 @@ Test new GSM aerial
 Add LED holder to bom
 Create doxyfile
 Doxygen all code ESP32 code
+Make webpage broker/port enterable via webpage

@@ -436,29 +436,52 @@
 		</script>   
 				
 		<script type="text/javascript">		
-			function setBoatCode() {
-				boatCode = prompt("Please enter new code:","").toUpperCase();
-				if (boatCode != "" && boatCode != null) {
-					setCookie("username", boatCode, 365);
-					location.reload();					
-				} else {
-					alert("Boat name cannot be blank");
-				}	
-			}									
-			
-			function setBroker(newBroker, newPort) {
-				setCookie("broker", newBroker, 365);
-				setCookie("port", newPort, 365);
-				location.reload();
-			}		
+		
+			function setSettings() {
+				while(true) {
+					boatCode = prompt("Please enter your code:","").toUpperCase();
+					if (boatCode != "" && boatCode != null) {
+						document.getElementById('boatCode').value = boatCode;							
+						break;
+					} else {
+						alert("Boat name cannot be blank");
+					}
+				}			
+				
+				while(true) {
+					broker = prompt("Please enter broker:","");
+					if (broker != "" && broker != null) {
+						document.getElementById('broker').value = broker;							
+						break;
+					} else {
+						alert("Broker cannot be blank");
+					}
+				}			
+
+				while(true) {
+					port = prompt("Please enter port:","");
+					if (port != "" && port != null) {
+						document.getElementById('port').value = port;							
+						break;
+					} else {
+						alert("Port cannot be blank");
+					}
+				}		
+
+				if (!useCookies) {
+					if (useCookies = confirm("Save settings as cookie?")) {
+						setCookie("boatcode", boatCode, 365);	
+						setCookie("broker", broker, 365);	
+						setCookie("port", port, 365);
+					}
+				}				
+			}
 			
 			function setCookie(cname, cvalue, exdays) {
-				if (useCookies) {
-					const d = new Date();
-					d.setTime(d.getTime() + (exdays*24*60*60*1000));
-					let expires = "expires=" + d.toUTCString();
-					document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
-					}
+				const d = new Date();
+				d.setTime(d.getTime() + (exdays*24*60*60*1000));
+				let expires = "expires=" + d.toUTCString();
+				document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 			}
 
 			function getCookie(cname) {
@@ -477,14 +500,15 @@
 				return "";
 			}
 
+
 			function checkCookie() {
-				boatCode = getCookie("username");
+				boatCode = getCookie("boatcode");
 				if (boatCode == "") {
 					while(true) {
 						boatCode = prompt("Please enter your code:","").toUpperCase();
 						if (boatCode != "" && boatCode != null) {
 							if (useCookies = confirm("Save as cookie?")) {
-								setCookie("username", boatCode, 365);								
+								setCookie("boatcode", boatCode, 365);								
 							}
 							document.getElementById('boatCode').value = boatCode;							
 							break;
@@ -494,38 +518,32 @@
 					}
 				} else {
 					document.getElementById('boatCode').value = boatCode;
-				}
-			  
+				}			
+				
 				broker = getCookie("broker");
-				if (broker == "") {
+				if (broker == "") {	
 					broker = "broker.emqx.io";
 				}
+				document.getElementById('broker').value = broker;
 				
 				port = getCookie("port");
 				if (port == "") {
 					port = "8083";
-				}		
-
-				if (broker == "broker.hivemq.com") {
-					selectElement('brokers', 'hive')
 				}
-				else {
-					selectElement('brokers', 'emqx')				
-				}
-			}			
-
-			function selectElement(id, valueToSelect) {    
-				let element = document.getElementById(id);
-				element.value = valueToSelect;
-			}		
+				document.getElementById('port').value = port;				
+			}
 		</script> 
   	</head>
   	
   	<body>					
 		<form>
-			<label for="fname">Boat code:</label>
-			<input type="text" id="boatCode" name="boatCode" readonly>
-			<input type="button" value="Change" onclick="setBoatCode()">			
+			<label for="fname">Code:</label>
+			<input type="text" id="boatCode" name="boatCode" maxlength="8" size="8" readonly>
+			<label for="fname">Broker:</label>
+			<input type="text" id="broker" name="broker" maxlength="24" size="24" readonly>			
+			<label for="fname">Port:</label>	
+			<input type="text" id="port" name="port" maxlength="4" size="4" readonly>			
+			<input type="button" value="Edit" onclick="setSettings()">			
 		</form>
         <div class="container">  
             <div class="box">  
@@ -575,11 +593,6 @@
 						<button type = "button" onclick = "go()">Show boat</button>                                     
                     </div> 		
                     <div class="box-cell box2">
-					<label for="brokers">Broker</label>
-					<select id="brokers" onchange="getBrokerChoice(this)">
-						<option value="emqx">EMQX</option>
-						<option value="hive">Hive</option>
-					</select>
                     </div> 	
                     <div class="box-cell box3">
 						AGE <label id="minutes">00</label>:<label id="seconds">00</label>
