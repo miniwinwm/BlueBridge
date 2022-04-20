@@ -111,19 +111,19 @@ static void test_data(void);
 
 static TimerHandle_t xTimers[MAIN_TASK_SW_TIMER_COUNT];		///< Array of all FreeRTOS timers used here
 static TaskHandle_t main_task_handle;						///< Handle of main task used by other tasks to communicate with main task
-static nmea_message_data_XDR_t nmea_message_data_XDR;		///< Message data for NMEA0183 XDR message type when received
-static nmea_message_data_MDA_t nmea_message_data_MDA;		///< Message data for NMEA0183 MDA message type when received
-static nmea_message_data_RMC_t nmea_message_data_RMC;		///< Message data for NMEA0183 RMC message type when received
-static nmea_message_data_VDM_t nmea_message_data_VDM;		///< Message data for NMEA0183 VDM message type when received
-static nmea_message_data_GGA_t nmea_message_data_GGA;		///< Message data for NMEA0183 GGA message type when received
-static nmea_message_data_DPT_t nmea_message_data_DPT;		///< Message data for NMEA0183 DPT message type when received
-static nmea_message_data_MTW_t nmea_message_data_MTW;		///< Message data for NMEA0183 MTW message type when received
-static nmea_message_data_VHW_t nmea_message_data_VHW;		///< Message data for NMEA0183 VHW message type when received
-static nmea_message_data_HDM_t nmea_message_data_HDM;		///< Message data for NMEA0183 HDM message type when received
-static nmea_message_data_HDT_t nmea_message_data_HDT;		///< Message data for NMEA0183 HDT message type when received
-static nmea_message_data_VLW_t nmea_message_data_VLW;		///< Message data for NMEA0183 VLW message type when received
-static nmea_message_data_MWV_t nmea_message_data_MWV;		///< Message data for NMEA0183 MWV message type when received
-static nmea_message_data_MWD_t nmea_message_data_MWD;		///< Message data for NMEA0183 MWD message type when received
+static nmea_message_data_XDR_t nmea_message_data_XDR;		///< Message data for NMEA0183 XDR message type
+static nmea_message_data_MDA_t nmea_message_data_MDA;		///< Message data for NMEA0183 MDA message type 
+static nmea_message_data_RMC_t nmea_message_data_RMC;		///< Message data for NMEA0183 RMC message type 
+static nmea_message_data_VDM_t nmea_message_data_VDM;		///< Message data for NMEA0183 VDM message type 
+static nmea_message_data_GGA_t nmea_message_data_GGA;		///< Message data for NMEA0183 GGA message type 
+static nmea_message_data_DPT_t nmea_message_data_DPT;		///< Message data for NMEA0183 DPT message type 
+static nmea_message_data_MTW_t nmea_message_data_MTW;		///< Message data for NMEA0183 MTW message type 
+static nmea_message_data_VHW_t nmea_message_data_VHW;		///< Message data for NMEA0183 VHW message type 
+static nmea_message_data_HDM_t nmea_message_data_HDM;		///< Message data for NMEA0183 HDM message type 
+static nmea_message_data_HDT_t nmea_message_data_HDT;		///< Message data for NMEA0183 HDT message type 
+static nmea_message_data_VLW_t nmea_message_data_VLW;		///< Message data for NMEA0183 VLW message type 
+static nmea_message_data_MWV_t nmea_message_data_MWV;		///< Message data for NMEA0183 MWV message type 
+static nmea_message_data_MWD_t nmea_message_data_MWD;		///< Message data for NMEA0183 MWD message type 
 
 /***********************
 *** GLOBAL VARIABLES ***
@@ -185,6 +185,9 @@ static const tNMEA2000Handler NMEA2000Handlers[] =
 	{130310UL, &environmental_handler}
 };
 
+/**
+ * Constant data for transmitting message NMEA0183 message type MWD
+ */
 static const transmit_message_details_t nmea_transmit_message_details_MWD = 
 {
 	nmea_message_MWD,	
@@ -195,15 +198,22 @@ static const transmit_message_details_t nmea_transmit_message_details_MWD =
 	(nmea_encoder_function_t)nmea_encode_MWD
 };
 
+/**
+ * Constant data for transmitting message NMEA0183 message type MWV
+ */
 static const transmit_message_details_t nmea_transmit_message_details_MWV = 
 {
 	nmea_message_MWV, 
-	PORT_BLUETOOTH, 1000UL, 
+	PORT_BLUETOOTH, 
+	1000UL, 
 	MWV_transmit_callback, 
 	&nmea_message_data_MWV, 
 	(nmea_encoder_function_t)nmea_encode_MWV
 };
 
+/**
+ * Constant data for transmitting message NMEA0183 message type VLW
+ */
 static const transmit_message_details_t nmea_transmit_message_details_VLW = 
 {
 	nmea_message_VLW, 
@@ -214,6 +224,9 @@ static const transmit_message_details_t nmea_transmit_message_details_VLW =
 	(nmea_encoder_function_t)nmea_encode_VLW
 };
 
+/**
+ * Constant data for transmitting message NMEA0183 message type HDM
+ */
 static const transmit_message_details_t nmea_transmit_message_details_HDM = 
 {
 	nmea_message_HDM, 
@@ -224,6 +237,9 @@ static const transmit_message_details_t nmea_transmit_message_details_HDM =
 	(nmea_encoder_function_t)nmea_encode_HDM
 };
 
+/**
+ * Constant data for transmitting message NMEA0183 message type HDT
+ */
 static const transmit_message_details_t nmea_transmit_message_details_HDT = 
 {
 	nmea_message_HDT, 
@@ -234,6 +250,9 @@ static const transmit_message_details_t nmea_transmit_message_details_HDT =
 	(nmea_encoder_function_t)nmea_encode_HDT
 };
 
+/**
+ * Constant data for transmitting message NMEA0183 message type VHW
+ */
 static const transmit_message_details_t nmea_transmit_message_details_VHW = 
 {
 	nmea_message_VHW,	
@@ -244,6 +263,9 @@ static const transmit_message_details_t nmea_transmit_message_details_VHW =
 	(nmea_encoder_function_t)nmea_encode_VHW
 };
 
+/**
+ * Constant data for transmitting message NMEA0183 message type MTW
+ */
 static const transmit_message_details_t nmea_transmit_message_details_MTW = 
 {
 	nmea_message_MTW, 
@@ -254,6 +276,9 @@ static const transmit_message_details_t nmea_transmit_message_details_MTW =
 	(nmea_encoder_function_t)nmea_encode_MTW
 };
 
+/**
+ * Constant data for transmitting message NMEA0183 message type DPT
+ */
 static const transmit_message_details_t nmea_transmit_message_details_DPT = 
 {
 	nmea_message_DPT,	
@@ -264,16 +289,22 @@ static const transmit_message_details_t nmea_transmit_message_details_DPT =
 	(nmea_encoder_function_t)nmea_encode_DPT
 };
 
+/**
+ * Constant data for transmitting message NMEA0183 message type GGA
+ */
 static const transmit_message_details_t nmea_transmit_message_details_GGA = 
 {
 	nmea_message_GGA,	
 	PORT_BLUETOOTH, 
-	2000UL, 
+	0UL, 	// transmitted as soon as received, transmit callback does nothing
 	GGA_transmit_callback, 
 	&nmea_message_data_GGA, 
 	(nmea_encoder_function_t)nmea_encode_GGA
 };
 
+/**
+ * Constant data for transmitting message NMEA0183 message type VDM
+ */
 static const transmit_message_details_t nmea_transmit_message_details_VDM = 
 {
 	nmea_message_VDM,	
@@ -284,6 +315,9 @@ static const transmit_message_details_t nmea_transmit_message_details_VDM =
 	(nmea_encoder_function_t)nmea_encode_VDM
 };
 
+/**
+ * Constant data for transmitting message NMEA0183 message type RMC
+ */
 static const transmit_message_details_t nmea_transmit_message_details_RMC_bluetooth = 
 {
 	nmea_message_RMC, 
@@ -294,6 +328,9 @@ static const transmit_message_details_t nmea_transmit_message_details_RMC_blueto
 	(nmea_encoder_function_t)nmea_encode_RMC
 };
 
+/**
+ * Constant data for transmitting message NMEA0183 message type XDR
+ */
 static const transmit_message_details_t nmea_transmit_message_details_XDR = 
 {
 	nmea_message_XDR,	
@@ -304,6 +341,9 @@ static const transmit_message_details_t nmea_transmit_message_details_XDR =
 	(nmea_encoder_function_t)nmea_encode_XDR
 };
 
+/**
+ * Constant data for transmitting message NMEA0183 message type MDA
+ */
 static const transmit_message_details_t nmea_transmit_message_details_MDA = 
 {
 	nmea_message_MDA,	
@@ -314,6 +354,9 @@ static const transmit_message_details_t nmea_transmit_message_details_MDA =
 	(nmea_encoder_function_t)nmea_encode_MDA
 };
 
+/**
+ * Constant data for receiving message NMEA0183 message type GGA
+ */
 static const nmea_receive_message_details_t nmea_receive_message_details_GGA = 
 {
 	nmea_message_GGA, 
@@ -321,6 +364,9 @@ static const nmea_receive_message_details_t nmea_receive_message_details_GGA =
 	GGA_receive_callback
 };
 
+/**
+ * Constant data for receiving message NMEA0183 message type VDM
+ */
 static const nmea_receive_message_details_t nmea_receive_message_details_VDM = 
 {
 	nmea_message_VDM, 
@@ -328,6 +374,9 @@ static const nmea_receive_message_details_t nmea_receive_message_details_VDM =
 	VDM_receive_callback
 };
 
+/**
+ * Constant data for receiving message NMEA0183 message type RMC
+ */
 static const nmea_receive_message_details_t nmea_receive_message_details_RMC = 
 {
 	nmea_message_RMC, 
@@ -339,7 +388,9 @@ static const nmea_receive_message_details_t nmea_receive_message_details_RMC =
 *** LOCAL FUNCTIONS ***
 **********************/
 
-/* MWD transmit to OpenCPN */
+/**
+ * Callback function from NMEA0183 processor to obtain measured data called before encoding and transmitting new message of type MWD
+ */
 static void MWD_transmit_callback(void)
 {
 	nmea_message_data_MWD.wind_speed_knots = true_wind_speed_data;
@@ -358,7 +409,9 @@ static void MWD_transmit_callback(void)
 	}
 }
 
-/* MWV transmit to OpenCPN */
+/**
+ * Callback function from NMEA0183 processor to obtain measured data called before encoding and transmitting new message of type MWV
+ */
 static void MWV_transmit_callback(void)
 {
 	uint32_t time_ms = timer_get_time_ms();
@@ -407,7 +460,9 @@ static void MWV_transmit_callback(void)
 	message_type_toggle = !message_type_toggle;
 }
 
-/* VLW transmit to OpenCPN */
+/**
+ * Callback function from NMEA0183 processor to obtain measured data called before encoding and transmitting new message of type VLW
+ */
 static void VLW_transmit_callback(void)
 {
 	uint32_t time_ms = timer_get_time_ms();
@@ -426,42 +481,56 @@ static void VLW_transmit_callback(void)
 	}
 }
 
-/* HDM transmit to OpenCPN */
+/**
+ * Callback function from NMEA0183 processor to obtain measured data called before encoding and transmitting new message of type HDM
+ */
 static void HDM_transmit_callback(void)
 {
 	nmea_message_data_HDM.magnetic_heading = heading_true_data - variation_wmm_data;
 	nmea_message_data_HDM.data_available = NMEA_HDM_MAG_HEADING_PRESENT;
 }
 
-/* HDT transmit to OpenCPN */
+/**
+ * Callback function from NMEA0183 processor to obtain measured data called before encoding and transmitting new message of type HDT
+ */
 static void HDT_transmit_callback(void)
 {
 	nmea_message_data_HDT.true_heading = heading_true_data;
 	nmea_message_data_HDT.data_available = NMEA_HDT_TRUE_HEADING_PRESENT;
 }
 
-/* VHW transmit to OpenCPN */
+/**
+ * Callback function from NMEA0183 processor to obtain measured data called before encoding and transmitting new message of type VHW
+ */
 static void VHW_transmit_callback(void)
 {
 	nmea_message_data_VHW.water_speed_knots = boat_speed_data;
 	nmea_message_data_VHW.data_available = NMEA_VHW_WATER_SPEED_KTS_PRESENT;
 }
 
-/* MTW transmit to OpenCPN */
+/**
+ * Callback function from NMEA0183 processor to obtain measured data called before encoding and transmitting new message of type MTW
+ */
 static void MTW_transmit_callback(void)
 {
 	nmea_message_data_MTW.water_temperature = seawater_temeperature_data;
 	nmea_message_data_MTW.data_available = NMEA_MTW_WATER_TEMPERATURE_PRESENT;
 }
 
-/* DPT transmit to OpenCPN */
+/**
+ * Callback function from NMEA0183 processor to obtain measured data called before encoding and transmitting new message of type DPT
+ */
 static void DPT_transmit_callback(void)
 {
 	nmea_message_data_DPT.depth = depth_data;
 	nmea_message_data_DPT.data_available = NMEA_DPT_DEPTH_PRESENT;
 }
 
-/* GGA receive */
+/**
+ * Callback function from NMEA0183 processor when a message of type GGA has been received to decode data and immediately retransmit the message
+ *
+ * @param data The NMEA0183 encoded message
+ */
 static void GGA_receive_callback(const char *data)
 {
 	if (nmea_decode_GGA(data, &nmea_message_data_GGA) == nmea_error_none)
@@ -470,12 +539,19 @@ static void GGA_receive_callback(const char *data)
 	}
 }
 
-/* GGA - transmit to OpenCPN */
+/**
+ * Callback function from NMEA0183 processor to obtain measured data called before encoding and transmitting new message of type GGA
+ */
 static void GGA_transmit_callback(void)
 {
+	// do nothing as transmitted immediately on receive unchanged
 }
 
-/* VDM - receive */
+/**
+ * Callback function from NMEA0183 processor when a message of type VDM has been received to decode data and immediately retransmit the message
+ *
+ * @param data The NMEA0183 encoded message
+ */
 static void VDM_receive_callback(const char *data)
 {
 	if (nmea_decode_VDM(data, &nmea_message_data_VDM) == nmea_error_none)
@@ -484,12 +560,19 @@ static void VDM_receive_callback(const char *data)
 	}
 }
 
-/* VDM - transmit to OpenCPN */
+/**
+ * Callback function from NMEA0183 processor to obtain measured data called before encoding and transmitting new message of type VDM
+ */
 static void VDM_transmit_callback(void)
 {
+	// do nothing as transmitted immediately on receive unchanged
 }
 
-/* RMC receive */
+/**
+ * Callback function from NMEA0183 processor when a message of type RMC has been received to decode data 
+ *
+ * @param data The NMEA0183 encoded message
+ */
 static void RMC_receive_callback(const char *data)
 {
 	uint32_t time_ms = timer_get_time_ms();	
@@ -560,7 +643,9 @@ static void RMC_receive_callback(const char *data)
 	}
 }
 
-/* RMC transmit */
+/**
+ * Callback function from NMEA0183 processor to obtain measured data called before encoding and transmitting new message of type RMC
+ */
 static void RMC_transmit_callback(void)
 {
 	float int_part;
@@ -598,7 +683,9 @@ static void RMC_transmit_callback(void)
 			NMEA_RMC_LONGITUDE_PRESENT | NMEA_RMC_MODE_PRESENT | NMEA_RMC_NAV_STATUS_PRESENT | NMEA_RMC_MAG_VARIATION_PRESENT | NMEA_RMC_MAG_DIRECTION_PRESENT;
 }
 
-/* XDR transmit to OpenCPN */
+/**
+ * Callback function from NMEA0183 processor to obtain measured data called before encoding and transmitting new message of type XDR
+ */
 static void XDR_transmit_callback(void)
 {
 	nmea_message_data_XDR.measurements[0].decimal_places = 4U;
@@ -609,7 +696,9 @@ static void XDR_transmit_callback(void)
 	nmea_message_data_XDR.data_available = NMEA_XDR_MEASUREMENT_1_PRESENT;
 }
 
-/* MDA transmit to OpenCPN */
+/**
+ * Callback function from NMEA0183 processor to obtain measured data called before encoding and transmitting new message of type MDA
+ */
 static void MDA_transmit_callback(void)
 {
 	nmea_message_data_MDA.pressure_bars = pressure_data / 1000.0f;

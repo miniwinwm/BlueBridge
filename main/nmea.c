@@ -832,7 +832,7 @@ void nmea_transmit_message_now(uint8_t port, nmea_message_type_t message_type)
         return;
     }
 
-    for(i = 0U; i < NMEA_MAXIMUM_TRANSMIT_MESSAGE_DETAILS; i++)
+    for (i = 0U; i < NMEA_MAXIMUM_TRANSMIT_MESSAGE_DETAILS; i++)
     {
         if (transmit_messages_infos[i].transmit_message_details == transmit_message_details)
         {
