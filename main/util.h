@@ -55,7 +55,7 @@ extern "C" {
 ***************************/
 
 /**
- * Convert a hex number in upper or lower case to an int. Maximum 8 hex digits. No leading 0x.
+ * Convert a hex number in upper or lower case to an int. No leading 0x.
  *
  * @param s The string containing the hex number 
  * @return The converted number

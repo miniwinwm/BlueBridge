@@ -73,7 +73,7 @@ static uint32_t current_period;		///< Duration of the current flash set to 0 whe
  */
 static void led_timer_callback(xTimerHandle pxTimer)
 {
-	(void) pxTimer;
+	(void)pxTimer;
 	
 	gpio_set_level(GPIO_NUM_17, 0UL);	
 	current_period = 0UL;

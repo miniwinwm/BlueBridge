@@ -41,24 +41,30 @@ SOFTWARE.
 *** DEFINES ***
 **************/
 
-#define NMEA_MESSAGE_MAP_ENTRIES (sizeof(nmea_message_type_map) / sizeof(nmea_message_type_map_t))
+#define NMEA_MESSAGE_MAP_ENTRIES (sizeof(nmea_message_type_map) / sizeof(nmea_message_type_map_t))		///< Number of entries in the mapping table of message headers to message types
 
 /************
 *** TYPES ***
 ************/
 
+/**
+ * Structure to hold information on messages to be transmitted
+ */
 typedef struct
 {
-    const transmit_message_details_t *transmit_message_details;
-    uint32_t next_transmit_time;
-    uint32_t current_transmit_period_ms;
-    bool transmit_now;
+    const transmit_message_details_t *transmit_message_details;		///< Pointer to a transmit message details structure owned by the application
+    uint32_t next_transmit_time;                                    ///< Time in milliseconds when the next transmit is scheduled
+    uint32_t current_transmit_period_ms;                            ///< Transmit period in ms which may be throttled in out of bandwidth situation
+    bool transmit_now;                                              ///< Transmit immediately required flag
 } transmit_message_info_t;
 
+/**
+ * Structure of a line in the table that maps message headers to message types
+ */
 typedef struct
 {
-	const char message_header[4];
-	nmea_message_type_t message_type;
+	const char message_header[4];		///< The message header
+	nmea_message_type_t message_type;	///< The message type
 } nmea_message_type_map_t;
 
 /********************************
@@ -84,14 +90,31 @@ static nmea_error_t send_data(uint8_t port, uint16_t data_size, const uint8_t *d
 static uint16_t receive_data(uint8_t port, uint16_t buffer_length, uint8_t *data);
 static bool util_safe_strcat(char *dest, size_t size, const char *src);
 static bool check_received_message(const char *message_data, uint8_t min_commas, uint8_t max_commas);
+static uint8_t nmea_count_set_bits(uint32_t n, uint8_t start_bit, uint8_t length);
 
 /**********************
 *** LOCAL VARIABLES ***
 **********************/
 
+/**
+ * Array of pointers to receive message details structures which are owned by the application. 
+ */
 static const nmea_receive_message_details_t *receive_message_details[NMEA_MAXIMUM_RECEIVE_MESSAGE_DETAILS];
+
+ /**
+  * Array of structures holding information on transmit messages, including their details structure pointer. 
+  */
 static transmit_message_info_t transmit_messages_infos[NMEA_MAXIMUM_TRANSMIT_MESSAGE_DETAILS];
+
+/**
+ * Array of buffers (1 per port) of overflowed data that could not be sent but to be sent on next send/receive cycle. 
+ */
 static char message_data_to_send_buffer[NMEA_NUMBER_OF_PORTS][NMEA_MAX_MESSAGE_LENGTH + 1];
+
+/**
+ * Array of buffers (1 per port) of unprocessed received data that could not be decoded because it contains 
+ * only part of a message to be processed on next send/receive cycle. 
+ */
 static char message_data_to_read_buffer[NMEA_NUMBER_OF_PORTS][NMEA_MAX_MESSAGE_LENGTH + 1];
 
 /***********************
@@ -102,11 +125,11 @@ static char message_data_to_read_buffer[NMEA_NUMBER_OF_PORTS][NMEA_MAX_MESSAGE_L
 *** CONSTANTS ***
 ****************/
 
-// map of nmea message headers to types - receive message types only
+/** 
+ * Map of nmea message headers to types - receive message types only
+ */
 static const nmea_message_type_map_t nmea_message_type_map[] = {
-		{"APB", nmea_message_APB},
 		{"GGA", nmea_message_GGA},
-		{"RMB", nmea_message_RMB},
 		{"RMC", nmea_message_RMC},
 		{"VDM", nmea_message_VDM}};
 		
@@ -114,6 +137,13 @@ static const nmea_message_type_map_t nmea_message_type_map[] = {
 *** LOCAL FUNCTIONS ***
 **********************/		
 
+/**
+ * Top level decoder function that later calls individual message type decoders
+ *
+ * @param buffer Buffer containing received messager to decode
+ * @param port The port the message was receivbed on
+ * @return The bytes taken from buffer
+ */
 static uint8_t decode(const char *buffer, uint8_t port)
 {
     uint8_t bytes_used = 0U;
@@ -192,6 +222,13 @@ static uint8_t decode(const char *buffer, uint8_t port)
     return bytes_used;
 }
 
+/**
+ * Top level encoder function that later calls individual message type encoders
+ *
+ * @param transmit_message_info Structure holding details of the message to encode
+ * @param output_buffer Buffer to hold encoded message
+ * @return The bytes taken from buffer
+ */
 static nmea_error_t encode(const transmit_message_info_t *transmit_message_info, char *output_buffer)
 {
     nmea_get_transmit_data_callback_t transmit_data_callback;
@@ -225,6 +262,12 @@ static nmea_error_t encode(const transmit_message_info_t *transmit_message_info,
     return error;
 }
 
+/**
+ * Get an enumerated message type from the header string
+ *
+ * @param header 3 letter string
+ * @return The enumerated message type
+ */
 static nmea_message_type_t get_message_type_from_header(const char *header)
 {
 	for (uint8_t i = 0U; i < NMEA_MESSAGE_MAP_ENTRIES; i++)
@@ -238,6 +281,12 @@ static nmea_message_type_t get_message_type_from_header(const char *header)
     return nmea_message_min;
 }
 
+/**
+ * Calculate a checksum on a message.
+ *
+ * @param pMessage The message to calculate the checksum for. Initial $ must not be present.
+ * @return The checksum.
+ */
 static uint8_t calc_checksum(const char *message)
 {
     uint8_t checksum = 0U;
@@ -250,6 +299,12 @@ static uint8_t calc_checksum(const char *message)
     return checksum;
 }
 
+/**
+ * Convert a hex number in upper or lower case to an int. No leading 0x.
+ *
+ * @param hex_string The string containing the hex number 
+ * @return The converted number
+ */
 static uint32_t my_xtoi(const char *hex_string)
 {
 	uint32_t i = 0UL;
@@ -274,6 +329,12 @@ static uint32_t my_xtoi(const char *hex_string)
 	return i;
 }
 
+/**
+ * Test a NMEA0183 checksum on a message
+ *
+ * @param pMessage The whole message to test the checksum for
+ * @return true if checksum is ok otherwise false
+ */
 static bool verify_checksum(const char *message)
 {
     size_t length;
@@ -304,6 +365,13 @@ static bool verify_checksum(const char *message)
     return ((uint32_t)calculated_checksum == read_checksum);
 }
 
+/**
+ * Calculate and create a text checksum for a message
+ *
+ * @param pMessage The message to calculate the checksum for
+ * @return The checksum text
+ * @note Not thread safe
+ */
 static const char *create_checksum(const char *message)
 {
     static char checksum_text[4];
@@ -313,6 +381,12 @@ static const char *create_checksum(const char *message)
     return checksum_text;
 }
 
+/**
+ * Counts the number of commas in the given string
+ *
+ * @param   pString  pointer to the start of the string to count its commas
+ * @return  Count of commas
+ */
 static uint8_t count_commas(const char *text)
 {
     uint8_t comma_count = 0U;
@@ -329,6 +403,16 @@ static uint8_t count_commas(const char *text)
     return comma_count;
 }
 
+/**
+ * Convert a floating point number to a string with specified decimal places
+ *
+ * @param number The number to convert
+ * @param precision The number of decimal places
+ * @param padding Number of zeros to pre-pad with, 0 means no pre-padding
+ * @return A pointer to a static string containing the result.
+ * @note The internal buffer is 24 bytes long and number must fit in this
+ * @note Not thread safe
+ */
 static const char *my_ftoa(float number, uint8_t precision, uint8_t padding)
 {
     static char buffer[24];
@@ -362,6 +446,14 @@ static const char *my_ftoa(float number, uint8_t precision, uint8_t padding)
     return buffer;
 }
 
+/**
+ * Convert an integer number to a string
+ *
+ * @param number The number to convert
+ * @return A pointer to a static string containing the result
+ * @note The internal buffer is 12 bytes long and number must fit in this
+ * @note Not thread safe
+ */
 static const char *my_itoa(int32_t number)
 {
     static char buffer[12];
@@ -371,6 +463,15 @@ static const char *my_itoa(int32_t number)
     return buffer;
 }
 
+/**
+ * Private implementation of strtok as the C library version is not thread safe.
+ *
+ * @param s1 The string to parse.
+ * @param delimit Array of delimiter characters.
+ * @return The next token or NULL.
+ * @note This works the same as the C library strtok and is still not thread safe but will not clash with
+ *       uses of strtok in other threads if there are any.
+ */
 static const char *my_strtok(const char *s1, const char *delimit)
 {
     static char *last_token = NULL;
@@ -403,7 +504,15 @@ static const char *my_strtok(const char *s1, const char *delimit)
     return s1;
 }
 
-uint8_t nmea_count_set_bits(uint32_t n, uint8_t start_bit, uint8_t length)
+/**
+ * Count the number of set bits in a bitfield
+ *
+ * @param n The bitfield
+ * @param start_bit The bit to start counting from
+ * @param length The length of the bitfield in n
+ * @return The count of set bits found
+ */
+static uint8_t nmea_count_set_bits(uint32_t n, uint8_t start_bit, uint8_t length)
 {
     uint8_t count = 0U;
     uint32_t mask;
@@ -422,6 +531,12 @@ uint8_t nmea_count_set_bits(uint32_t n, uint8_t start_bit, uint8_t length)
     return count;
 }
 
+/**
+ * Get a pointer to a transmit message info structure.
+ *
+ * @param details_number The slot to get the transmit info structure from.
+ * @return Pointer to the structure of NULL if details_number is out of range.
+ */
 static transmit_message_info_t *get_transmit_message_info(uint16_t details_number)
 {
     if (details_number < NMEA_MAXIMUM_TRANSMIT_MESSAGE_DETAILS)
@@ -432,6 +547,12 @@ static transmit_message_info_t *get_transmit_message_info(uint16_t details_numbe
     return NULL;
 }
 
+/**
+ * Adjust message transmit period in case of not enough bandwidth to sent all required messages or bring period back up if previously slowed down
+ *
+ * @param port The port the message is transmitted on
+ * @param permil_period_adjustment Part per thousand adjustment : < 1000 speeds up, > 1000 slows down
+ */
 static void adjust_messages_speed(uint8_t port, uint32_t permil_period_adjustment)
 {
     uint16_t i;
@@ -451,6 +572,13 @@ static void adjust_messages_speed(uint8_t port, uint32_t permil_period_adjustmen
     }
 }
 
+/**
+ * Find a receive message details from a port and a message type
+ *
+ * @param port The port to search for
+ * @param message_type The message type to search for
+ * @return A pointer to the found receive message details structure or NULL if not found
+ */
 static const nmea_receive_message_details_t *get_receive_message_details(uint8_t port, nmea_message_type_t message_type)
 {
    uint16_t i;
@@ -470,6 +598,13 @@ static const nmea_receive_message_details_t *get_receive_message_details(uint8_t
    return NULL;
 }
 
+/**
+ * Find a transmit message details from a port and a message type
+ *
+ * @param port The port to search for
+ * @param messageType The message type to search for
+ * @return A pointer to the found transmit message details structure or NULL if not found
+ */
 static const transmit_message_details_t *get_transmit_message_details(uint8_t port, nmea_message_type_t message_type)
 {
    uint16_t i;
@@ -489,10 +624,18 @@ static const transmit_message_details_t *get_transmit_message_details(uint8_t po
    return NULL;
 }
 
+/**
+ * Check a received message for basic syntax correctness - size, comma count, length after first comma
+ *
+ * @param message_data The message to check
+ * @param min_commas Minimum commas expected
+ * @param max_commas Maximum commas expected
+ * @return If check is ok true else false
+ */
 static bool check_received_message(const char *message_data, uint8_t min_commas, uint8_t max_commas)
 {
 	size_t length = strlen(message_data);
-	uint8_t comma_count = count_commas(message_data);;
+	uint8_t comma_count = count_commas(message_data);
 
 	if (length < (size_t)NMEA_MIN_MESSAGE_LENGTH || message_data[length - (size_t)2] != '\r')
 	{
@@ -512,6 +655,15 @@ static bool check_received_message(const char *message_data, uint8_t min_commas,
 	return true;
 }
 
+/**
+ * Send data to a serial port
+ * 
+ * @param port The port to send data to
+ * @param data_size Bytes in the buffer of data to send
+ * @param data Buffer holding data to send
+ * @param data_sent Pointer to variable that will hold the number of bytes actually sent
+ * @return A standard library error code 
+ */
 static nmea_error_t send_data(uint8_t port, uint16_t data_size, const uint8_t *data, uint16_t *data_sent)
 {
 	switch (port)
@@ -536,6 +688,14 @@ static nmea_error_t send_data(uint8_t port, uint16_t data_size, const uint8_t *d
     return nmea_error_none;
 }
 
+/**
+ * Read data from a serial port
+ * 
+ * @param port The port to send data to
+ * @param buffer_length Length of buffer to read data into
+ * @param data Buffer holding data to write read data into
+ * @return Bytes read 
+ */
 static uint16_t receive_data(uint8_t port, uint16_t buffer_length, uint8_t *data)
 {
 	uint16_t bytes_read = 0U;
@@ -556,6 +716,14 @@ static uint16_t receive_data(uint8_t port, uint16_t buffer_length, uint8_t *data
 	return bytes_read;
 }
 
+/**
+ * Perform a safe equivalent of strcat
+ * 
+ * @param dest Buffer to hold the concatenated string
+ * @param size Size in bytes of dest
+ * @param src The source string to append to what already exists in dest
+ * @return true if string concatenated successfully
+ */
 static bool util_safe_strcat(char *dest, size_t size, const char *src)
 {
     if (dest == NULL || src == NULL || (strlen(dest) + strlen(src) + (size_t)1 > size))
@@ -563,9 +731,8 @@ static bool util_safe_strcat(char *dest, size_t size, const char *src)
     	return false;
     }
 
-	return (strncat((dest), (src), (size - strlen(dest) - (size_t)1U)));
+	return (strncat(dest, src, (size - strlen(dest) - (size_t)1U)));
 }
-
 
 /***********************
 *** GLOBAL FUNCTIONS ***
@@ -840,125 +1007,6 @@ void nmea_transmit_message_now(uint8_t port, nmea_message_type_t message_type)
             break;
         }
     }
-}
-
-nmea_error_t nmea_decode_APB(const char *message_data, nmea_message_data_APB_t *result)
-{
-    const char *next_token;
-    uint8_t comma_count = count_commas(message_data);
-    uint32_t data_available = 0UL;
-
-    if (!check_received_message(message_data, 14U, 15U))
-    {
-    	return nmea_error_message;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-    	result->status1 = *next_token;
-    	data_available |= NMEA_APB_STATUS1_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-    	result->status2 = *next_token;
-    	data_available |= NMEA_APB_STATUS2_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-    	result->cross_track_error = (float)atof(next_token);
-    	data_available |= NMEA_APB_CROSS_TRACK_ERROR_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-    	result->direction_to_steer = *next_token;
-    	data_available |= NMEA_APB_DIRECTION_TO_STEER_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-    	result->arrival_circle_entered = *next_token;
-    	data_available |= NMEA_APB_ARRIVAL_CIRCLE_ENTERED_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-    	result->perpendicular_passed = *next_token;
-    	data_available |= NMEA_APB_PERPENDICULAR_PASSED_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-    	result->bearing_origin_to_destination = (float)atof(next_token);
-    	data_available |= NMEA_APB_BEARING_ORIG_TO_DEST_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-    	result->bearing_magnetic_or_true = *next_token;
-    	data_available |= NMEA_APB_BEARING_MAG_OR_TRUE_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-        strncpy(result->waypoint_name, next_token, (size_t)NMEA_APB_WAYPOINT_NAME_MAX_LENGTH);
-        data_available |= NMEA_APB_DEST_WAYPOINT_ID_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-    	result->bearing_position_to_destination = (float)atof(next_token);
-    	data_available |= NMEA_APB_BEARING_POS_TO_DEST_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-    	result->bearing_position_to_destination_magnetic_or_true = *next_token;
-    	data_available |= NMEA_APB_BEARING_POS_TO_DEST_MAG_OR_TRUE_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-    	result->heading_to_steer = (float)atof(next_token);
-    	data_available |= NMEA_APB_HEADING_TO_STEER_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",*\r");
-    if (strlen(next_token) > (size_t)0)
-    {
-    	result->heading_to_steer_magnetic_or_true = *next_token;
-    	data_available |= NMEA_APB_HEADING_TO_STEER_MAG_OR_TRUE_PRESENT;
-    }
-
-    if (comma_count == 15U)
-    {
-        next_token = my_strtok(NULL, "*\r");
-        if (strlen(next_token) > (size_t)0)
-        {
-        	result->mode = *next_token;
-        	data_available |= NMEA_APB_MODE_PRESENT;
-        }
-    }
-
-    result->data_available = data_available;
-
-    return nmea_error_none;
 }
 
 nmea_error_t nmea_encode_DPT(char *message_data, const void *source)
@@ -1995,121 +2043,6 @@ nmea_error_t nmea_encode_RMC(char *message_data, const void *source)
 		message_data[length] = source_RMC->navigation_status;
 		message_data[length + (size_t)1] = '\0';
 	}
-
-    return nmea_error_none;
-}
-
-nmea_error_t nmea_decode_RMB(const char *message_data, nmea_message_data_RMB_t *result)
-{
-    const char *next_token;
-    uint8_t comma_count = count_commas(message_data);
-    uint32_t data_available = 0UL;
-
-    if (!check_received_message(message_data, 13U, 14U))
-    {
-    	return nmea_error_message;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-        result->status = *next_token;
-        data_available |= NMEA_RMB_STATUS_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-        result->cross_track_error = (float)atof(next_token);
-        data_available |= NMEA_RMB_CROSS_TRACK_ERROR_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-		result->direction_to_steer = *next_token;
-		data_available |= NMEA_RMB_DIR_TO_STEER_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-        strncpy(result->origin_waypoint_name, next_token, NMEA_RMB_WAYPOINT_NAME_MAX_LENGTH + (size_t)1);
-        data_available |= NMEA_RMB_ORIG_WAYPOINT_ID_PRESENT;
-    }
-
-    next_token=my_strtok(NULL, ",");
-    if (strlen(next_token) > 0)
-    {
-        strncpy(result->destination_waypoint_name, next_token, NMEA_RMB_WAYPOINT_NAME_MAX_LENGTH + (size_t)1);
-        data_available |= NMEA_RMB_DEST_WAYPOINT_ID_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-        result->latitude = atof(next_token);
-        data_available |= NMEA_RMB_LATITUDE_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (*next_token == 'S')
-    {
-        result->latitude = -result->latitude;
-    }
-
-    next_token=my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-        result->longitude = atof(next_token);
-        data_available |= NMEA_RMB_LONGITUDE_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (*next_token == 'W')
-    {
-        result->longitude = -result->longitude;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-        result->range_to_destination = (float)atof(next_token);
-        data_available |= NMEA_RMB_RANGE_TO_DEST_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-        result->bearing_true = (float)atof(next_token);
-        data_available |= NMEA_RMB_BEARING_TRUE_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",");
-    if (strlen(next_token) > (size_t)0)
-    {
-        result->velocity = (float)atof(next_token);
-        data_available |= NMEA_RMB_VELOCITY_PRESENT;
-    }
-
-    next_token = my_strtok(NULL, ",*\r");
-    if (strlen(next_token) > (size_t)0)
-    {
-        result->arrivalStatus = *next_token;
-        data_available |= NMEA_RMB_ARRIVAL_STATUS_PRESENT;
-    }
-
-    if (comma_count == 14U)
-    {
-        next_token = my_strtok(NULL, "*\r");
-        if (strlen(next_token) > (size_t)0)
-        {
-            result->mode = *next_token;
-            data_available |= NMEA_RMB_MODE_PRESENT;
-        }
-    }
-
-    result->data_available = data_available;
 
     return nmea_error_none;
 }

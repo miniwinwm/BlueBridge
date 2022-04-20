@@ -320,7 +320,7 @@ static bool read_measurement_mb(float *read_measurement)
 /**
  * Task that performs periodic pressure measurements
  *
- * @param parameters Pointer to data sent to task at startup
+ * @param parameters Unused
  */
 static void pressure_sensor_task(void *parameters)
 {

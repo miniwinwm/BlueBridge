@@ -81,7 +81,7 @@ static modem_task_t modem_task;					///< Pointer to function in modem that imple
 /**
  * Wrapper function that is called by the FreeRTOS task that is created in this interface and the task code in the modem that implements the task
  *
- * @param parameters Parameters passed to the FreeRTOS task create function
+ * @param parameters Unused
  */
 static void modem_interface_task(void *parameters)
 {

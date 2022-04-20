@@ -705,11 +705,21 @@ static void MDA_transmit_callback(void)
 	nmea_message_data_MDA.data_available = NMEA_MDA_PRESSURE_BARS_PRESENT;
 }
 
+/**
+ * Return handle of this main task to allow other tasks to communicate with this task
+ *
+ * @return This task handle
+ */
 TaskHandle_t get_main_task_handle(void)
 {
 	return main_task_handle;
 }
 
+/**
+ * Callback function when FreeRTOS task fires every 25ms
+ * 
+ * @param xTimer Unused
+ */
 static void vTimerCallback25ms(TimerHandle_t xTimer)
 {
 	(void)xTimer;
@@ -717,6 +727,11 @@ static void vTimerCallback25ms(TimerHandle_t xTimer)
 	nmea_process();
 }
 
+/**
+ * Callback function when FreeRTOS task fires every 1s
+ * 
+ * @param xTimer Unused
+ */
 static void vTimerCallback1s(TimerHandle_t xTimer)
 {
 	(void)xTimer;
@@ -860,6 +875,11 @@ static void vTimerCallback1s(TimerHandle_t xTimer)
 	}	
 }
 
+/**
+ * Callback function when FreeRTOS task fires every 8s
+ * 
+ * @param xTimer Unused
+ */
 static void vTimerCallback8s(TimerHandle_t xTimer)
 {
 	float wmm_date;
@@ -897,6 +917,11 @@ static void vTimerCallback8s(TimerHandle_t xTimer)
 	}
 }
 
+/**
+ * Handle any incoming NMEA2000 message
+ *
+ * @param N2kMsg Reference to the incoming message
+ */
 static void HandleNMEA2000Msg(const tN2kMsg &N2kMsg) 
 {	
 	for (uint32_t i = 0UL; i < (uint32_t)(sizeof(NMEA2000Handlers) / sizeof(tNMEA2000Handler)); i++)
@@ -912,6 +937,11 @@ static void HandleNMEA2000Msg(const tN2kMsg &N2kMsg)
 	}
 }
 
+/**
+ * Handle an incoming NMEA2000 heading message
+ *
+ * @param N2kMsg Reference to the incoming message
+ */
 static void heading_handler(const tN2kMsg &N2kMsg) 
 {
     unsigned char SID;
@@ -944,6 +974,11 @@ static void heading_handler(const tN2kMsg &N2kMsg)
 	}
 }	
 
+/**
+ * Handle an incoming NMEA2000 depth message
+ *
+ * @param N2kMsg Reference to the incoming message
+ */
 static void depth_handler(const tN2kMsg &N2kMsg) 
 {
     unsigned char SID;
@@ -960,6 +995,11 @@ static void depth_handler(const tN2kMsg &N2kMsg)
 	}
 }
 
+/**
+ * Handle an incoming NMEA2000 boat speed message
+ *
+ * @param N2kMsg Reference to the incoming message
+ */
 static void boat_speed_handler(const tN2kMsg &N2kMsg) 
 {
     unsigned char SID;
@@ -977,6 +1017,11 @@ static void boat_speed_handler(const tN2kMsg &N2kMsg)
     }	
 }	
 
+/**
+ * Handle an incoming NMEA2000 wind message
+ *
+ * @param N2kMsg Reference to the incoming message
+ */
 static void wind_handler(const tN2kMsg &N2kMsg) 
 {
     unsigned char SID;
@@ -1045,6 +1090,11 @@ static void wind_handler(const tN2kMsg &N2kMsg)
     }	
 }	
 
+/**
+ * Handle an incoming NMEA2000 log message
+ *
+ * @param N2kMsg Reference to the incoming message
+ */
 static void log_handler(const tN2kMsg &N2kMsg) 
 {
 	uint16_t DaysSince1970;
@@ -1068,6 +1118,11 @@ static void log_handler(const tN2kMsg &N2kMsg)
     }	
 }	
 
+/**
+ * Handle an incoming NMEA2000 environment message
+ *
+ * @param N2kMsg Reference to the incoming message
+ */
 static void environmental_handler(const tN2kMsg &N2kMsg) 
 {
     unsigned char SID;
@@ -1086,6 +1141,9 @@ static void environmental_handler(const tN2kMsg &N2kMsg)
 }
 
 #ifdef TEST_DATA
+/**
+ * Create simulated boat data
+ */
 static void test_data(void)
 {
 	static uint32_t i;
