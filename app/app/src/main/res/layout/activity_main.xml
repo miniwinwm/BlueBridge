@@ -39,7 +39,7 @@ SOFTWARE.
         android:layout_marginTop="8dp"
         android:onClick="connectButtonOnClick"
         android:text="Connect"
-        app:layout_constraintStart_toEndOf="@+id/textView"
+        app:layout_constraintStart_toEndOf="@+id/settingsButton"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -268,19 +268,6 @@ SOFTWARE.
         app:layout_constraintEnd_toStartOf="@+id/positionChangeToggleButton"
         app:layout_constraintTop_toTopOf="@+id/positionChangeToggleButton" />
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="24dp"
-        android:text="Bluetooth"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-        android:textColor="@color/black"
-        android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <Button
         android:id="@+id/watchingButton"
         android:layout_width="wrap_content"
@@ -388,5 +375,16 @@ SOFTWARE.
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView8" />
+
+    <ImageButton
+        android:id="@+id/settingsButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="5dp"
+        android:onClick="settingsButtonOnClick"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/settings" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

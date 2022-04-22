@@ -5,8 +5,6 @@ Todo hardware
 Todo functional
 ---------------
 Add MQTT cpability to Android app
-	Rearrange UI layout to allow extra button
-	Add extra button and implement UI logic
 	Test MQTT subscribe and receive message
 	Decode MQTT message
 	Add remote station signal strength if space allows
@@ -30,8 +28,8 @@ Test local MQTT broker
 
 Todo documentation
 ------------------
-Create main documentation file
-Create hardware build file
+Create main documentation 
+Create hardware build instructions document
 
 
 Done
@@ -124,4 +122,6 @@ Make webpage broker/port enterable via webpage
 Modem SMS read need buf lengths and checks
 safe strncat needs sorting in utils and nmea0183 library
 Android app add mqtt settings persistence
-Android app create dialog for new mqtt settings needed
+Android app create dialog for new settings needed by mqtt
+Android app Rearrange UI layout to allow extra button to activate new settings dialog
+Android app Add settings dialog activate button and implement UI logic

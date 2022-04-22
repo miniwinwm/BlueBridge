@@ -47,6 +47,8 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -146,6 +148,11 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     String broker;
     int port;
     String codeHexString;
+    ImageButton settingsButton;
+    RadioButton bluetoothRadioButton;
+    RadioButton internetRadioButton;
+    int connection;
+
     Thread thread = new Thread() {
         byte[] nmeaMessageArray = new byte[101];
         public void run() {
@@ -635,6 +642,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         codeHexString = String.format("%08X", code);
         broker = preferences.getString("broker", "broker.emqx.io");
         port = preferences.getInt("port", 8083);
+        connection = preferences.getInt("connection", 0);
     }
 
     public void onDialogNegativeClick(DialogFragment dialog)
@@ -796,7 +804,10 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         headingChangeMaxEditText = (EditText)findViewById((R.id.editTextNumberHeadingChangeMax));
         sogMaxEditText = (EditText)findViewById((R.id.editTextNumberSogMax));
         positionChangeMaxEditText = (EditText)findViewById((R.id.editTextNumberPositionChangeMax));
-        anchorView = (AnchorView) findViewById((R.id.anchor_view));
+        anchorView = (AnchorView)findViewById((R.id.anchor_view));
+        settingsButton = (ImageButton)findViewById((R.id.settingsButton));
+        bluetoothRadioButton = (RadioButton)findViewById((R.id.bluetoothRadioButton));
+        internetRadioButton = (RadioButton)findViewById((R.id.internetRadioButton));
     }
 
     private void getPreferences() {
@@ -813,15 +824,11 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         headingChangeMax = preferences.getFloat("headingChangeMax", 40.0f);
         sogMax = preferences.getFloat("sogMax", 2.0f);
         positionChangeMax = preferences.getFloat("positionChangeMax", 50.0f);
-
         code = preferences.getLong("code", 0);
         codeHexString = String.format("%08X", code);
         broker = preferences.getString("broker", "broker.emqx.io");
         port = preferences.getInt("port", 8083);
-
-        if (code == 0) {
-            new MqttSettingsDialogFragment(code, broker, port, preferences).show(getSupportFragmentManager(), "MQTTSD");
-        }
+        connection = preferences.getInt("connection", 0);
     }
 
     void setupWatchingParametersTextEdits(boolean enabled) {
@@ -917,6 +924,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getUiIds();
+        settingsButton.setBackgroundColor(Color.WHITE);
         connectButton.setBackgroundColor(Color.GREEN);
         connectButton.setTextColor(Color.BLACK);
         watchingButton.setBackgroundColor(Color.GRAY);
@@ -1010,6 +1018,10 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         thread.start();
     }
 
+    public void settingsButtonOnClick(View view) {
+        new MqttSettingsDialogFragment(code, broker, port, connection, preferences).show(getSupportFragmentManager(), "MQTTSD");
+    }
+
     public void depthToggleButtonOnClick(View view) {
         depthWatching = depthToggleButton.isChecked();
         SharedPreferences.Editor editor = preferences.edit();
@@ -1081,6 +1093,8 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             connectButton.setText("CONNECT");
             isWatching = false;
             resetAllCurrentReadingsTexts();
+            settingsButton.setEnabled(true);
+            settingsButton.setVisibility(View.VISIBLE);
         }
         else {
             // connect
@@ -1090,6 +1104,9 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                 messageBox("Bluetooth is not enabled");
             } else {
                 connectButton.setEnabled(false);
+                settingsButton.setEnabled(false);
+                settingsButton.setVisibility(View.INVISIBLE);
+
                 connectButton.setText("CONNECTING");
                 connectButton.setBackgroundColor(Color.GRAY);
 
@@ -1131,6 +1148,8 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                 }
 
                                 connectButton.setEnabled(true);
+                                settingsButton.setEnabled(true);
+                                settingsButton.setVisibility(View.VISIBLE);
                                 if (isBluetoothConnected) {
                                     connectButton.setBackgroundColor(Color.RED);
                                     connectButton.setText("DISCONNECT");
