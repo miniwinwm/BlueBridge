@@ -69,19 +69,12 @@ bool util_safe_strcpy(char *dest, size_t size, const char *src)
 {
     size_t i;
 
-    if (dest == NULL || src == NULL)
+    if (dest == NULL || src == NULL || strlen(src) + (size_t)1 > size)
     {
     	return false;
     }
 
-    if (size > 0U)
-    {
-        for (i = (size_t)0; i < size - (size_t)1 && src[i] != '\0'; i++)
-        {
-             dest[i] = src[i];
-        }
-        dest[i] = '\0';
-    }
+	(void)strcpy(dest, src);
 
     return true;
 }
@@ -93,7 +86,9 @@ bool util_safe_strcat(char *dest, size_t size, const char *src)
     	return false;
     }
 
-	return (strncat((dest), (src), (size - strlen(dest) - (size_t)1U)));
+	(void)strcat(dest, src);
+	
+	return true;
 }
 
 uint32_t util_htoi(const char *s)

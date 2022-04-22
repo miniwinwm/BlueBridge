@@ -5,6 +5,8 @@ Todo hardware
 Todo functional
 ---------------
 Add MQTT cpability to Android app
+	Test settings persistence
+	Create dialog for new settings needed
 	Update Android app UI layout to allow extra button
 	Add extra button and implement UI logic
 	Test MQTT subscribe and receive message
@@ -14,7 +16,6 @@ Add MQTT cpability to Android app
 	Regression test bluetooth anchor watching functionality
 Remove test #defines
 Make buffer handling safe in nmea.c
-safe strncat needs sorting in utils and nmea0183 library
 
 
 Todo tidy up
@@ -123,3 +124,4 @@ Create doxyfile
 Doxygen all code ESP32 code
 Make webpage broker/port enterable via webpage
 Modem SMS read need buf lengths and checks
+safe strncat needs sorting in utils and nmea0183 library
