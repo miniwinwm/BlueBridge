@@ -26,8 +26,11 @@ package com.example.bluebridgeapp;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentManager;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -37,6 +40,7 @@ import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -54,7 +58,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MqttSettingsDialogFragment.MqttSettingsDialogListener {
     final long maxGpsDataAge = 2000;
     final long maxDepthDataAge = 2000;
     final long maxWindDataAge = 2000;
@@ -138,7 +142,10 @@ public class MainActivity extends AppCompatActivity {
     long lastPingTime = 0;
     boolean dataLossAlarmActive = false;
     boolean watchingAlarmActive = false;
-
+    long code;
+    String broker;
+    int port;
+    String codeHexString;
     Thread thread = new Thread() {
         byte[] nmeaMessageArray = new byte[101];
         public void run() {
@@ -621,6 +628,20 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    public void onDialogPositiveClick(DialogFragment dialog)
+    {
+        // reload settings
+        code = preferences.getLong("code", 0);
+        codeHexString = String.format("%08X", code);
+        broker = preferences.getString("broker", "broker.emqx.io");
+        port = preferences.getInt("port", 8083);
+    }
+
+    public void onDialogNegativeClick(DialogFragment dialog)
+    {
+        // do nothing
+    }
+
     private void messageBoxThread(String message) {
         runOnUiThread(new Runnable() {
                           public void run() {
@@ -792,6 +813,15 @@ public class MainActivity extends AppCompatActivity {
         headingChangeMax = preferences.getFloat("headingChangeMax", 40.0f);
         sogMax = preferences.getFloat("sogMax", 2.0f);
         positionChangeMax = preferences.getFloat("positionChangeMax", 50.0f);
+
+        code = preferences.getLong("code", 0);
+        codeHexString = String.format("%08X", code);
+        broker = preferences.getString("broker", "broker.emqx.io");
+        port = preferences.getInt("port", 8083);
+
+        if (code == 0) {
+            new MqttSettingsDialogFragment(code, broker, port, preferences).show(getSupportFragmentManager(), "MQTTSD");
+        }
     }
 
     void setupWatchingParametersTextEdits(boolean enabled) {

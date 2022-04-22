@@ -5,15 +5,13 @@ Todo hardware
 Todo functional
 ---------------
 Add MQTT cpability to Android app
-	Test settings persistence
-	Create dialog for new settings needed
-	Update Android app UI layout to allow extra button
+	Rearrange UI layout to allow extra button
 	Add extra button and implement UI logic
 	Test MQTT subscribe and receive message
 	Decode MQTT message
 	Add remote station signal strength if space allows
 	Test full functionality of remote anchor watching
-	Regression test bluetooth anchor watching functionality
+	Regression test bluetooth anchor watching functionality/pressure sensor/NMEA2000
 Remove test #defines
 Make buffer handling safe in nmea.c
 
@@ -125,3 +123,5 @@ Doxygen all code ESP32 code
 Make webpage broker/port enterable via webpage
 Modem SMS read need buf lengths and checks
 safe strncat needs sorting in utils and nmea0183 library
+Android app add mqtt settings persistence
+Android app create dialog for new mqtt settings needed
