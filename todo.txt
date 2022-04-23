@@ -5,7 +5,7 @@ Todo hardware
 Todo functional
 ---------------
 Add MQTT cpability to Android app
-	Test MQTT subscribe and receive message
+	Move prototype mqtt code to main app
 	Decode MQTT message
 	Add remote station signal strength if space allows
 	Test full functionality of remote anchor watching
@@ -18,6 +18,7 @@ Todo tidy up
 ------------
 Tidy up javascript code
 Create a new website with BlueThing name
+Rename boat_iot.c/h to mqtt_publisher.c/h
 
 
 Todo testing
@@ -123,5 +124,6 @@ Modem SMS read need buf lengths and checks
 safe strncat needs sorting in utils and nmea0183 library
 Android app add mqtt settings persistence
 Android app create dialog for new settings needed by mqtt
-Android app Rearrange UI layout to allow extra button to activate new settings dialog
-Android app Add settings dialog activate button and implement UI logic
+Android app rearrange UI layout to allow extra button to activate new settings dialog
+Android app add settings dialog activate button and implement UI logic
+Android app test MQTT connect, subscribe and receive message in prototype code

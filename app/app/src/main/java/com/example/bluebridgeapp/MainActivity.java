@@ -27,20 +27,20 @@ package com.example.bluebridgeapp;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.FragmentManager;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -51,6 +51,11 @@ import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.ToggleButton;
+
+import com.hivemq.client.mqtt.MqttClient;
+import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient;
+import com.hivemq.client.mqtt.mqtt3.Mqtt3BlockingClient;
+import com.hivemq.client.mqtt.mqtt3.message.connect.connack.Mqtt3ConnAckReturnCode;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -99,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     ViewGroup rootLayout;
     Button connectButton;
     Button watchingButton;
-    volatile boolean isBluetoothConnected = false;
+    volatile boolean isConnected = false;
     volatile boolean isWatching = false;
     MediaPlayer mediaPlayer;
     BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -144,14 +149,15 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     long lastPingTime = 0;
     boolean dataLossAlarmActive = false;
     boolean watchingAlarmActive = false;
-    long code;
-    String broker;
-    int port;
-    String codeHexString;
+    long settingsCode;
+    String settingsBroker;
+    int settingsPort;
+    String settingsCodeHexString;
     ImageButton settingsButton;
     RadioButton bluetoothRadioButton;
     RadioButton internetRadioButton;
-    int connection;
+    int settingsConnection;
+    Mqtt3AsyncClient client;
 
     Thread thread = new Thread() {
         byte[] nmeaMessageArray = new byte[101];
@@ -161,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             long lastUpdateTime = 0;
 
             while (true) {
-                if (isBluetoothConnected) {
+                if (isConnected && settingsConnection == 0) {
                     try {
                         int bytesRead = bluetoothInputStream.read(bluetoothBytes, 0, 20);
                         for (int i = 0; i < bytesRead; i++) {
@@ -344,7 +350,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                             connectionCloseRequest = false;
                         }
                         else {
-                            isBluetoothConnected = false;
+                            isConnected = false;
 
                             if (isWatching) {
                                 isWatching = false;
@@ -638,11 +644,11 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     public void onDialogPositiveClick(DialogFragment dialog)
     {
         // reload settings
-        code = preferences.getLong("code", 0);
-        codeHexString = String.format("%08X", code);
-        broker = preferences.getString("broker", "broker.emqx.io");
-        port = preferences.getInt("port", 8083);
-        connection = preferences.getInt("connection", 0);
+        settingsCode = preferences.getLong("code", 0);
+        settingsCodeHexString = String.format("%08X", settingsCode);
+        settingsBroker = preferences.getString("broker", "broker.emqx.io");
+        settingsPort = preferences.getInt("port", 8083);
+        settingsConnection = preferences.getInt("connection", 0);
     }
 
     public void onDialogNegativeClick(DialogFragment dialog)
@@ -824,11 +830,11 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         headingChangeMax = preferences.getFloat("headingChangeMax", 40.0f);
         sogMax = preferences.getFloat("sogMax", 2.0f);
         positionChangeMax = preferences.getFloat("positionChangeMax", 50.0f);
-        code = preferences.getLong("code", 0);
-        codeHexString = String.format("%08X", code);
-        broker = preferences.getString("broker", "broker.emqx.io");
-        port = preferences.getInt("port", 8083);
-        connection = preferences.getInt("connection", 0);
+        settingsCode = preferences.getLong("code", 0);
+        settingsCodeHexString = String.format("%08X", settingsCode);
+        settingsBroker = preferences.getString("broker", "broker.emqx.io");
+        settingsPort = preferences.getInt("port", 8083);
+        settingsConnection = preferences.getInt("connection", 0);
     }
 
     void setupWatchingParametersTextEdits(boolean enabled) {
@@ -1019,7 +1025,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     }
 
     public void settingsButtonOnClick(View view) {
-        new MqttSettingsDialogFragment(code, broker, port, connection, preferences).show(getSupportFragmentManager(), "MQTTSD");
+        new MqttSettingsDialogFragment(settingsCode, settingsBroker, settingsPort, settingsConnection, preferences).show(getSupportFragmentManager(), "MQTTSD");
     }
 
     public void depthToggleButtonOnClick(View view) {
@@ -1070,21 +1076,18 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         setupWatchingButtons(true);
     }
 
-    public void connectButtonOnClick(View view) {
-        saveAllTextEdits();
-        if (isBluetoothConnected) {
+    private void connectBluetooth(View view) {
+        if (isConnected) {
             // disconnect
             connectionCloseRequest = true;
-            isBluetoothConnected = false;
+            isConnected = false;
             try {
                 bluetoothInputStream.close();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
             }
             try {
                 bluetoothSocket.close();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
             }
             connectButton.setBackgroundColor(Color.GREEN);
             watchingButton.setBackgroundColor(Color.GRAY);
@@ -1095,8 +1098,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             resetAllCurrentReadingsTexts();
             settingsButton.setEnabled(true);
             settingsButton.setVisibility(View.VISIBLE);
-        }
-        else {
+        } else {
             // connect
             if (bluetoothAdapter == null) {
                 messageBox("Bluetooth is not supported");
@@ -1117,22 +1119,18 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                         if (pairedDevices.size() > 0) {
                             for (BluetoothDevice device : pairedDevices) {
                                 String devicename = device.getName();
-                                if (devicename.equals("BlueBridge"))
-                                {
+                                if (devicename.equals("BlueBridge")) {
                                     deviceFound = true;
                                     try {
                                         bluetoothSocket = device.createRfcommSocketToServiceRecord(MY_UUID_SECURE);
                                         bluetoothSocket.connect();
-                                        if (bluetoothSocket.isConnected())
-                                        {
+                                        if (bluetoothSocket.isConnected()) {
                                             bluetoothInputStream = bluetoothSocket.getInputStream();
-                                            isBluetoothConnected = true;
-                                        }
-                                        else {
+                                            isConnected = true;
+                                        } else {
                                             messageBoxThread("Could not connect to BlueBridge");
                                         }
-                                    }
-                                    catch(IOException e) {
+                                    } catch (IOException e) {
                                         messageBoxThread("Connection error");
                                     }
                                     break;
@@ -1148,18 +1146,17 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                 }
 
                                 connectButton.setEnabled(true);
-                                settingsButton.setEnabled(true);
-                                settingsButton.setVisibility(View.VISIBLE);
-                                if (isBluetoothConnected) {
+                                if (isConnected) {
                                     connectButton.setBackgroundColor(Color.RED);
                                     connectButton.setText("DISCONNECT");
                                     watchingButton.setBackgroundColor(Color.GREEN);
                                     watchingButton.setEnabled(true);
                                     nmeaMessageStarted = false;
-                                }
-                                else {
+                                } else {
                                     connectButton.setBackgroundColor(Color.GREEN);
                                     connectButton.setText("CONNECT");
+                                    settingsButton.setEnabled(true);
+                                    settingsButton.setVisibility(View.VISIBLE);
                                 }
                             }
                         });
@@ -1167,6 +1164,102 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                 });
                 connectThread.start();
             }
+        }
+    }
+
+    private void connectInternet(View view) {
+        if (isConnected) {
+            // disconnect
+            isConnected = false;
+            connectButton.setBackgroundColor(Color.GREEN);
+            watchingButton.setBackgroundColor(Color.GRAY);
+            watchingButton.setEnabled(false);
+            watchingButton.setText("START");
+            connectButton.setText("CONNECT");
+            isWatching = false;
+            resetAllCurrentReadingsTexts();
+            settingsButton.setEnabled(true);
+            settingsButton.setVisibility(View.VISIBLE);
+            client.disconnect();
+        } else {
+            if (!isNetworkAvailable()) {
+                messageBox("No internet connection available");
+            } else if (settingsCode == 0L) {
+                messageBox("Code not set in settings");
+            } else {
+                connectButton.setEnabled(false);
+                settingsButton.setEnabled(false);
+                settingsButton.setVisibility(View.INVISIBLE);
+
+                connectButton.setText("CONNECTING");
+                connectButton.setBackgroundColor(Color.GRAY);
+
+                Thread connectThread = new Thread(new Runnable() {
+                    public void run() {
+                        Mqtt3BlockingClient blockingClient = MqttClient.builder()
+                                .useMqttVersion3()
+                                .serverHost(settingsBroker)
+                                .serverPort(settingsPort)
+                                .buildBlocking();
+
+                        if (blockingClient.connectWith().keepAlive(30).send().getReturnCode() == Mqtt3ConnAckReturnCode.SUCCESS) {
+                            client = blockingClient.toAsync();
+                            client.subscribeWith()
+                                    .topicFilter(settingsCodeHexString + "/all")
+                                    .callback(publish -> {
+                                        Log.d("nmea", new String(publish.getPayloadAsBytes())); // todo remove
+                                    })
+                                    .send()
+                                    .whenComplete((subAck, throwable) -> {
+                                        if (throwable != null) {
+                                            // Handle failure to subscribe
+                                            messageBoxThread("Connection failure");
+                                        } else {
+                                            // subscribe success
+                                            runOnUiThread(new Runnable() {
+                                                public void run() {
+                                                    connectButton.setEnabled(true);
+                                                    if (isConnected) {
+                                                        connectButton.setBackgroundColor(Color.RED);
+                                                        connectButton.setText("DISCONNECT");
+                                                        watchingButton.setBackgroundColor(Color.GREEN);
+                                                        watchingButton.setEnabled(true);
+                                                        nmeaMessageStarted = false;
+                                                        Log.d("nmea", "Connected"); // todo remove
+                                                    } else {
+                                                        connectButton.setBackgroundColor(Color.GREEN);
+                                                        connectButton.setText("CONNECT");
+                                                        settingsButton.setEnabled(true);
+                                                        settingsButton.setVisibility(View.VISIBLE);
+                                                    }
+                                                }
+                                            });
+
+                                            isConnected = true;
+                                        }
+                                    });
+                        }
+                    }
+                });
+                connectThread.start();
+            }
+        }
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    public void connectButtonOnClick(View view) {
+        saveAllTextEdits();
+        if (settingsConnection == 0) {
+            // bluetooth connection
+            connectBluetooth(view);
+        } else {
+            connectInternet(view);
         }
     }
 
