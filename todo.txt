@@ -5,11 +5,14 @@ Todo hardware
 Todo functional
 ---------------
 Add MQTT cpability to Android app
-	Move prototype mqtt code to main app
-	Decode MQTT message
+	Send pressure readings via mqtt
+	Update webpage to show poressure reading
+	Update android app to do pressure watching when recived by mqtt
 	Add remote station signal strength if space allows
 	Test full functionality of remote anchor watching
 	Regression test bluetooth anchor watching functionality/pressure sensor/NMEA2000
+	Check for internet connection loss
+In android app add setting for periodic ping sound
 Remove test #defines
 Make buffer handling safe in nmea.c
 
@@ -19,6 +22,7 @@ Todo tidy up
 Tidy up javascript code
 Create a new website with BlueThing name
 Rename boat_iot.c/h to mqtt_publisher.c/h
+In android app change settingsConnection from integer to enum type
 
 
 Todo testing
@@ -127,3 +131,7 @@ Android app create dialog for new settings needed by mqtt
 Android app rearrange UI layout to allow extra button to activate new settings dialog
 Android app add settings dialog activate button and implement UI logic
 Android app test MQTT connect, subscribe and receive message in prototype code
+Android app move prototype mqtt code to main app
+Android app implement mqtt connection, subscribe, warnings dialogs
+Android app decode MQTT messages
+Android app update ui and do watching for mqtt received data

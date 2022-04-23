@@ -66,12 +66,12 @@ import java.util.Set;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements MqttSettingsDialogFragment.MqttSettingsDialogListener {
-    final long maxGpsDataAge = 2000;
-    final long maxDepthDataAge = 2000;
-    final long maxWindDataAge = 2000;
-    final long maxHeadingDataAge = 2000;
-    final long maxPressureDataAge = 30000;
-    final long alarmRearmTime = 30000;
+    final long maxGpsDataAge = 20000;
+    final long maxDepthDataAge = 20000;
+    final long maxWindDataAge = 20000;
+    final long maxHeadingDataAge = 20000;
+    final long maxPressureDataAge = 60000;
+    final long alarmRearmTime = 60000;
     final float DEGREES_TO_RADS = 57.296f;
     SharedPreferences preferences;
     ToggleButton depthToggleButton;
@@ -167,219 +167,265 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             long lastUpdateTime = 0;
 
             while (true) {
-                if (isConnected && settingsConnection == 0) {
-                    try {
-                        int bytesRead = bluetoothInputStream.read(bluetoothBytes, 0, 20);
-                        for (int i = 0; i < bytesRead; i++) {
-                            byte nextByte = bluetoothBytes[i];
-                            if (!nmeaMessageStarted) {
-                                if (nextByte == '!' || nextByte == '$') {
-                                    nmeaMessageStarted = true;
-                                    nmeaMessageArray[0] = nextByte;
-                                    nextBytePosition = 1;
-                                }
-                            }
-                            else {
-                                if (nextBytePosition < 100) {
-                                    nmeaMessageArray[nextBytePosition] = nextByte;
-                                    nextBytePosition++;
-                                    if (nextByte == '\n') {
-                                        nmeaMessageStarted = false;
+                if (isConnected) {
+                    if (settingsConnection == 0) {
+                        try {
+                            int bytesRead = bluetoothInputStream.read(bluetoothBytes, 0, 20);
+                            for (int i = 0; i < bytesRead; i++) {
+                                byte nextByte = bluetoothBytes[i];
+                                if (!nmeaMessageStarted) {
+                                    if (nextByte == '!' || nextByte == '$') {
+                                        nmeaMessageStarted = true;
+                                        nmeaMessageArray[0] = nextByte;
+                                        nextBytePosition = 1;
+                                    }
+                                } else {
+                                    if (nextBytePosition < 100) {
+                                        nmeaMessageArray[nextBytePosition] = nextByte;
+                                        nextBytePosition++;
+                                        if (nextByte == '\n') {
+                                            nmeaMessageStarted = false;
 
-                                        String nmeaMessageString = new String(nmeaMessageArray, StandardCharsets.US_ASCII).substring(0, nextBytePosition - 1);
-                                        Log.d("nmea", nmeaMessageString);
+                                            String nmeaMessageString = new String(nmeaMessageArray, StandardCharsets.US_ASCII).substring(0, nextBytePosition - 1);
+                                            Log.d("nmea", nmeaMessageString);
 
-                                        List<String> fieldList = Arrays.asList(nmeaMessageString.split(","));
-                                        if (fieldList.size() > 0) {
-                                            String nmeaHeader = fieldList.get(0).substring(3, 6);
+                                            List<String> fieldList = Arrays.asList(nmeaMessageString.split(","));
+                                            if (fieldList.size() > 0) {
+                                                String nmeaHeader = fieldList.get(0).substring(3, 6);
 
-                                            if (nmeaHeader.equals("DPT")) {
-                                                // depth DPT
-                                                if (fieldList.size() >= 2) {
-                                                    String fieldString = fieldList.get(1);
-                                                    try {
-                                                        depth = Float.parseFloat(fieldString);
-                                                        depthReceivedTime = System.currentTimeMillis();
-                                                        runOnUiThread(new Runnable() {
-                                                            public void run() {
-                                                                textViewDepth.setText(fieldString + " m");
-                                                            }
-                                                        });
-                                                    }
-                                                    catch (Exception e) {
-                                                    }
-                                                }
-                                            } else if (nmeaHeader.equals("XDR")) {
-                                                // pressure XDR
-                                                if (fieldList.size() >= 3) {
-                                                    String fieldString = fieldList.get(2);
-                                                    try {
-                                                        pressure = Float.parseFloat(fieldString);
-                                                        pressure *= 1000.0f;
-                                                        pressureReceivedTime = System.currentTimeMillis();
-                                                        runOnUiThread(new Runnable() {
-                                                            public void run() {
-                                                                textViewPressure.setText(Integer.toString(Math.round(pressure)) + " mb");
-                                                            }
-                                                        });
-                                                    }
-                                                    catch (Exception e) {
-                                                    }
-                                                }
-                                            }
-                                            else if (nmeaHeader.equals("HDT")) {
-                                                // heading HDT
-                                                if (fieldList.size() >= 2) {
-                                                    String fieldString = fieldList.get(1);
-                                                    try {
-                                                        heading = Float.parseFloat(fieldString);
-                                                        headingReceivedTime = System.currentTimeMillis();
-                                                        runOnUiThread(new Runnable() {
-                                                            public void run() {
-                                                                textViewHeading.setText(Integer.toString(Math.round(heading)) + "°");
-                                                            }
-                                                        });
-                                                    }
-                                                    catch (Exception e) {
-                                                    }
-                                                }
-                                            }
-                                            else if (nmeaHeader.equals("MWV")) {
-                                                // wind MWV
-                                                if (fieldList.size() >= 4) {
-                                                    String fieldString = fieldList.get(3);
-                                                    try {
-                                                        windspeed = Float.parseFloat(fieldString);
-                                                        windspeedReceivedTime = System.currentTimeMillis();
-                                                        runOnUiThread(new Runnable() {
-                                                            public void run() {
-                                                                textViewWindspeed.setText(Integer.toString(Math.round(windspeed)) + " Kts");
-                                                            }
-                                                        });
-                                                    }
-                                                    catch (Exception e) {
-                                                    }
-                                                }
-                                            }
-                                            else if (nmeaHeader.equals("RMC")) {
-                                                // GPS RMC
-                                                if (fieldList.size() >= 8) {
-                                                    String fieldString1 = fieldList.get(2);
-                                                    if (fieldString1.equals("A")) {
-                                                        String fieldString2 = fieldList.get(7);
+                                                if (nmeaHeader.equals("DPT")) {
+                                                    // depth DPT
+                                                    if (fieldList.size() >= 2) {
+                                                        String fieldString = fieldList.get(1);
                                                         try {
-                                                            sog = Float.parseFloat(fieldString2);
-                                                            sogReceivedTime = System.currentTimeMillis();
+                                                            depth = Float.parseFloat(fieldString);
+                                                            depthReceivedTime = System.currentTimeMillis();
                                                             runOnUiThread(new Runnable() {
                                                                 public void run() {
-                                                                    textViewSog.setText(fieldString2 + " Kts");
+                                                                    textViewDepth.setText(fieldString + " m");
                                                                 }
                                                             });
+                                                        } catch (Exception e) {
                                                         }
-                                                        catch (Exception e) {
-                                                        }
-
-                                                        String fieldString3 = fieldList.get(3);
-                                                        boolean latitudeParsedOk = false;
-                                                        boolean latitudeHemisphereParsedOk = false;
+                                                    }
+                                                } else if (nmeaHeader.equals("XDR")) {
+                                                    // pressure XDR
+                                                    if (fieldList.size() >= 3) {
+                                                        String fieldString = fieldList.get(2);
                                                         try {
-                                                            float latitudeNmea = Float.parseFloat(fieldString3);
-                                                            latitudeNmea /= 100.0f;
-                                                            latitude = (float)Math.floor((float)latitudeNmea);
-                                                            latitudeNmea -= latitude;
-                                                            latitudeNmea /= 0.6f;
-                                                            latitude += latitudeNmea;
-                                                            latitudeParsedOk = true;
+                                                            pressure = Float.parseFloat(fieldString);
+                                                            pressure *= 1000.0f;
+                                                            pressureReceivedTime = System.currentTimeMillis();
+                                                            runOnUiThread(new Runnable() {
+                                                                public void run() {
+                                                                    textViewPressure.setText(Integer.toString(Math.round(pressure)) + " mb");
+                                                                }
+                                                            });
+                                                        } catch (Exception e) {
                                                         }
-                                                        catch (Exception e) {
-                                                        }
-
-                                                        String fieldString4 = fieldList.get(4);
-                                                        if (fieldString4.equals("N")) {
-                                                            latitudeHemisphereParsedOk = true;
-                                                        } else if (fieldString4.equals("S")) {
-                                                            latitude = -latitude;
-                                                            latitudeHemisphereParsedOk = true;
-                                                        }
-
-                                                        if (latitudeParsedOk && latitudeHemisphereParsedOk) {
-                                                            latitudeReceivedTime = System.currentTimeMillis();
-                                                        }
-
-                                                        String fieldString5 = fieldList.get(5);
-                                                        boolean longitudeParsedOk = false;
-                                                        boolean longitudeHemisphereParsedOk = false;
-
+                                                    }
+                                                } else if (nmeaHeader.equals("HDT")) {
+                                                    // heading HDT
+                                                    if (fieldList.size() >= 2) {
+                                                        String fieldString = fieldList.get(1);
                                                         try {
-                                                            float longitudeNmea = Float.parseFloat(fieldString5);
-                                                            longitudeNmea /= 100.0f;
-                                                            longitude = (float)Math.floor((float)longitudeNmea);
-                                                            longitudeNmea -= longitude;
-                                                            longitudeNmea /= 0.6f;
-                                                            longitude += longitudeNmea;
-                                                            longitudeParsedOk = true;
+                                                            heading = Float.parseFloat(fieldString);
+                                                            headingReceivedTime = System.currentTimeMillis();
+                                                            runOnUiThread(new Runnable() {
+                                                                public void run() {
+                                                                    textViewHeading.setText(Integer.toString(Math.round(heading)) + "°");
+                                                                }
+                                                            });
+                                                        } catch (Exception e) {
                                                         }
-                                                        catch (Exception e) {
+                                                    }
+                                                } else if (nmeaHeader.equals("MWV")) {
+                                                    // wind MWV
+                                                    if (fieldList.size() >= 4) {
+                                                        String fieldString = fieldList.get(3);
+                                                        try {
+                                                            windspeed = Float.parseFloat(fieldString);
+                                                            windspeedReceivedTime = System.currentTimeMillis();
+                                                            runOnUiThread(new Runnable() {
+                                                                public void run() {
+                                                                    textViewWindspeed.setText(Integer.toString(Math.round(windspeed)) + " Kts");
+                                                                }
+                                                            });
+                                                        } catch (Exception e) {
                                                         }
+                                                    }
+                                                } else if (nmeaHeader.equals("RMC")) {
+                                                    // GPS RMC
+                                                    if (fieldList.size() >= 8) {
+                                                        String fieldString1 = fieldList.get(2);
+                                                        if (fieldString1.equals("A")) {
+                                                            String fieldString2 = fieldList.get(7);
+                                                            try {
+                                                                sog = Float.parseFloat(fieldString2);
+                                                                sogReceivedTime = System.currentTimeMillis();
+                                                                runOnUiThread(new Runnable() {
+                                                                    public void run() {
+                                                                        textViewSog.setText(fieldString2 + " Kts");
+                                                                    }
+                                                                });
+                                                            } catch (Exception e) {
+                                                            }
 
-                                                        String fieldString6 = fieldList.get(6);
-                                                        if (fieldString6.equals("E")) {
-                                                            longitudeHemisphereParsedOk = true;
-                                                        } else if (fieldString6.equals("W")) {
-                                                            longitude = -longitude;
-                                                            longitudeHemisphereParsedOk = true;
-                                                        }
+                                                            String fieldString3 = fieldList.get(3);
+                                                            boolean latitudeParsedOk = false;
+                                                            boolean latitudeHemisphereParsedOk = false;
+                                                            try {
+                                                                float latitudeNmea = Float.parseFloat(fieldString3);
+                                                                latitudeNmea /= 100.0f;
+                                                                latitude = (float) Math.floor((float) latitudeNmea);
+                                                                latitudeNmea -= latitude;
+                                                                latitudeNmea /= 0.6f;
+                                                                latitude += latitudeNmea;
+                                                                latitudeParsedOk = true;
+                                                            } catch (Exception e) {
+                                                            }
 
-                                                        if (longitudeParsedOk && longitudeHemisphereParsedOk) {
-                                                            longitudeReceivedTime = System.currentTimeMillis();
+                                                            String fieldString4 = fieldList.get(4);
+                                                            if (fieldString4.equals("N")) {
+                                                                latitudeHemisphereParsedOk = true;
+                                                            } else if (fieldString4.equals("S")) {
+                                                                latitude = -latitude;
+                                                                latitudeHemisphereParsedOk = true;
+                                                            }
+
+                                                            if (latitudeParsedOk && latitudeHemisphereParsedOk) {
+                                                                latitudeReceivedTime = System.currentTimeMillis();
+                                                            }
+
+                                                            String fieldString5 = fieldList.get(5);
+                                                            boolean longitudeParsedOk = false;
+                                                            boolean longitudeHemisphereParsedOk = false;
+
+                                                            try {
+                                                                float longitudeNmea = Float.parseFloat(fieldString5);
+                                                                longitudeNmea /= 100.0f;
+                                                                longitude = (float) Math.floor((float) longitudeNmea);
+                                                                longitudeNmea -= longitude;
+                                                                longitudeNmea /= 0.6f;
+                                                                longitude += longitudeNmea;
+                                                                longitudeParsedOk = true;
+                                                            } catch (Exception e) {
+                                                            }
+
+                                                            String fieldString6 = fieldList.get(6);
+                                                            if (fieldString6.equals("E")) {
+                                                                longitudeHemisphereParsedOk = true;
+                                                            } else if (fieldString6.equals("W")) {
+                                                                longitude = -longitude;
+                                                                longitudeHemisphereParsedOk = true;
+                                                            }
+
+                                                            if (longitudeParsedOk && longitudeHemisphereParsedOk) {
+                                                                longitudeReceivedTime = System.currentTimeMillis();
+                                                            }
                                                         }
                                                     }
                                                 }
                                             }
                                         }
+                                    } else {
+                                        nmeaMessageStarted = false;
                                     }
                                 }
-                                else {
-                                    nmeaMessageStarted = false;
-                                }
                             }
-                        }
-                    }
-                    catch (IOException e) {
-                        if (connectionCloseRequest) {
-                            connectionCloseRequest = false;
-                        }
-                        else {
-                            isConnected = false;
+                        } catch (IOException e) {
+                            if (connectionCloseRequest) {
+                                connectionCloseRequest = false;
+                            } else {
+                                isConnected = false;
 
-                            if (isWatching) {
-                                isWatching = false;
+                                if (isWatching) {
+                                    isWatching = false;
+                                    runOnUiThread(new Runnable() {
+                                        public void run() {
+                                            watchingButton.setBackgroundColor(Color.GRAY);
+                                            watchingButton.setEnabled(false);
+                                            watchingButton.setText("START");
+                                        }
+                                    });
+                                    // sound alarm for loss of data
+                                    mediaPlayer.release();
+                                    mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.beeper);
+                                    mediaPlayer.setVolume(1.0f, 1.0f);
+                                    mediaPlayer.setLooping(true);
+                                    mediaPlayer.start();
+                                }
+
                                 runOnUiThread(new Runnable() {
                                     public void run() {
-                                        watchingButton.setBackgroundColor(Color.GRAY);
-                                        watchingButton.setEnabled(false);
-                                        watchingButton.setText("START");
+                                        messageBoxThread("Bluetooth connection lost.");
+                                        connectButton.setBackgroundColor(Color.GREEN);
+                                        connectButton.setText("CONNECT");
+                                        connectButton.setEnabled(true);
+                                        setupWatchingButtons(true);
+                                        resetAllCurrentReadingsTexts();
                                     }
                                 });
-                                // sound alarm for loss of data
-                                mediaPlayer.release();
-                                mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.beeper);
-                                mediaPlayer.setVolume(1.0f, 1.0f);
-                                mediaPlayer.setLooping(true);
-                                mediaPlayer.start();
                             }
-
-                            runOnUiThread(new Runnable() {
-                                public void run() {
-                                    messageBoxThread("Bluetooth connection lost.");
-                                    connectButton.setBackgroundColor(Color.GREEN);
-                                    connectButton.setText("CONNECT");
-                                    connectButton.setEnabled(true);
-                                    setupWatchingButtons(true);
-                                    resetAllCurrentReadingsTexts();
-                                }
-                            });
                         }
+
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                if (System.currentTimeMillis() - depthReceivedTime > maxDepthDataAge) {
+                                    textViewDepth.setText("----");
+                                }
+
+                                if (System.currentTimeMillis() - sogReceivedTime > maxGpsDataAge) {
+                                    textViewSog.setText("----");
+                                }
+
+                                if (System.currentTimeMillis() - windspeedReceivedTime > maxWindDataAge) {
+                                    textViewWindspeed.setText("----");
+                                }
+
+                                if (System.currentTimeMillis() - headingReceivedTime > maxWindDataAge) {
+                                    textViewHeading.setText("----");
+                                }
+
+                                if (System.currentTimeMillis() - pressureReceivedTime > maxPressureDataAge) {
+                                    textViewPressure.setText("----");
+                                }
+                            }
+                        });
+                    } else if (settingsConnection == 1) {
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                if (System.currentTimeMillis() - depthReceivedTime < maxDepthDataAge) {
+                                    textViewDepth.setText(Float.toString(depth) + " m");
+                                } else {
+                                    textViewDepth.setText("----");
+                                }
+
+                                if (System.currentTimeMillis() - sogReceivedTime < maxGpsDataAge) {
+                                    textViewSog.setText(Float.toString(sog) + " Kts");
+                                } else {
+                                    textViewSog.setText("----");
+                                }
+
+                                if (System.currentTimeMillis() - windspeedReceivedTime < maxWindDataAge) {
+                                    textViewWindspeed.setText(Float.toString(windspeed) + " Kts");
+                                } else {
+                                    textViewWindspeed.setText("----");
+                                }
+
+                                if (System.currentTimeMillis() - headingReceivedTime < maxWindDataAge) {
+                                    textViewHeading.setText(Integer.toString(Math.round(heading)) + "°");
+                                } else {
+                                    textViewHeading.setText("----");
+                                }
+
+                                if (System.currentTimeMillis() - pressureReceivedTime < maxPressureDataAge) {
+                                    textViewPressure.setText(Integer.toString(Math.round(pressure)) + " mb");
+                                } else {
+                                    textViewPressure.setText("----");
+                                }
+                            }
+                        });
                     }
                 }
 
@@ -1207,7 +1253,44 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                             client.subscribeWith()
                                     .topicFilter(settingsCodeHexString + "/all")
                                     .callback(publish -> {
-                                        Log.d("nmea", new String(publish.getPayloadAsBytes())); // todo remove
+                                        String payload = new String(publish.getPayloadAsBytes());
+
+                                        String[] split = payload.split(",");
+                                        try {
+                                            depth = Float.parseFloat(split[8]);
+                                            depthReceivedTime = System.currentTimeMillis();
+                                        } catch (Exception e) {
+                                        }
+
+                                        try {
+                                        sog = Float.parseFloat(split[3]);
+                                        sogReceivedTime = System.currentTimeMillis();
+                                        } catch (Exception e) {
+                                        }
+
+                                        try {
+                                            latitude = Float.parseFloat(split[13]);
+                                            latitudeReceivedTime = System.currentTimeMillis();
+                                        } catch (Exception e) {
+                                        }
+
+                                        try {
+                                            longitude = Float.parseFloat(split[14]);
+                                            longitudeReceivedTime = System.currentTimeMillis();
+                                        } catch (Exception e) {
+                                        }
+
+                                        try {
+                                        heading = Float.parseFloat(split[7]);
+                                        headingReceivedTime = System.currentTimeMillis();
+                                        } catch (Exception e) {
+                                        }
+
+                                        try {
+                                            windspeed = Float.parseFloat(split[11]);
+                                            windspeedReceivedTime = System.currentTimeMillis();
+                                        } catch (Exception e) {
+                                        }
                                     })
                                     .send()
                                     .whenComplete((subAck, throwable) -> {
@@ -1225,7 +1308,6 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                                         watchingButton.setBackgroundColor(Color.GREEN);
                                                         watchingButton.setEnabled(true);
                                                         nmeaMessageStarted = false;
-                                                        Log.d("nmea", "Connected"); // todo remove
                                                     } else {
                                                         connectButton.setBackgroundColor(Color.GREEN);
                                                         connectButton.setText("CONNECT");
@@ -1261,6 +1343,12 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         } else {
             connectInternet(view);
         }
+
+        textViewDepth.setText("----");
+        textViewSog.setText("----");
+        textViewWindspeed.setText("----");
+        textViewPressure.setText("----");
+        textViewSog.setText("----");
     }
 
     public void watchingButtonOnClick(View view) {
@@ -1289,6 +1377,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                 messageBox("No measurements chosen to watch.");
                 return;
             }
+
             if ((!depthWatching || System.currentTimeMillis() - depthReceivedTime < maxDepthDataAge) &&
                     (!windWatching || System.currentTimeMillis() - windspeedReceivedTime < maxWindDataAge) &&
                     (!headingChangeWatching || System.currentTimeMillis() - headingReceivedTime < maxHeadingDataAge) &&
