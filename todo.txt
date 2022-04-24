@@ -4,18 +4,13 @@ Todo hardware
 
 Todo bugs
 ---------
-
 TCP write size of 99 causes problems - test by making floating point numbers longer in mqtt publish in boat_iot.c
 
 
 Todo functional
 ---------------
-Add MQTT cpability to Android app
-	Add remote station signal strength if space allows
-	Test full functionality of remote anchor watching
-	Regression test bluetooth anchor watching functionality/pressure sensor/NMEA2000
-	Check for internet connection loss
-Remove test #defines
+Add remote station signal strength if space allows
+Add tes data sms command
 Make buffer handling safe in nmea.c
 
 
@@ -25,12 +20,16 @@ Tidy up javascript code
 Create a new website with BlueThing name
 Rename boat_iot.c/h to mqtt_publisher.c/h
 In android app change settingsConnection from integer to enum type
+Move settings code in android app to separate class
 
 
 Todo testing
 ------------
 Test on boat
 Test local MQTT broker
+Test full functionality of anchor watching by mqtt
+Regression test bluetooth anchor watching functionality/pressure sensor/NMEA2000
+Check for internet connection loss in android app when watching by mqtt
 
 
 Todo documentation
@@ -144,3 +143,4 @@ Make time display on webpage a segment display
 Pressure not showing on android app
 In android app add setting for periodic ping sound
 Add reset settings to default sms command
+Add reload button to webpage

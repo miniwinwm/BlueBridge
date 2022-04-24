@@ -65,6 +65,11 @@
         		height: 300px;
         		width: 100%;
       		}            
+			
+			.button { 
+				height: 25px; 
+				width: 100px; 
+			} 		
         </style>  
         
 	    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.3.1/build/ol.js"></script>    
@@ -643,7 +648,8 @@
 						<img id="strength5" src="images/strength5.png">							
 					</div>  											
                     <div class="box-cell box4">
-						<br><br><button type = "button" onclick = "go()">Show boat</button>                                     
+						<button class="button" type = "button" onclick = "refresh()">Refresh</button>
+						<br><br><button class="button" type = "button" onclick = "go()">Show boat</button>                                     
                     </div> 						
                 </div>  
             </div>         
@@ -660,6 +666,10 @@
 				} else if (value=="emqx") {
 					setBroker("broker.emqx.io", "8083");
 				}				
+			}
+			
+			function refresh() {
+				location.reload();
 			}
 		</script>
 		
