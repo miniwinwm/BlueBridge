@@ -947,7 +947,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         settingsCode = preferences.getLong("code", 0);
         settingsCodeHexString = String.format("%08X", settingsCode);
         settingsBroker = preferences.getString("broker", "broker.emqx.io");
-        settingsPort = preferences.getInt("port", 8083);
+        settingsPort = preferences.getInt("port", 1883);
         settingsConnection = preferences.getInt("connection", 0);
     }
 
