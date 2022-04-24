@@ -41,7 +41,7 @@ SOFTWARE.
 #include "nmea.h"
 #include "timer.h"
 #include "wmm.h"
-#include "boat_iot.h"
+#include "publisher.h"
 #include "settings.h"
 #include "sms.h"
 #include "led.h"
@@ -52,7 +52,7 @@ SOFTWARE.
 
 #define PORT_N0183								0				///< Serial port used by NMEA0183 library that corresponds to first serial port in serial driver
 #define PORT_BLUETOOTH							1				///< Serial port used by NMEA0183 library that corresponds to second serial port in serial driver
-#define BOAT_IOT_TASK_STACK_SIZE				8096U			///< Stack size for boat iot thread
+#define PUBLISHER_TASK_STACK_SIZE				8096U			///< Stack size for boat iot thread
 #define MAIN_TASK_SW_TIMER_COUNT				3				///< Number of FreeRTOS soft timers used
 #define SW_TIMER_25_MS							0				///< Corresponds to 25 millisecond period FreeRTOS timer
 #define SW_TIMER_1_S							1				///< Corresponds to 1 second period FreeRTOS timer
@@ -1282,8 +1282,8 @@ extern "C" void app_main(void)
 	// init all the reception times to some time a long time ago
 	(void)memset((void *)&boat_data_reception_time, 0x7f, sizeof(boat_data_reception_time));
 		
-    // boat iot task
-    (void)xTaskCreate(boat_iot_task, "boat iot task", BOAT_IOT_TASK_STACK_SIZE, NULL, (UBaseType_t)1, NULL); 	
+    // publisher task
+    (void)xTaskCreate(publisher_task, "publisher task", PUBLISHER_TASK_STACK_SIZE, NULL, (UBaseType_t)1, NULL); 	
 
 	// wait until all server tasks have started
 	do
