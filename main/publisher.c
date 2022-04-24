@@ -583,6 +583,7 @@ void publisher_task(void *parameters)
 	char mqtt_topic[20];
 	char mqtt_data_buf[200];	
 	char number_buf[20];
+	uint8_t publish_failed_count = 0U;
 	
 	(void)parameters;
 	
@@ -779,11 +780,16 @@ void publisher_task(void *parameters)
 				
 				if (mqtt_status == MQTT_OK)
 				{
+					publish_failed_count = 0U;
 					led_flash(1000UL);
 				}
 				else
 				{
-					loop_failed = true;
+					publish_failed_count++;
+					if (publish_failed_count == PUBLISHER_MAX_FAILED_COUNT)
+					{
+						esp_restart();
+					}
 				}					
 			}				
 			

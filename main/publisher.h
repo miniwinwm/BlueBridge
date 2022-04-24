@@ -39,6 +39,8 @@ extern "C" {
 *** DEFINES ***
 **************/
 
+#define PUBLISHER_MAX_FAILED_COUNT		10U		///< Maximum number of times a publish is allowed to fail before a reboot of device
+
 /************
 *** TYPES ***
 ************/

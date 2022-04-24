@@ -9,16 +9,14 @@ TCP write size of 99 causes problems - test by making floating point numbers lon
 
 Todo functional
 ---------------
-Add tes data sms command
+Add test data on/off sms command
 Make buffer handling safe in nmea.c
-Multiple tcp errors in mqtt writes need a reboot
 
 
 Todo tidy up
 ------------
 Tidy up javascript code
 Create a new website with BlueThing name
-Rename boat_iot.c/h to mqtt_publisher.c/h
 In android app change settingsConnection from integer to enum type
 Move settings code in android app to separate class
 
@@ -146,3 +144,5 @@ Add reset settings to default sms command
 Add reload button to webpage
 Signal strength bands in webpage javascript need sorting
 Add remote station signal strength if space allows
+Rename boat_iot.c/h to publisher.c/h
+Multiple tcp errors in mqtt publish need a reboot
