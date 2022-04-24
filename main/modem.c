@@ -897,8 +897,10 @@ static void ServerGetOwnIpAddress(uint32_t timeoutMs)
 }
 
 /**
- * Server side of command to write a section of TCP data 
+ * Client side of command to write a section of TCP data 
  *
+ * @param data The bytes to send
+ * @param length The length of the data to send
  * @param timeoutMs Time in milliseconds for the command sequence to complete before giving up
  * @return an enum status representing one of the standard AT responses or error
  */ 
@@ -2092,7 +2094,7 @@ ModemStatus_t ModemTcpWrite(const uint8_t *data, size_t length, uint32_t timeout
 
 	while (lengthWritten < length)
 	{
-		if (length >= (size_t)MODEM_MAX_TCP_WRITE_SIZE)
+		if (length > (size_t)MODEM_MAX_TCP_WRITE_SIZE)
 		{
 			sectionLengthToWrite = MODEM_MAX_TCP_WRITE_SIZE;
 		}

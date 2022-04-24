@@ -9,6 +9,7 @@ import android.text.Editable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.TextView;
@@ -25,11 +26,13 @@ public class MqttSettingsDialogFragment extends DialogFragment {
     TextView codeTextView;
     TextView brokerTextView;
     TextView portTextView;
+    CheckBox watchingPingCheckBox;
 
     long code;
     String broker;
     int port;
     int connection;
+    boolean watchingPing;
     SharedPreferences preferences;
 
     public interface MqttSettingsDialogListener
@@ -40,13 +43,14 @@ public class MqttSettingsDialogFragment extends DialogFragment {
 
     MqttSettingsDialogListener listener;
 
-    public MqttSettingsDialogFragment(long code, String broker, int port, int connection, SharedPreferences preferences)
+    public MqttSettingsDialogFragment(long code, String broker, int port, int connection, boolean watchingPing, SharedPreferences preferences)
     {
         this.code = code;
         this.broker = broker;
         this.port = port;
         this.connection = connection;
         this.preferences = preferences;
+        this.watchingPing = watchingPing;
     }
 
     public void onAttach(Context context)
@@ -75,6 +79,7 @@ public class MqttSettingsDialogFragment extends DialogFragment {
         codeTextView = (TextView)view.findViewById(R.id.codeTextView);
         brokerTextView = (TextView)view.findViewById(R.id.brokerTextView);
         portTextView = (TextView)view.findViewById(R.id.portTextView);
+        watchingPingCheckBox = (CheckBox)view.findViewById(R.id.watchingPingCheckBox);
 
         bluetoothRadioButton.setOnClickListener(new View.OnClickListener()
         {
@@ -124,6 +129,7 @@ public class MqttSettingsDialogFragment extends DialogFragment {
             brokerTextView.setEnabled(true);
             portTextView.setEnabled(true);
         }
+        watchingPingCheckBox.setChecked(watchingPing);
 
         builder.setView(view)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -160,6 +166,13 @@ public class MqttSettingsDialogFragment extends DialogFragment {
                             editor.putInt("connection", 0);
                         } else {
                             editor.putInt("connection", 1);
+                        }
+
+                        // watching ping
+                        if (watchingPingCheckBox.isChecked()) {
+                            editor.putInt("ping", 1);
+                        } else {
+                            editor.putInt("ping", 0);
                         }
 
                         editor.commit();

@@ -2,17 +2,19 @@ Todo hardware
 -------------
 
 
+Todo bugs
+---------
+
+TCP write size of 99 causes problems - test by making floating point numbers longer in mqtt publish in boat_iot.c
+
+
 Todo functional
 ---------------
 Add MQTT cpability to Android app
-	Send pressure readings via mqtt
-	Update webpage to show poressure reading
-	Update android app to do pressure watching when recived by mqtt
 	Add remote station signal strength if space allows
 	Test full functionality of remote anchor watching
 	Regression test bluetooth anchor watching functionality/pressure sensor/NMEA2000
 	Check for internet connection loss
-In android app add setting for periodic ping sound
 Remove test #defines
 Make buffer handling safe in nmea.c
 
@@ -135,3 +137,10 @@ Android app move prototype mqtt code to main app
 Android app implement mqtt connection, subscribe, warnings dialogs
 Android app decode MQTT messages
 Android app update ui and do watching for mqtt received data
+If settings are wrong and a data connection cannot be made the device constantly reboots and never gets to code that reads sms messages to allow new settings to be applied
+Send pressure readings via mqtt
+Update webpage to show pressure reading
+Make time display on webpage a segment display
+Pressure not showing on android app
+In android app add setting for periodic ping sound
+Add reset settings to default sms command

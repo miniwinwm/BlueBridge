@@ -152,10 +152,9 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     long settingsCode;
     String settingsBroker;
     int settingsPort;
+    boolean settingsWatchingPing;
     String settingsCodeHexString;
     ImageButton settingsButton;
-    RadioButton bluetoothRadioButton;
-    RadioButton internetRadioButton;
     int settingsConnection;
     Mqtt3AsyncClient client;
 
@@ -488,7 +487,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                 }
 
                 // periodic ping sound
-                if (isWatching && System.currentTimeMillis() - lastPingTime > 10000 && !dataLossAlarmActive && !watchingAlarmActive) {
+                if (settingsWatchingPing && isWatching && System.currentTimeMillis() - lastPingTime > 10000 && !dataLossAlarmActive && !watchingAlarmActive) {
                     mediaPlayer.release();
                     mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.ping);
                     mediaPlayer.setVolume(0.2f, 0.2f);
@@ -695,6 +694,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         settingsBroker = preferences.getString("broker", "broker.emqx.io");
         settingsPort = preferences.getInt("port", 8083);
         settingsConnection = preferences.getInt("connection", 0);
+        settingsWatchingPing = (preferences.getInt("ping", 0) == 0) ? false : true;
     }
 
     public void onDialogNegativeClick(DialogFragment dialog)
@@ -858,8 +858,8 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         positionChangeMaxEditText = (EditText)findViewById((R.id.editTextNumberPositionChangeMax));
         anchorView = (AnchorView)findViewById((R.id.anchor_view));
         settingsButton = (ImageButton)findViewById((R.id.settingsButton));
-        bluetoothRadioButton = (RadioButton)findViewById((R.id.bluetoothRadioButton));
-        internetRadioButton = (RadioButton)findViewById((R.id.internetRadioButton));
+        //bluetoothRadioButton = (RadioButton)findViewById((R.id.bluetoothRadioButton));
+        //internetRadioButton = (RadioButton)findViewById((R.id.internetRadioButton));
     }
 
     private void getPreferences() {
@@ -1071,7 +1071,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     }
 
     public void settingsButtonOnClick(View view) {
-        new MqttSettingsDialogFragment(settingsCode, settingsBroker, settingsPort, settingsConnection, preferences).show(getSupportFragmentManager(), "MQTTSD");
+        new MqttSettingsDialogFragment(settingsCode, settingsBroker, settingsPort, settingsConnection, settingsWatchingPing, preferences).show(getSupportFragmentManager(), "MQTTSD");
     }
 
     public void depthToggleButtonOnClick(View view) {
@@ -1291,6 +1291,12 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                             windspeedReceivedTime = System.currentTimeMillis();
                                         } catch (Exception e) {
                                         }
+
+                                        try {
+                                            pressure = Float.parseFloat(split[15]);
+                                            pressureReceivedTime = System.currentTimeMillis();
+                                        } catch (Exception e) {
+                                        }
                                     })
                                     .send()
                                     .whenComplete((subAck, throwable) -> {
@@ -1344,11 +1350,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             connectInternet(view);
         }
 
-        textViewDepth.setText("----");
-        textViewSog.setText("----");
-        textViewWindspeed.setText("----");
-        textViewPressure.setText("----");
-        textViewSog.setText("----");
+        resetAllCurrentReadingsTexts();
     }
 
     public void watchingButtonOnClick(View view) {

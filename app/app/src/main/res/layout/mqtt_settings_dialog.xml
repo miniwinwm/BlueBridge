@@ -80,4 +80,17 @@
 
             android:text="Internet" />
     </RadioGroup>
+
+    <TextView
+        android:id="@+id/textView9"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Watching Ping"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body2" />
+
+    <CheckBox
+        android:id="@+id/watchingPingCheckBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Watching Ping" />
 </LinearLayout>

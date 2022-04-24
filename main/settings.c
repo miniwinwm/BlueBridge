@@ -49,7 +49,7 @@ SOFTWARE.
 #define SETTINGS_DEFAULT_MQTT_BROKER_ADDRESS				"broker.emqx.io"		///< Default MQTT broker ip address
 #define SETTINGS_DEFAULT_MQTT_BROKER_PORT					1883U					///< Default MQTT broker port
 #define SETTINGS_DEFAULT_MQTT_PUBLISH_PERIOD				30UL					///< Default MQTT publish period in seconds
-#define SETTINGS_DEFAULT_MQTT_PUBLISH_START_ON_BOOT			true					///< Default timeout in seconds to close the MQTT connection used when publish period is greater than this value
+#define SETTINGS_DEFAULT_MQTT_PUBLISH_START_ON_BOOT			true					///< Default if to start publishing on boot without receiving a start message
 
 /************
 *** TYPES ***
@@ -111,6 +111,20 @@ static bool settings_initialized = false;											///< If the settings driver 
 *** GLOBAL FUNCTIONS ***
 ***********************/
 
+void settings_reset(void)
+{
+	(void)memset(&settings_non_volatile, 0, sizeof(settings_non_volatile_t));
+	settings_non_volatile.signature = SIGNATURE;
+	settings_non_volatile.device_address = SETTINGS_DEFAULT_CAN_DEVICE_ADDRESS;
+	(void)util_safe_strcpy(settings_non_volatile.apn, sizeof(settings_non_volatile.apn), SETTINGS_DEFAULT_APN);
+	(void)util_safe_strcpy(settings_non_volatile.apn_user_name, sizeof(settings_non_volatile.apn_user_name), SETTINGS_DEFAULT_APN_USER_NAME);
+	(void)util_safe_strcpy(settings_non_volatile.apn_password, sizeof(settings_non_volatile.apn_password), SETTINGS_DEFAULT_APN_PASSWORD);		
+	(void)util_safe_strcpy(settings_non_volatile.mqtt_broker_address, sizeof(settings_non_volatile.mqtt_broker_address), SETTINGS_DEFAULT_MQTT_BROKER_ADDRESS);
+	settings_non_volatile.mqtt_broker_port = SETTINGS_DEFAULT_MQTT_BROKER_PORT;
+	settings_non_volatile.period_s = SETTINGS_DEFAULT_MQTT_PUBLISH_PERIOD;
+	flash_store_data((const uint8_t *)&settings_non_volatile, sizeof(settings_non_volatile_t));  	
+}
+
 void settings_init(void)
 {
 	if (settings_initialized)
@@ -121,18 +135,9 @@ void settings_init(void)
 	settings_initialized = true;
 	settings_mutex_handle = xSemaphoreCreateMutex();	
 	flash_load_data((uint8_t *)&settings_non_volatile, sizeof(settings_non_volatile_t));
-    if (settings_non_volatile.signature != SIGNATURE)
+    if (settings_non_volatile.signature != SIGNATURE || settings_non_volatile.period_s == 0UL)
     {
-        (void)memset(&settings_non_volatile, 0, sizeof(settings_non_volatile_t));
-        settings_non_volatile.signature = SIGNATURE;
-        settings_non_volatile.device_address = SETTINGS_DEFAULT_CAN_DEVICE_ADDRESS;
-		(void)util_safe_strcpy(settings_non_volatile.apn, sizeof(settings_non_volatile.apn), SETTINGS_DEFAULT_APN);
-		(void)util_safe_strcpy(settings_non_volatile.apn_user_name, sizeof(settings_non_volatile.apn_user_name), SETTINGS_DEFAULT_APN_USER_NAME);
-		(void)util_safe_strcpy(settings_non_volatile.apn_password, sizeof(settings_non_volatile.apn_password), SETTINGS_DEFAULT_APN_PASSWORD);		
-		(void)util_safe_strcpy(settings_non_volatile.mqtt_broker_address, sizeof(settings_non_volatile.mqtt_broker_address), SETTINGS_DEFAULT_MQTT_BROKER_ADDRESS);
-		settings_non_volatile.mqtt_broker_port = SETTINGS_DEFAULT_MQTT_BROKER_PORT;
- 		settings_non_volatile.period_s = SETTINGS_DEFAULT_MQTT_PUBLISH_PERIOD;
-		flash_store_data((const uint8_t *)&settings_non_volatile, sizeof(settings_non_volatile_t));        
+		settings_reset();
     }
 	
 	settings_volatile.boat_iot_started = SETTINGS_DEFAULT_MQTT_PUBLISH_START_ON_BOOT;

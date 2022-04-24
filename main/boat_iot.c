@@ -379,6 +379,15 @@ static bool config_parser_callback(char *key, char *value)
 		(void)sms_send("Stopped", settings_get_phone_number());				
 		found = true;		
 	}	
+	else if (strcmp(key, "RESET") == 0)
+	{
+		ESP_LOGI(pcTaskGetName(NULL), "Command reset");	
+		
+		settings_reset();
+		settings_set_reboot_needed(true);		
+		(void)sms_send("Reset - restarting", settings_get_phone_number());				
+		found = true;		
+	}		
 	else if (strcmp(key, "RESTART") == 0)
 	{
 		ESP_LOGI(pcTaskGetName(NULL), "Command restart");	
@@ -566,7 +575,6 @@ void boat_iot_task(void *parameters)
 	MqttStatus_t mqtt_status;
 	uint8_t strength;	
 	bool modem_start_success;
-	uint8_t failed_loop_count = 0U;
 	bool loop_failed;
 	uint32_t sms_id;
 	uint32_t i;
@@ -745,7 +753,7 @@ void boat_iot_task(void *parameters)
 				// latitude
 				if (time_ms - boat_data_reception_time.latitude_received_time < LATITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.latitude_received_time > time_ms)
 				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%.8f", latitude_data);
+					(void)snprintf(number_buf, sizeof(number_buf), "%.4f", latitude_data);
 					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
 				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");				
@@ -753,9 +761,18 @@ void boat_iot_task(void *parameters)
 				// longitude
 				if (time_ms - boat_data_reception_time.longitude_received_time < LONGITUDE_MAX_DATA_AGE_MS || boat_data_reception_time.longitude_received_time > time_ms)
 				{
-					(void)snprintf(number_buf, sizeof(number_buf), "%.8f", longitude_data);
+					(void)snprintf(number_buf, sizeof(number_buf), "%.4f", longitude_data);
 					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");		
+
+				// pressure
+				if (time_ms - boat_data_reception_time.pressure_received_time < PRESSURE_MAX_DATA_AGE_MS || boat_data_reception_time.pressure_received_time > time_ms)
+				{
+					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", pressure_data);
+					
+					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				}				
 
 				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);									
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish %s %s %s", mqtt_topic, mqtt_data_buf, MqttStatusToText(mqtt_status));		
@@ -773,23 +790,7 @@ void boat_iot_task(void *parameters)
 			if (settings_get_publishing_period_s() > MQTT_SHUTDOWN_PERIOD_S)
 			{
 				close_mqtt_connection();
-			}
-			
-			if (loop_failed)
-			{
-				failed_loop_count++;
-			}
-			else
-			{
-				failed_loop_count = 0U;
-			}
-			
-			if (failed_loop_count == 10U)
-			{
-				led_flash(60000UL);
-				ESP_LOGI(pcTaskGetName(NULL), "************ REBOOTING ************");			
-				esp_restart();	
-			}			
+			}		
 		}
 		
 		for (i = 0UL; i < settings_get_publishing_period_s(); i++)

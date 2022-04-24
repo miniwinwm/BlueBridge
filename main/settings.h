@@ -65,6 +65,11 @@ extern "C" {
 void settings_init(void);
 
 /**
+ * Reset all settings to defaults
+ */
+void settings_reset(void);
+
+/**
  * Serialize non-volatile settings to flash 
  */
 void settings_save(void);

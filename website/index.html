@@ -89,7 +89,9 @@
 			var awa = 0.0;
 			var temp = 0.0;
 			var strength = 0;
-
+			var pressure = 0.0;
+			var totalSeconds = 0;	
+			
 			// callback called when the connection to the broker has been established
 	 		function onConnect() {
 				mqtt.subscribe(boatCode + "/all");
@@ -121,7 +123,7 @@
 			    if (msg.destinationName == boatCode + "/all") {
 					const payloadArray = msg.payloadString.split(",");
 						
-					if (payloadArray.length == 15)
+					if (payloadArray.length == 16)
 					{
 						if (payloadArray[0] != "") {
 							strength = payloadArray[0];		
@@ -173,6 +175,9 @@
 						if (payloadArray[14] != "") {
 							long = payloadArray[14];								
 						}	
+						if (payloadArray[15] != "") {
+							pressure = payloadArray[15];	
+						}						
 					}								
 				}					
 			}
@@ -322,6 +327,39 @@
 	  		function animateLog() {
 	    		displayLog.setValue(Number.parseFloat(log).toFixed(0).padStart(5,'0'));        
 	    		window.setTimeout('animateLog()', 1000);
+	  		}
+		</script>   		
+		
+		<!-- Pressure -->		
+		<script type="text/javascript">
+			var displayPressure = new SegmentDisplay("displayPressure");
+	  		displayPressure.pattern         = "####.#";
+	  		displayPressure.colorOn         = "rgba(0, 0, 0, 0.9)";
+	  		displayPressure.colorOff        = "rgba(0, 0, 0, 0.1)";
+	
+	  		animatePressure();
+	
+	  		function animatePressure() {
+	    		displayPressure.setValue(Number.parseFloat(pressure).toFixed(1).padStart(6,'0'));        
+	    		window.setTimeout('animatePressure()', 1000);
+	  		}
+		</script>   
+
+		<!-- Age -->		
+		<script type="text/javascript">
+			var displayAge = new SegmentDisplay("displayAge");
+	  		displayAge.pattern         = "##:##";
+	  		displayAge.colorOn         = "rgba(0, 0, 0, 0.9)";
+	  		displayAge.colorOff        = "rgba(0, 0, 0, 0.1)";
+	
+	  		animateAge();
+	
+	  		function animateAge() {
+				var minutes = Math.floor(totalSeconds / 60);
+				var seconds = totalSeconds % 60;
+				var value = ((minutes < 10) ? '0' : '') + minutes + ':' + ((seconds < 10) ? '0' : '') + seconds;
+				displayAge.setValue(value);			
+	    		window.setTimeout('animateAge()', 1000);
 	  		}
 		</script>   		
 		
@@ -574,14 +612,14 @@
             	<!-- third row -->
                 <div class="box-row">  
                     <div class="box-cell box1">
-						DEPTH m<canvas id="displayDepth" width="120" height="34"></canvas>                    
-                    </div>  
-                    <div class="box-cell box2">
 						TRIP NM<canvas id="displayTrip" width="120" height="34"></canvas>                                        
                     </div>  
-                    <div class="box-cell box3">
-						LOG NM<canvas id="displayLog" width="120" height="34"></canvas>                                                            
+                    <div class="box-cell box2">
+						LOG NM<canvas id="displayLog" width="120" height="34"></canvas> 
                     </div>  
+                    <div class="box-cell box3">
+						DEPTH m<canvas id="displayDepth" width="120" height="34"></canvas>                    
+                    </div> 					
                     <div class="box-cell box4">
 						WATER TEMP<canvas id="displayTemp" width="120" height="34"></canvas>                                                            
                     </div>                      
@@ -590,22 +628,23 @@
             	<!-- fourth row -->
                 <div class="box-row">  
                     <div class="box-cell box1">
-						<button type = "button" onclick = "go()">Show boat</button>                                     
+						PRESSURE MB<canvas id="displayPressure" width="120" height="34"></canvas>   						
                     </div> 		
                     <div class="box-cell box2">
-                    </div> 	
+						AGE<canvas id="displayAge" width="120" height="34"></canvas>   						
+                    </div> 					
                     <div class="box-cell box3">
-						AGE <label id="minutes">00</label>:<label id="seconds">00</label>
-                    </div> 	
-                    <div class="box-cell box4">
-						SIGNAL
+						SIGNAL<br>
 						<img id="strength0" src="images/strength0.png">
 						<img id="strength1" src="images/strength1.png">	
 						<img id="strength2" src="images/strength2.png">
 						<img id="strength3" src="images/strength3.png">
 						<img id="strength4" src="images/strength4.png">
 						<img id="strength5" src="images/strength5.png">							
-					</div>  
+					</div>  											
+                    <div class="box-cell box4">
+						<br><br><button type = "button" onclick = "go()">Show boat</button>                                     
+                    </div> 						
                 </div>  
             </div>         
         </div> 
@@ -652,10 +691,6 @@
 		</script>
 		
   		<script type="text/javascript">		
-  			//var myMap;
-			var minutesLabel = document.getElementById("minutes");
-			var secondsLabel = document.getElementById("seconds");
-			var totalSeconds = 0;	
 			var boatCode = "";
 			var broker = "";
 			var port = "";
@@ -682,8 +717,6 @@
 				if (totalSeconds >= 3600) {
 					totalSeconds = 3599;
 				}
-				secondsLabel.innerHTML = pad(totalSeconds % 60);
-				minutesLabel.innerHTML = pad(parseInt(totalSeconds / 60));
 				if (totalSeconds > 30) {
 					setImageVisible(0);
 				}
