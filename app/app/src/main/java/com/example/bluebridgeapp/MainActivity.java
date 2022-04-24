@@ -66,10 +66,10 @@ import java.util.Set;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements MqttSettingsDialogFragment.MqttSettingsDialogListener {
-    final long maxGpsDataAge = 20000;
-    final long maxDepthDataAge = 20000;
-    final long maxWindDataAge = 20000;
-    final long maxHeadingDataAge = 20000;
+    final long maxGpsDataAge = 40000;
+    final long maxDepthDataAge = 40000;
+    final long maxWindDataAge = 40000;
+    final long maxHeadingDataAge = 40000;
     final long maxPressureDataAge = 60000;
     final long alarmRearmTime = 60000;
     final float DEGREES_TO_RADS = 57.296f;

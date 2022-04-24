@@ -146,3 +146,4 @@ Signal strength bands in webpage javascript need sorting
 Add remote station signal strength if space allows
 Rename boat_iot.c/h to publisher.c/h
 Multiple tcp errors in mqtt publish need a reboot
+Data times out in android app with mqtt data source with default 30s publish period. Make data timeout period > 30s
