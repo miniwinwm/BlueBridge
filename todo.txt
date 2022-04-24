@@ -5,6 +5,7 @@ Todo hardware
 Todo bugs
 ---------
 TCP write size of 99 causes problems - test by making floating point numbers longer in mqtt publish in boat_iot.c
+App icon not showing in older android version
 
 
 Todo functional
@@ -147,3 +148,6 @@ Add remote station signal strength if space allows
 Rename boat_iot.c/h to publisher.c/h
 Multiple tcp errors in mqtt publish need a reboot
 Data times out in android app with mqtt data source with default 30s publish period. Make data timeout period > 30s
+Default mqtt port in android app is incorrect
+Backlight goes dark when watching is started - remove this feature
+Connecting to wrong port via mqtt causes crash

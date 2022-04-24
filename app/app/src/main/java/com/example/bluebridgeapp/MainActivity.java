@@ -699,14 +699,13 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         settingsCode = preferences.getLong("code", 0);
         settingsCodeHexString = String.format("%08X", settingsCode);
         settingsBroker = preferences.getString("broker", "broker.emqx.io");
-        settingsPort = preferences.getInt("port", 8083);
+        settingsPort = preferences.getInt("port", 1883);
         settingsConnection = preferences.getInt("connection", 0);
         settingsWatchingPing = (preferences.getInt("ping", 0) == 0) ? false : true;
     }
 
     public void onDialogNegativeClick(DialogFragment dialog)
     {
-        // do nothing
     }
 
     private void messageBoxThread(String message) {
@@ -1319,105 +1318,119 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                 .serverHost(settingsBroker)
                                 .serverPort(settingsPort)
                                 .buildBlocking();
+                        try {
+                            if (blockingClient.connectWith().keepAlive(30).send().getReturnCode() == Mqtt3ConnAckReturnCode.SUCCESS) {
+                                client = blockingClient.toAsync();
+                                client.subscribeWith()
+                                        .topicFilter(settingsCodeHexString + "/all")
+                                        .callback(publish -> {
+                                            String payload = new String(publish.getPayloadAsBytes());
 
-                        if (blockingClient.connectWith().keepAlive(30).send().getReturnCode() == Mqtt3ConnAckReturnCode.SUCCESS) {
-                            client = blockingClient.toAsync();
-                            client.subscribeWith()
-                                    .topicFilter(settingsCodeHexString + "/all")
-                                    .callback(publish -> {
-                                        String payload = new String(publish.getPayloadAsBytes());
-
-                                        String[] split = payload.split(",");
-                                        try {
-                                            depth = Float.parseFloat(split[8]);
-                                            depthReceivedTime = System.currentTimeMillis();
-                                        } catch (Exception e) {
-                                        }
-
-                                        try {
-                                        sog = Float.parseFloat(split[3]);
-                                        sogReceivedTime = System.currentTimeMillis();
-                                        } catch (Exception e) {
-                                        }
-
-                                        try {
-                                            latitude = Float.parseFloat(split[13]);
-                                            latitudeReceivedTime = System.currentTimeMillis();
-                                        } catch (Exception e) {
-                                        }
-
-                                        try {
-                                            longitude = Float.parseFloat(split[14]);
-                                            longitudeReceivedTime = System.currentTimeMillis();
-                                        } catch (Exception e) {
-                                        }
-
-                                        try {
-                                        heading = Float.parseFloat(split[7]);
-                                        headingReceivedTime = System.currentTimeMillis();
-                                        } catch (Exception e) {
-                                        }
-
-                                        try {
-                                            windspeed = Float.parseFloat(split[11]);
-                                            windspeedReceivedTime = System.currentTimeMillis();
-                                        } catch (Exception e) {
-                                        }
-
-                                        try {
-                                            pressure = Float.parseFloat(split[15]);
-                                            pressureReceivedTime = System.currentTimeMillis();
-                                        } catch (Exception e) {
-                                        }
-
-                                        try {
-                                            int signalStrength = Integer.parseInt(split[0]);
-                                            if (signalStrength < 1) {
-                                                setSignalStrengthIcon(0);
-                                            } else if (signalStrength < 9) {
-                                                setSignalStrengthIcon(1);
-                                            } else if (signalStrength < 15) {
-                                                setSignalStrengthIcon(2);
-                                            } else if (signalStrength < 21) {
-                                                setSignalStrengthIcon(3);
-                                            } else if (signalStrength < 27) {
-                                                setSignalStrengthIcon(4);
-                                            } else {
-                                                setSignalStrengthIcon(5);
+                                            String[] split = payload.split(",");
+                                            try {
+                                                depth = Float.parseFloat(split[8]);
+                                                depthReceivedTime = System.currentTimeMillis();
+                                            } catch (Exception e) {
                                             }
-                                        } catch (Exception e) {
-                                            setSignalStrengthIcon(0);
-                                        }
-                                    })
-                                    .send()
-                                    .whenComplete((subAck, throwable) -> {
-                                        if (throwable != null) {
-                                            // Handle failure to subscribe
-                                            messageBoxThread("Connection failure");
-                                        } else {
-                                            // subscribe success
-                                            runOnUiThread(new Runnable() {
-                                                public void run() {
-                                                    connectButton.setEnabled(true);
-                                                    if (isConnected) {
-                                                        connectButton.setBackgroundColor(Color.RED);
-                                                        connectButton.setText("DISCONNECT");
-                                                        watchingButton.setBackgroundColor(Color.GREEN);
-                                                        watchingButton.setEnabled(true);
-                                                        nmeaMessageStarted = false;
-                                                    } else {
-                                                        connectButton.setBackgroundColor(Color.GREEN);
-                                                        connectButton.setText("CONNECT");
-                                                        settingsButton.setEnabled(true);
-                                                        settingsButton.setVisibility(View.VISIBLE);
-                                                        setSignalStrengthIcon(-1);
-                                                    }
-                                                }
-                                            });
 
-                                            isConnected = true;
-                                        }
-                                    });
+                                            try {
+                                                sog = Float.parseFloat(split[3]);
+                                                sogReceivedTime = System.currentTimeMillis();
+                                            } catch (Exception e) {
+                                            }
+
+                                            try {
+                                                latitude = Float.parseFloat(split[13]);
+                                                latitudeReceivedTime = System.currentTimeMillis();
+                                            } catch (Exception e) {
+                                            }
+
+                                            try {
+                                                longitude = Float.parseFloat(split[14]);
+                                                longitudeReceivedTime = System.currentTimeMillis();
+                                            } catch (Exception e) {
+                                            }
+
+                                            try {
+                                                heading = Float.parseFloat(split[7]);
+                                                headingReceivedTime = System.currentTimeMillis();
+                                            } catch (Exception e) {
+                                            }
+
+                                            try {
+                                                windspeed = Float.parseFloat(split[11]);
+                                                windspeedReceivedTime = System.currentTimeMillis();
+                                            } catch (Exception e) {
+                                            }
+
+                                            try {
+                                                pressure = Float.parseFloat(split[15]);
+                                                pressureReceivedTime = System.currentTimeMillis();
+                                            } catch (Exception e) {
+                                            }
+
+                                            try {
+                                                int signalStrength = Integer.parseInt(split[0]);
+                                                if (signalStrength < 1) {
+                                                    setSignalStrengthIcon(0);
+                                                } else if (signalStrength < 9) {
+                                                    setSignalStrengthIcon(1);
+                                                } else if (signalStrength < 15) {
+                                                    setSignalStrengthIcon(2);
+                                                } else if (signalStrength < 21) {
+                                                    setSignalStrengthIcon(3);
+                                                } else if (signalStrength < 27) {
+                                                    setSignalStrengthIcon(4);
+                                                } else {
+                                                    setSignalStrengthIcon(5);
+                                                }
+                                            } catch (Exception e) {
+                                                setSignalStrengthIcon(0);
+                                            }
+                                        })
+                                        .send()
+                                        .whenComplete((subAck, throwable) -> {
+                                            if (throwable != null) {
+                                                // Handle failure to subscribe
+                                                messageBoxThread("Connection failure");
+                                            } else {
+                                                // subscribe success
+                                                runOnUiThread(new Runnable() {
+                                                    public void run() {
+                                                        connectButton.setEnabled(true);
+                                                        if (isConnected) {
+                                                            connectButton.setBackgroundColor(Color.RED);
+                                                            connectButton.setText("DISCONNECT");
+                                                            watchingButton.setBackgroundColor(Color.GREEN);
+                                                            watchingButton.setEnabled(true);
+                                                            nmeaMessageStarted = false;
+                                                        } else {
+                                                            connectButton.setEnabled(true);
+                                                            connectButton.setBackgroundColor(Color.GREEN);
+                                                            connectButton.setText("CONNECT");
+                                                            settingsButton.setEnabled(true);
+                                                            settingsButton.setVisibility(View.VISIBLE);
+                                                            setSignalStrengthIcon(-1);
+                                                        }
+                                                    }
+                                                });
+
+                                                isConnected = true;
+                                            }
+                                        });
+                            }
+                        } catch (Exception e) {
+                            messageBoxThread("Connection refused");
+                            runOnUiThread(new Runnable() {
+                                public void run() {
+                                    connectButton.setEnabled(true);
+                                    connectButton.setBackgroundColor(Color.GREEN);
+                                    connectButton.setText("CONNECT");
+                                    settingsButton.setEnabled(true);
+                                    settingsButton.setVisibility(View.VISIBLE);
+                                    setSignalStrengthIcon(-1);
+                                }
+                            });
                         }
                     }
                 });
@@ -1449,9 +1462,6 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         saveAllTextEdits();
         anchorView.Reset();
         anchorView.drawAnchorView();
-        WindowManager.LayoutParams params = getWindow().getAttributes();
-        params.screenBrightness = 0;
-        getWindow().setAttributes(params);
 
         if (isWatching) {
             watchingButton.setBackgroundColor(Color.GREEN);
