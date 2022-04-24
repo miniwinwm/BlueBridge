@@ -9,9 +9,9 @@ TCP write size of 99 causes problems - test by making floating point numbers lon
 
 Todo functional
 ---------------
-Add remote station signal strength if space allows
 Add tes data sms command
 Make buffer handling safe in nmea.c
+Multiple tcp errors in mqtt writes need a reboot
 
 
 Todo tidy up
@@ -144,3 +144,5 @@ Pressure not showing on android app
 In android app add setting for periodic ping sound
 Add reset settings to default sms command
 Add reload button to webpage
+Signal strength bands in webpage javascript need sorting
+Add remote station signal strength if space allows

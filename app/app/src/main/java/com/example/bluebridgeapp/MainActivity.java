@@ -48,7 +48,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.RadioButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -157,6 +157,13 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     ImageButton settingsButton;
     int settingsConnection;
     Mqtt3AsyncClient client;
+    ImageView bluetoothImageView;
+    ImageView strength0ImageView;
+    ImageView strength1ImageView;
+    ImageView strength2ImageView;
+    ImageView strength3ImageView;
+    ImageView strength4ImageView;
+    ImageView strength5ImageView;
 
     Thread thread = new Thread() {
         byte[] nmeaMessageArray = new byte[101];
@@ -832,6 +839,63 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         }
     }
 
+    private void setSignalStrengthIcon(int strength) {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                if (strength < 0) {
+                    strength0ImageView.setVisibility(View.INVISIBLE);
+                    strength1ImageView.setVisibility(View.INVISIBLE);
+                    strength2ImageView.setVisibility(View.INVISIBLE);
+                    strength3ImageView.setVisibility(View.INVISIBLE);
+                    strength4ImageView.setVisibility(View.INVISIBLE);
+                    strength5ImageView.setVisibility(View.INVISIBLE);
+                } else if (strength == 0) {
+                    strength0ImageView.setVisibility(View.VISIBLE);
+                    strength1ImageView.setVisibility(View.INVISIBLE);
+                    strength2ImageView.setVisibility(View.INVISIBLE);
+                    strength3ImageView.setVisibility(View.INVISIBLE);
+                    strength4ImageView.setVisibility(View.INVISIBLE);
+                    strength5ImageView.setVisibility(View.INVISIBLE);
+                } else if (strength == 1) {
+                    strength0ImageView.setVisibility(View.INVISIBLE);
+                    strength1ImageView.setVisibility(View.VISIBLE);
+                    strength2ImageView.setVisibility(View.INVISIBLE);
+                    strength3ImageView.setVisibility(View.INVISIBLE);
+                    strength4ImageView.setVisibility(View.INVISIBLE);
+                    strength5ImageView.setVisibility(View.INVISIBLE);
+                } else if (strength == 2) {
+                    strength0ImageView.setVisibility(View.INVISIBLE);
+                    strength1ImageView.setVisibility(View.INVISIBLE);
+                    strength2ImageView.setVisibility(View.VISIBLE);
+                    strength3ImageView.setVisibility(View.INVISIBLE);
+                    strength4ImageView.setVisibility(View.INVISIBLE);
+                    strength5ImageView.setVisibility(View.INVISIBLE);
+                } else if (strength == 3) {
+                    strength0ImageView.setVisibility(View.INVISIBLE);
+                    strength1ImageView.setVisibility(View.INVISIBLE);
+                    strength2ImageView.setVisibility(View.INVISIBLE);
+                    strength3ImageView.setVisibility(View.VISIBLE);
+                    strength4ImageView.setVisibility(View.INVISIBLE);
+                    strength5ImageView.setVisibility(View.INVISIBLE);
+                } else if (strength == 4) {
+                    strength0ImageView.setVisibility(View.INVISIBLE);
+                    strength1ImageView.setVisibility(View.INVISIBLE);
+                    strength2ImageView.setVisibility(View.INVISIBLE);
+                    strength3ImageView.setVisibility(View.INVISIBLE);
+                    strength4ImageView.setVisibility(View.VISIBLE);
+                    strength5ImageView.setVisibility(View.INVISIBLE);
+                } else if (strength == 5) {
+                    strength0ImageView.setVisibility(View.INVISIBLE);
+                    strength1ImageView.setVisibility(View.INVISIBLE);
+                    strength2ImageView.setVisibility(View.INVISIBLE);
+                    strength3ImageView.setVisibility(View.INVISIBLE);
+                    strength4ImageView.setVisibility(View.INVISIBLE);
+                    strength5ImageView.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+    }
+
     private void getUiIds() {
         connectButton = (Button)findViewById((R.id.connectButton));
         watchingButton = (Button)findViewById((R.id.watchingButton));
@@ -858,8 +922,13 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         positionChangeMaxEditText = (EditText)findViewById((R.id.editTextNumberPositionChangeMax));
         anchorView = (AnchorView)findViewById((R.id.anchor_view));
         settingsButton = (ImageButton)findViewById((R.id.settingsButton));
-        //bluetoothRadioButton = (RadioButton)findViewById((R.id.bluetoothRadioButton));
-        //internetRadioButton = (RadioButton)findViewById((R.id.internetRadioButton));
+        bluetoothImageView = (ImageView)findViewById(R.id.bluetoothImageView);
+        strength0ImageView = (ImageView)findViewById(R.id.strength0ImageView);
+        strength1ImageView = (ImageView)findViewById(R.id.strength1ImageView);
+        strength2ImageView = (ImageView)findViewById(R.id.strength2ImageView);
+        strength3ImageView = (ImageView)findViewById(R.id.strength3ImageView);
+        strength4ImageView = (ImageView)findViewById(R.id.strength4ImageView);
+        strength5ImageView = (ImageView)findViewById(R.id.strength5ImageView);
     }
 
     private void getPreferences() {
@@ -1144,6 +1213,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             resetAllCurrentReadingsTexts();
             settingsButton.setEnabled(true);
             settingsButton.setVisibility(View.VISIBLE);
+            bluetoothImageView.setVisibility(View.INVISIBLE);
         } else {
             // connect
             if (bluetoothAdapter == null) {
@@ -1154,7 +1224,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                 connectButton.setEnabled(false);
                 settingsButton.setEnabled(false);
                 settingsButton.setVisibility(View.INVISIBLE);
-
+                bluetoothImageView.setVisibility(View.VISIBLE);
                 connectButton.setText("CONNECTING");
                 connectButton.setBackgroundColor(Color.GRAY);
 
@@ -1203,6 +1273,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                     connectButton.setText("CONNECT");
                                     settingsButton.setEnabled(true);
                                     settingsButton.setVisibility(View.VISIBLE);
+                                    bluetoothImageView.setVisibility(View.INVISIBLE);
                                 }
                             }
                         });
@@ -1227,6 +1298,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             settingsButton.setEnabled(true);
             settingsButton.setVisibility(View.VISIBLE);
             client.disconnect();
+            setSignalStrengthIcon(-1);
         } else {
             if (!isNetworkAvailable()) {
                 messageBox("No internet connection available");
@@ -1236,9 +1308,9 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                 connectButton.setEnabled(false);
                 settingsButton.setEnabled(false);
                 settingsButton.setVisibility(View.INVISIBLE);
-
                 connectButton.setText("CONNECTING");
                 connectButton.setBackgroundColor(Color.GRAY);
+                setSignalStrengthIcon(0);
 
                 Thread connectThread = new Thread(new Runnable() {
                     public void run() {
@@ -1297,6 +1369,25 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                             pressureReceivedTime = System.currentTimeMillis();
                                         } catch (Exception e) {
                                         }
+
+                                        try {
+                                            int signalStrength = Integer.parseInt(split[0]);
+                                            if (signalStrength < 1) {
+                                                setSignalStrengthIcon(0);
+                                            } else if (signalStrength < 9) {
+                                                setSignalStrengthIcon(1);
+                                            } else if (signalStrength < 15) {
+                                                setSignalStrengthIcon(2);
+                                            } else if (signalStrength < 21) {
+                                                setSignalStrengthIcon(3);
+                                            } else if (signalStrength < 27) {
+                                                setSignalStrengthIcon(4);
+                                            } else {
+                                                setSignalStrengthIcon(5);
+                                            }
+                                        } catch (Exception e) {
+                                            setSignalStrengthIcon(0);
+                                        }
                                     })
                                     .send()
                                     .whenComplete((subAck, throwable) -> {
@@ -1319,6 +1410,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                                         connectButton.setText("CONNECT");
                                                         settingsButton.setEnabled(true);
                                                         settingsButton.setVisibility(View.VISIBLE);
+                                                        setSignalStrengthIcon(-1);
                                                     }
                                                 }
                                             });
