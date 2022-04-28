@@ -27,13 +27,7 @@ public class MqttSettingsDialogFragment extends DialogFragment {
     TextView brokerTextView;
     TextView portTextView;
     CheckBox watchingPingCheckBox;
-
-    long code;
-    String broker;
-    int port;
-    int connection;
-    boolean watchingPing;
-    SharedPreferences preferences;
+    Settings settings;
 
     public interface MqttSettingsDialogListener
     {
@@ -43,14 +37,9 @@ public class MqttSettingsDialogFragment extends DialogFragment {
 
     MqttSettingsDialogListener listener;
 
-    public MqttSettingsDialogFragment(long code, String broker, int port, int connection, boolean watchingPing, SharedPreferences preferences)
+    public MqttSettingsDialogFragment(Settings settings)
     {
-        this.code = code;
-        this.broker = broker;
-        this.port = port;
-        this.connection = connection;
-        this.preferences = preferences;
-        this.watchingPing = watchingPing;
+        this.settings = settings;
     }
 
     public void onAttach(Context context)
@@ -107,10 +96,10 @@ public class MqttSettingsDialogFragment extends DialogFragment {
             }
         });
 
-        codeEditText.setText(String.format("%08X", code));
-        brokerEditText.setText(broker);
-        portEditText.setText(String.format("%d", port));
-        if (connection == 0) {
+        codeEditText.setText(settings.getCodeHexString());
+        brokerEditText.setText(settings.getBroker());
+        portEditText.setText(String.format("%d", settings.getPort()));
+        if (settings.getConnectionType() == 0) {
             bluetoothRadioButton.setChecked(true);
             internetRadioButton.setChecked(false);
             codeEditText.setEnabled(false);
@@ -129,53 +118,16 @@ public class MqttSettingsDialogFragment extends DialogFragment {
             brokerTextView.setEnabled(true);
             portTextView.setEnabled(true);
         }
-        watchingPingCheckBox.setChecked(watchingPing);
+        watchingPingCheckBox.setChecked(settings.getWatchingPing());
 
         builder.setView(view)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        SharedPreferences.Editor editor = preferences.edit();
-
-                        // code
-                        try {
-                            code = Long.parseLong(String.valueOf(codeEditText.getText()), 16);
-                        } catch (NumberFormatException e) {
-                            code = 0;
-                        }
-                        if (code < 0 || code > 0xffffffffL) {
-                            code = 0;
-                        }
-                        editor.putLong("code", code);
-
-                        // broker
-                        editor.putString("broker", String.valueOf(brokerEditText.getText()));
-
-                        // port
-                        try {
-                            port = Integer.parseInt(String.valueOf(portEditText.getText()));
-                        } catch (NumberFormatException e) {
-                            port = 0;
-                        }
-                        if (port < 0 || port > 0xffff) {
-                            port = 0;
-                        }
-                        editor.putInt("port", port);
-
-                        // connection
-                        if (bluetoothRadioButton.isChecked()) {
-                            editor.putInt("connection", 0);
-                        } else {
-                            editor.putInt("connection", 1);
-                        }
-
-                        // watching ping
-                        if (watchingPingCheckBox.isChecked()) {
-                            editor.putInt("ping", 1);
-                        } else {
-                            editor.putInt("ping", 0);
-                        }
-
-                        editor.commit();
+                        settings.setCodeHexString(codeEditText.getText().toString());
+                        settings.setBroker(brokerEditText.getText().toString());
+                        settings.setPort(portEditText.getText().toString());
+                        settings.setConnectionType(bluetoothRadioButton.isChecked() ? 0 : 1);
+                        settings.setWatchingPing(watchingPingCheckBox.isChecked());
                         listener.onDialogPositiveClick(MqttSettingsDialogFragment.this);
                     }
                 })

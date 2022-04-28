@@ -66,104 +66,97 @@ import java.util.Set;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements MqttSettingsDialogFragment.MqttSettingsDialogListener {
-    final long maxGpsDataAge = 40000;
-    final long maxDepthDataAge = 40000;
-    final long maxWindDataAge = 40000;
-    final long maxHeadingDataAge = 40000;
-    final long maxPressureDataAge = 60000;
-    final long alarmRearmTime = 60000;
-    final float DEGREES_TO_RADS = 57.296f;
-    SharedPreferences preferences;
-    ToggleButton depthToggleButton;
-    boolean depthWatching;
-    ToggleButton windToggleButton;
-    boolean windWatching;
-    ToggleButton pressureChangeToggleButton;
-    boolean pressureChangeWatching;
-    ToggleButton headingChangeToggleButton;
-    boolean headingChangeWatching;
-    ToggleButton sogToggleButton;
-    boolean sogWatching;
-    ToggleButton positionChangeToggleButton;
-    boolean positionChangeWatching;
-    float depthMin;
-    EditText depthMinEditText;
-    float depthMax;
-    EditText depthMaxEditText;
-    float windMax;
-    EditText windMaxEditText;
-    float pressureChangeMax;
-    EditText pressureChangeMaxEditText;
-    float headingChangeMax;
-    EditText headingChangeMaxEditText;
-    float sogMax;
-    EditText sogMaxEditText;
-    float positionChangeMax;
-    EditText positionChangeMaxEditText;
-    boolean keyboardListenersAttached = false;
-    ViewGroup rootLayout;
-    Button connectButton;
-    Button watchingButton;
-    volatile boolean isConnected = false;
-    volatile boolean isWatching = false;
-    MediaPlayer mediaPlayer;
-    BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-    BluetoothSocket bluetoothSocket;
-    static final UUID MY_UUID_SECURE = UUID.fromString(("00001101-0000-1000-8000-00805F9B34FB"));
-    InputStream bluetoothInputStream;
-    boolean nmeaMessageStarted = false;
-    TextView textViewDepth;
-    TextView textViewPressure;
-    TextView textViewHeading;
-    TextView textViewWindspeed;
-    TextView textViewSog;
-    TextView textViewPositionChange;
-    TextView textViewPressureChange;
-    TextView textViewHeadingChange;
-    float depth;
-    long depthReceivedTime = 0L;
-    float pressure;
-    long pressureReceivedTime = 0L;
-    float heading;
-    long headingReceivedTime = 0L;
-    float windspeed;
-    long windspeedReceivedTime = 0L;
-    float sog;
-    long sogReceivedTime = 0L;
-    float latitude;
-    long latitudeReceivedTime = 0L;
-    float longitude;
-    long longitudeReceivedTime = 0L;
-    float startPressure;
-    float startHeading;
-    float startLatitude;
-    float startLongitude;
-    float headingChange;
-    float pressureChange;
-    float positionChange;
-    volatile boolean connectionCloseRequest = false;
-    AnchorView anchorView;
-    long lastAnchorPlotUpdateTime;
-    AlertDialog alert;
-    long lastAlarmTime = 0;
-    long lastPingTime = 0;
-    boolean dataLossAlarmActive = false;
-    boolean watchingAlarmActive = false;
-    long settingsCode;
-    String settingsBroker;
-    int settingsPort;
-    boolean settingsWatchingPing;
-    String settingsCodeHexString;
-    ImageButton settingsButton;
-    int settingsConnection;
-    Mqtt3AsyncClient client;
-    ImageView bluetoothImageView;
-    ImageView strength0ImageView;
-    ImageView strength1ImageView;
-    ImageView strength2ImageView;
-    ImageView strength3ImageView;
-    ImageView strength4ImageView;
-    ImageView strength5ImageView;
+    private final long maxDepthDataAge = 40000;
+    private final long maxGpsDataAge = 40000;
+    private final long maxWindDataAge = 40000;
+    private final long maxHeadingDataAge = 40000;
+    private final long maxPressureDataAge = 60000;
+    private final long alarmRearmTime = 60000;
+    private final float DEGREES_TO_RADS = 57.296f;
+
+    private TextView textViewPressure;
+    private TextView textViewHeading;
+    private TextView textViewWindspeed;
+    private TextView textViewSog;
+    private TextView textViewPositionChange;
+    private TextView textViewPressureChange;
+    private TextView textViewHeadingChange;
+    private TextView textViewDepth;
+
+    private EditText depthMinEditText;
+    private EditText depthMaxEditText;
+    private EditText windMaxEditText;
+    private EditText pressureChangeMaxEditText;
+    private EditText headingChangeMaxEditText;
+    private EditText sogMaxEditText;
+    private EditText positionChangeMaxEditText;
+
+    private ToggleButton depthToggleButton;
+    private ToggleButton windToggleButton;
+    private ToggleButton pressureChangeToggleButton;
+    private ToggleButton headingChangeToggleButton;
+    private ToggleButton sogToggleButton;
+    private ToggleButton positionChangeToggleButton;
+
+    private Button connectButton;
+    private Button watchingButton;
+
+    private ImageButton settingsButton;
+
+    private ImageView bluetoothImageView;
+    private ImageView strength0ImageView;
+    private ImageView strength1ImageView;
+    private ImageView strength2ImageView;
+    private ImageView strength3ImageView;
+    private ImageView strength4ImageView;
+    private ImageView strength5ImageView;
+
+    private float depth;
+    private float pressure;
+    private float heading;
+    private float windspeed;
+    private float sog;
+    private float latitude;
+    private float longitude;
+
+    private long depthReceivedTime = 0L;
+    private long pressureReceivedTime = 0L;
+    private long headingReceivedTime = 0L;
+    private long windspeedReceivedTime = 0L;
+    private long sogReceivedTime = 0L;
+    private long latitudeReceivedTime = 0L;
+    private long longitudeReceivedTime = 0L;
+
+    private float startPressure;
+    private float startHeading;
+    private float startLatitude;
+    private float startLongitude;
+    private float headingChange;
+    private float pressureChange;
+    private float positionChange;
+
+    private Settings settings;
+
+    private SharedPreferences preferences;
+    private boolean keyboardListenersAttached = false;
+    private ViewGroup rootLayout;
+    private volatile boolean isConnected = false;
+    private volatile boolean isWatching = false;
+    private MediaPlayer mediaPlayer;
+    private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    private BluetoothSocket bluetoothSocket;
+    private static final UUID MY_UUID_SECURE = UUID.fromString(("00001101-0000-1000-8000-00805F9B34FB"));
+    private InputStream bluetoothInputStream;
+    private boolean nmeaMessageStarted = false;
+    private volatile boolean connectionCloseRequest = false;
+    private AnchorView anchorView;
+    private long lastAnchorPlotUpdateTime;
+    private AlertDialog alert;
+    private long lastAlarmTime = 0;
+    private long lastPingTime = 0;
+    private boolean dataLossAlarmActive = false;
+    private boolean watchingAlarmActive = false;
+    private Mqtt3AsyncClient client;
 
     Thread thread = new Thread() {
         byte[] nmeaMessageArray = new byte[101];
@@ -174,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
 
             while (true) {
                 if (isConnected) {
-                    if (settingsConnection == 0) {
+                    if (settings.getConnectionType() == 0) {
                         try {
                             int bytesRead = bluetoothInputStream.read(bluetoothBytes, 0, 20);
                             for (int i = 0; i < bytesRead; i++) {
@@ -398,7 +391,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                 }
                             }
                         });
-                    } else if (settingsConnection == 1) {
+                    } else if (settings.getConnectionType() == 1) {
                         runOnUiThread(new Runnable() {
                             public void run() {
                                 if (System.currentTimeMillis() - depthReceivedTime < maxDepthDataAge) {
@@ -449,7 +442,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                 if (headingChange < -180.0f) {
                                     headingChange += 180.0f;
                                 }
-                                if (headingChangeWatching) {
+                                if (settings.getHeadingChangeWatching()) {
                                     textViewHeadingChange.setText(Integer.toString(Math.round(headingChange)) + "°");
                                 }
                             } else {
@@ -459,7 +452,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                             float pressureChange;
                             if (System.currentTimeMillis() - pressureReceivedTime < maxPressureDataAge) {
                                 pressureChange = pressure - startPressure;
-                                if (pressureChangeWatching) {
+                                if (settings.getPressureChangeWatching()) {
                                     textViewPressureChange.setText(Integer.toString(Math.round(pressureChange)) + " mb");
                                 }
                             } else {
@@ -483,7 +476,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                     anchorView.drawAnchorView();
                                 }
 
-                                if (positionChangeWatching) {
+                                if (settings.getPositionChangeWatching()) {
                                     textViewPositionChange.setText(Integer.toString(Math.round(positionChange)) + " m");
                                 }
                             } else {
@@ -494,7 +487,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                 }
 
                 // periodic ping sound
-                if (settingsWatchingPing && isWatching && System.currentTimeMillis() - lastPingTime > 10000 && !dataLossAlarmActive && !watchingAlarmActive) {
+                if (settings.getWatchingPing() && isWatching && System.currentTimeMillis() - lastPingTime > 10000 && !dataLossAlarmActive && !watchingAlarmActive) {
                     mediaPlayer.release();
                     mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.ping);
                     mediaPlayer.setVolume(0.2f, 0.2f);
@@ -505,7 +498,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
 
                 // do data available checking
                 if (System.currentTimeMillis() - lastAlarmTime > alarmRearmTime && isWatching && !watchingAlarmActive) {
-                    if (depthWatching) {
+                    if (settings.getDepthWatching()) {
                         if (System.currentTimeMillis() - depthReceivedTime > maxDepthDataAge)
                         {
                             if (!alert.isShowing()) {
@@ -522,7 +515,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                         }
                     }
 
-                    if (windWatching) {
+                    if (settings.getWindWatching()) {
                         if (System.currentTimeMillis() - windspeedReceivedTime > maxWindDataAge)
                         {
                             if (!alert.isShowing()) {
@@ -539,7 +532,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                         }
                     }
 
-                    if (headingChangeWatching) {
+                    if (settings.getHeadingChangeWatching()) {
                         if (System.currentTimeMillis() - headingReceivedTime > maxHeadingDataAge)
                         {
                             if (!alert.isShowing()) {
@@ -556,7 +549,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                         }
                     }
 
-                    if (pressureChangeWatching) {
+                    if (settings.getPressureChangeWatching()) {
                         if (System.currentTimeMillis() - pressureReceivedTime > maxPressureDataAge)
                         {
                             if (!alert.isShowing()) {
@@ -573,7 +566,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                         }
                     }
 
-                    if (sogWatching) {
+                    if (settings.getSogWatching()) {
                         if (System.currentTimeMillis() - sogReceivedTime > maxGpsDataAge)
                         {
                             if (!alert.isShowing()) {
@@ -590,7 +583,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                         }
                     }
 
-                    if (positionChangeWatching) {
+                    if (settings.getPositionChangeWatching()) {
                         if (System.currentTimeMillis() - latitudeReceivedTime > maxGpsDataAge || System.currentTimeMillis() - longitudeReceivedTime > maxGpsDataAge)
                         {
                             if (!alert.isShowing()) {
@@ -618,8 +611,8 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
 
                 // do watching
                 if (System.currentTimeMillis() - lastAlarmTime > alarmRearmTime && isWatching && !dataLossAlarmActive && !watchingAlarmActive ) {
-                    if (depthWatching) {
-                        if (depth < depthMin || depth > depthMax) {
+                    if (settings.getDepthWatching()) {
+                        if (depth < settings.getDepthMin() || depth > settings.getDepthMax()) {
                             lastAlarmTime = System.currentTimeMillis();
                             if (!alert.isShowing()) {
                                 messageBoxThread("Depth alarm");
@@ -628,8 +621,8 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                         }
                     }
 
-                    if (windWatching) {
-                        if (windspeed > windMax) {
+                    if (settings.getWindWatching()) {
+                        if (windspeed > settings.getWindMax()) {
                             lastAlarmTime = System.currentTimeMillis();
                             if (!alert.isShowing()) {
                                 messageBoxThread("Wind alarm");
@@ -638,8 +631,8 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                         }
                     }
 
-                    if (headingChangeWatching) {
-                        if (Math.abs(headingChange) > headingChangeMax) {
+                    if (settings.getHeadingChangeWatching()) {
+                        if (Math.abs(headingChange) > settings.getHeadingChangeMax()) {
                             lastAlarmTime = System.currentTimeMillis();
                             if (!alert.isShowing()) {
                                 messageBoxThread("Heading change alarm");
@@ -648,8 +641,8 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                         }
                     }
 
-                    if (pressureChangeWatching) {
-                        if (Math.abs(pressureChange) > pressureChangeMax) {
+                    if (settings.getPressureChangeWatching()) {
+                        if (Math.abs(pressureChange) > settings.getPressureChangeMax()) {
                             lastAlarmTime = System.currentTimeMillis();
                             if (!alert.isShowing()) {
                                 messageBoxThread("Pressure change alarm");
@@ -658,8 +651,8 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                         }
                     }
 
-                    if (sogWatching) {
-                        if (sog > sogMax) {
+                    if (settings.getSogWatching()) {
+                        if (sog > settings.getSogMax()) {
                             lastAlarmTime = System.currentTimeMillis();
                             if (!alert.isShowing()) {
                                 messageBoxThread("SOG alarm");
@@ -668,8 +661,8 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                         }
                     }
 
-                    if (positionChangeWatching) {
-                        if (positionChange > positionChangeMax) {
+                    if (settings.getPositionChangeWatching()) {
+                        if (positionChange > settings.getPositionChangeMax()) {
                             lastAlarmTime = System.currentTimeMillis();
                             if (!alert.isShowing()) {
                                 messageBoxThread("Position change alarm");
@@ -695,13 +688,6 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
 
     public void onDialogPositiveClick(DialogFragment dialog)
     {
-        // reload settings
-        settingsCode = preferences.getLong("code", 0);
-        settingsCodeHexString = String.format("%08X", settingsCode);
-        settingsBroker = preferences.getString("broker", "broker.emqx.io");
-        settingsPort = preferences.getInt("port", 1883);
-        settingsConnection = preferences.getInt("connection", 0);
-        settingsWatchingPing = (preferences.getInt("ping", 0) == 0) ? false : true;
     }
 
     public void onDialogNegativeClick(DialogFragment dialog)
@@ -727,7 +713,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         super.onStop();
     }
 
-    public static void hideSoftKeyboard(Activity activity) {
+    private void hideSoftKeyboard(Activity activity) {
         InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
         if (activity.getCurrentFocus() != null) {
             if (inputMethodManager.isAcceptingText()) {
@@ -744,7 +730,9 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         saveHeadingChangeMax();
         saveSogMax();
         savePositionChangeMax();
+
         hideSoftKeyboard(this);
+
         depthMinEditText.clearFocus();
         depthMaxEditText.clearFocus();
         windMaxEditText.clearFocus();
@@ -756,85 +744,64 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
 
     private void saveDepthMin() {
         if (depthMinEditText.getText().toString().equals("")) {
-            depthMinEditText.setText(String.valueOf(depthMin));
+            depthMinEditText.setText(String.valueOf(settings.getDepthMin()));
         }
         else {
-            depthMin = Float.parseFloat(depthMinEditText.getText().toString());
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putFloat("depthMin", depthMin);
-            editor.commit();
+            settings.setDepthMin(Float.parseFloat(depthMinEditText.getText().toString()));
         }
     }
 
     private void saveDepthMax() {
         if (depthMaxEditText.getText().toString().equals("")) {
-            depthMaxEditText.setText(String.valueOf(depthMax));
+            depthMaxEditText.setText(String.valueOf(settings.getDepthMax()));
         }
         else {
-            depthMax = Float.parseFloat(depthMaxEditText.getText().toString());
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putFloat("depthMax", depthMax);
-            editor.commit();
+            settings.setDepthMax(Float.parseFloat(depthMaxEditText.getText().toString()));
         }
     }
 
     private void saveWindMax() {
         if (windMaxEditText.getText().toString().equals("")) {
-            windMaxEditText.setText(String.valueOf(windMax));
+            windMaxEditText.setText(String.valueOf(settings.getWindMax()));
         }
         else {
-            windMax = Float.parseFloat(windMaxEditText.getText().toString());
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putFloat("windMax", windMax);
-            editor.commit();
+            settings.setWindMax(Float.parseFloat(windMaxEditText.getText().toString()));
         }
     }
 
     private void saveHeadingChangeMax() {
         if (headingChangeMaxEditText.getText().toString().equals("")) {
-            headingChangeMaxEditText.setText(String.valueOf(headingChangeMax));
+            headingChangeMaxEditText.setText(String.valueOf(settings.getHeadingChangeMax()));
         }
         else {
-            headingChangeMax = Float.parseFloat(headingChangeMaxEditText.getText().toString());
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putFloat("headingChangeMax", headingChangeMax);
-            editor.commit();
+            settings.setHeadingChangeMax(Float.parseFloat(headingChangeMaxEditText.getText().toString()));
         }
     }
 
     private void savePressureChangeMax() {
         if (pressureChangeMaxEditText.getText().toString().equals("")) {
-            pressureChangeMaxEditText.setText(String.valueOf(pressureChangeMax));
+            pressureChangeMaxEditText.setText(String.valueOf(settings.getPressureChangeMax()));
         }
         else {
-            pressureChangeMax = Float.parseFloat(pressureChangeMaxEditText.getText().toString());
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putFloat("pressureChangeMax", pressureChangeMax);
-            editor.commit();
+            settings.setPressureChangeMax(Float.parseFloat(pressureChangeMaxEditText.getText().toString()));
         }
     }
 
     private void saveSogMax() {
         if (sogMaxEditText.getText().toString().equals("")) {
-            sogMaxEditText.setText(String.valueOf(sogMax));
+            sogMaxEditText.setText(String.valueOf(settings.getSogMax()));
         }
         else {
-            sogMax = Float.parseFloat(sogMaxEditText.getText().toString());
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putFloat("sogMax", sogMax);
-            editor.commit();
+            settings.setSogMax(Float.parseFloat(sogMaxEditText.getText().toString()));
         }
     }
 
     private void savePositionChangeMax() {
         if (positionChangeMaxEditText.getText().toString().equals("")) {
-            positionChangeMaxEditText.setText(String.valueOf(positionChangeMax));
+            positionChangeMaxEditText.setText(String.valueOf(settings.getPositionChangeMax()));
         }
         else {
-            positionChangeMax = Float.parseFloat(positionChangeMaxEditText.getText().toString());
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putFloat("positionChangeMax", positionChangeMax);
-            editor.commit();
+            settings.setPositionChangeMax(Float.parseFloat(positionChangeMaxEditText.getText().toString()));
         }
     }
 
@@ -930,28 +897,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         strength5ImageView = (ImageView)findViewById(R.id.strength5ImageView);
     }
 
-    private void getPreferences() {
-        depthWatching = preferences.getBoolean("depthWatching", true);
-        windWatching = preferences.getBoolean("windWatching", true);
-        pressureChangeWatching = preferences.getBoolean("pressureChangeWatching", true);
-        headingChangeWatching = preferences.getBoolean("headingChangeWatching", true);
-        sogWatching = preferences.getBoolean("sogWatching", true);
-        positionChangeWatching = preferences.getBoolean("positionChangeWatching", true);
-        depthMin = preferences.getFloat("depthMin", 2.0f);
-        depthMax = preferences.getFloat("depthMax", 5.0f);
-        windMax = preferences.getFloat("windMax", 20.0f);
-        pressureChangeMax = preferences.getFloat("pressureChangeMax", 12.0f);
-        headingChangeMax = preferences.getFloat("headingChangeMax", 40.0f);
-        sogMax = preferences.getFloat("sogMax", 2.0f);
-        positionChangeMax = preferences.getFloat("positionChangeMax", 50.0f);
-        settingsCode = preferences.getLong("code", 0);
-        settingsCodeHexString = String.format("%08X", settingsCode);
-        settingsBroker = preferences.getString("broker", "broker.emqx.io");
-        settingsPort = preferences.getInt("port", 1883);
-        settingsConnection = preferences.getInt("connection", 0);
-    }
-
-    void setupWatchingParametersTextEdits(boolean enabled) {
+    private void setupWatchingParametersTextEdits(boolean enabled) {
         depthMinEditText.setEnabled(enabled);
         depthMaxEditText.setEnabled(enabled);
         windMaxEditText.setEnabled(enabled);
@@ -961,7 +907,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         positionChangeMaxEditText.setEnabled(enabled);
     }
 
-    void resetAllCurrentReadingsTexts() {
+    private void resetAllCurrentReadingsTexts() {
         textViewDepth.setText("----");
         textViewWindspeed.setText("----");
         textViewPressure.setText("----");
@@ -972,45 +918,45 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         textViewPositionChange.setText("----");
     }
 
-    void setupWatchingButtons(boolean enabled) {
+    private void setupWatchingButtons(boolean enabled) {
         if (enabled) {
-            depthToggleButton.setChecked(depthWatching);
-            if (depthWatching) {
+            depthToggleButton.setChecked(settings.getDepthWatching());
+            if (settings.getDepthWatching()) {
                 depthToggleButton.setBackgroundColor(Color.GREEN);
             } else {
                 depthToggleButton.setBackgroundColor(Color.RED);
             }
 
-            windToggleButton.setChecked(windWatching);
-            if (windWatching) {
+            windToggleButton.setChecked(settings.getWindWatching());
+            if (settings.getWindWatching()) {
                 windToggleButton.setBackgroundColor(Color.GREEN);
             } else {
                 windToggleButton.setBackgroundColor(Color.RED);
             }
 
-            pressureChangeToggleButton.setChecked(pressureChangeWatching);
-            if (pressureChangeWatching) {
+            pressureChangeToggleButton.setChecked(settings.getPressureChangeWatching());
+            if (settings.getPressureChangeWatching()) {
                 pressureChangeToggleButton.setBackgroundColor(Color.GREEN);
             } else {
                 pressureChangeToggleButton.setBackgroundColor(Color.RED);
             }
 
-            headingChangeToggleButton.setChecked(headingChangeWatching);
-            if (headingChangeWatching) {
+            headingChangeToggleButton.setChecked(settings.getHeadingChangeWatching());
+            if (settings.getHeadingChangeWatching()) {
                 headingChangeToggleButton.setBackgroundColor(Color.GREEN);
             } else {
                 headingChangeToggleButton.setBackgroundColor(Color.RED);
             }
 
-            sogToggleButton.setChecked(sogWatching);
-            if (sogWatching) {
+            sogToggleButton.setChecked(settings.getSogWatching());
+            if (settings.getSogWatching()) {
                 sogToggleButton.setBackgroundColor(Color.GREEN);
             } else {
                 sogToggleButton.setBackgroundColor(Color.RED);
             }
 
-            positionChangeToggleButton.setChecked(positionChangeWatching);
-            if (positionChangeWatching) {
+            positionChangeToggleButton.setChecked(settings.getPositionChangeWatching());
+            if (settings.getPositionChangeWatching()) {
                 positionChangeToggleButton.setBackgroundColor(Color.GREEN);
             } else {
                 positionChangeToggleButton.setBackgroundColor(Color.RED);
@@ -1044,6 +990,8 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getUiIds();
+        preferences = getApplicationContext().getSharedPreferences(("MyPreferences"), MODE_PRIVATE);
+        settings = new Settings(preferences);
         settingsButton.setBackgroundColor(Color.WHITE);
         connectButton.setBackgroundColor(Color.GREEN);
         connectButton.setTextColor(Color.BLACK);
@@ -1053,8 +1001,6 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         mediaPlayer.setVolume(1.0f, 1.0f);
         mediaPlayer.start();
 
-        preferences = getApplicationContext().getSharedPreferences(("MyPreferences"), MODE_PRIVATE);
-        getPreferences();
         setupWatchingButtons(true);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -1072,7 +1018,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         alert = builder.create();
         alert.setCanceledOnTouchOutside(false);
 
-        depthMinEditText.setText(String.valueOf(depthMin));
+        depthMinEditText.setText(String.valueOf(settings.getDepthMin()));
         depthMinEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
@@ -1081,7 +1027,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             }
         });
 
-        depthMaxEditText.setText(String.valueOf(depthMax));
+        depthMaxEditText.setText(String.valueOf(settings.getDepthMax()));
         depthMaxEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
@@ -1090,7 +1036,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             }
         });
 
-        windMaxEditText.setText(String.valueOf(windMax));
+        windMaxEditText.setText(String.valueOf(settings.getWindMax()));
         windMaxEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
@@ -1099,7 +1045,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             }
         });
 
-        pressureChangeMaxEditText.setText(String.valueOf(pressureChangeMax));
+        pressureChangeMaxEditText.setText(String.valueOf(settings.getPressureChangeMax()));
         pressureChangeMaxEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
@@ -1108,7 +1054,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             }
         });
 
-        headingChangeMaxEditText.setText(String.valueOf(headingChangeMax));
+        headingChangeMaxEditText.setText(String.valueOf(settings.getHeadingChangeMax()));
         headingChangeMaxEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
@@ -1117,7 +1063,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             }
         });
 
-        sogMaxEditText.setText(String.valueOf(sogMax));
+        sogMaxEditText.setText(String.valueOf(settings.getSogMax()));
         sogMaxEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
@@ -1126,7 +1072,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             }
         });
 
-        positionChangeMaxEditText.setText(String.valueOf(positionChangeMax));
+        positionChangeMaxEditText.setText(String.valueOf(settings.getPositionChangeMax()));
         positionChangeMaxEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
@@ -1139,54 +1085,36 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     }
 
     public void settingsButtonOnClick(View view) {
-        new MqttSettingsDialogFragment(settingsCode, settingsBroker, settingsPort, settingsConnection, settingsWatchingPing, preferences).show(getSupportFragmentManager(), "MQTTSD");
+        new MqttSettingsDialogFragment(settings).show(getSupportFragmentManager(), "MQTTSD");
     }
 
     public void depthToggleButtonOnClick(View view) {
-        depthWatching = depthToggleButton.isChecked();
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean("depthWatching", depthWatching);
-        editor.commit();
+        settings.setDepthWatching(depthToggleButton.isChecked());
         setupWatchingButtons(true);
     }
 
     public void windToggleButtonOnClick(View view) {
-        windWatching = windToggleButton.isChecked();
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean("windWatching", windWatching);
-        editor.commit();
+        settings.setWindWatching(windToggleButton.isChecked());
         setupWatchingButtons(true);
     }
 
     public void pressureToggleButtonOnClick(View view) {
-        pressureChangeWatching = pressureChangeToggleButton.isChecked();
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean("pressureChangeWatching", pressureChangeWatching);
-        editor.commit();
+        settings.setPressureChangeWatching(pressureChangeToggleButton.isChecked());
         setupWatchingButtons(true);
     }
 
     public void headingToggleButtonOnClick(View view) {
-        headingChangeWatching = headingChangeToggleButton.isChecked();
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean("headingChangeWatching", headingChangeWatching);
-        editor.commit();
+        settings.setHeadingChangeWatching(headingChangeToggleButton.isChecked());
         setupWatchingButtons(true);
     }
 
     public void sogToggleButtonOnClick(View view) {
-        sogWatching = sogToggleButton.isChecked();
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean("sogWatching", sogWatching);
-        editor.commit();
+        settings.setSogWatching(sogToggleButton.isChecked());
         setupWatchingButtons(true);
     }
 
     public void positionToggleButtonOnClick(View view) {
-        positionChangeWatching = positionChangeToggleButton.isChecked();
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean("positionChangeWatching", positionChangeWatching);
-        editor.commit();
+        settings.setPositionChangeWatching(positionChangeToggleButton.isChecked());
         setupWatchingButtons(true);
     }
 
@@ -1301,7 +1229,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         } else {
             if (!isNetworkAvailable()) {
                 messageBox("No internet connection available");
-            } else if (settingsCode == 0L) {
+            } else if (settings.getCodeHexString() == "00000000") {
                 messageBox("Code not set in settings");
             } else {
                 connectButton.setEnabled(false);
@@ -1315,14 +1243,14 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                     public void run() {
                         Mqtt3BlockingClient blockingClient = MqttClient.builder()
                                 .useMqttVersion3()
-                                .serverHost(settingsBroker)
-                                .serverPort(settingsPort)
+                                .serverHost(settings.getBroker())
+                                .serverPort(settings.getPort())
                                 .buildBlocking();
                         try {
                             if (blockingClient.connectWith().keepAlive(30).send().getReturnCode() == Mqtt3ConnAckReturnCode.SUCCESS) {
                                 client = blockingClient.toAsync();
                                 client.subscribeWith()
-                                        .topicFilter(settingsCodeHexString + "/all")
+                                        .topicFilter(settings.getCodeHexString() + "/all")
                                         .callback(publish -> {
                                             String payload = new String(publish.getPayloadAsBytes());
 
@@ -1448,8 +1376,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
 
     public void connectButtonOnClick(View view) {
         saveAllTextEdits();
-        if (settingsConnection == 0) {
-            // bluetooth connection
+        if (settings.getConnectionType() == 0) {
             connectBluetooth(view);
         } else {
             connectInternet(view);
@@ -1473,28 +1400,33 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             connectButton.setBackgroundColor(Color.RED);
         }
         else {
-            if (depthMin >= depthMax) {
+            if (settings.getDepthMin() >= settings.getDepthMax()) {
                 messageBox("Minimum depth must be less than maximum depth.");
                 return;
             }
-            if (!depthWatching && !headingChangeWatching && !windWatching && !pressureChangeWatching && !sogWatching && !positionChangeWatching) {
+            if (!settings.getDepthWatching() &&
+                    !settings.getHeadingChangeWatching() &&
+                    !settings.getWindWatching() &&
+                    !settings.getPressureChangeWatching() &&
+                    !settings.getSogWatching() &&
+                    !settings.getPositionChangeWatching()) {
                 messageBox("No measurements chosen to watch.");
                 return;
             }
 
-            if ((!depthWatching || System.currentTimeMillis() - depthReceivedTime < maxDepthDataAge) &&
-                    (!windWatching || System.currentTimeMillis() - windspeedReceivedTime < maxWindDataAge) &&
-                    (!headingChangeWatching || System.currentTimeMillis() - headingReceivedTime < maxHeadingDataAge) &&
-                    (!pressureChangeWatching || System.currentTimeMillis() - pressureReceivedTime < maxPressureDataAge) &&
-                    (!sogWatching || System.currentTimeMillis() - sogReceivedTime < maxGpsDataAge) &&
-                    (!positionChangeWatching || (System.currentTimeMillis() - latitudeReceivedTime < maxGpsDataAge && System.currentTimeMillis() - longitudeReceivedTime < maxGpsDataAge))) {
-                if (headingChangeWatching) {
+            if ((!settings.getDepthWatching() || System.currentTimeMillis() - depthReceivedTime < maxDepthDataAge) &&
+                    (!settings.getWindWatching() || System.currentTimeMillis() - windspeedReceivedTime < maxWindDataAge) &&
+                    (!settings.getHeadingChangeWatching() || System.currentTimeMillis() - headingReceivedTime < maxHeadingDataAge) &&
+                    (!settings.getPressureChangeWatching() || System.currentTimeMillis() - pressureReceivedTime < maxPressureDataAge) &&
+                    (!settings.getSogWatching() || System.currentTimeMillis() - sogReceivedTime < maxGpsDataAge) &&
+                    (!settings.getPositionChangeWatching() || (System.currentTimeMillis() - latitudeReceivedTime < maxGpsDataAge && System.currentTimeMillis() - longitudeReceivedTime < maxGpsDataAge))) {
+                if (settings.getHeadingChangeWatching()) {
                     startHeading = heading;
                 }
-                if (pressureChangeWatching) {
+                if (settings.getPressureChangeWatching()) {
                     startPressure = pressure;
                 }
-                if (positionChangeWatching) {
+                if (settings.getPositionChangeWatching()) {
                     startLatitude = latitude;
                     startLongitude = longitude;
                 }
@@ -1512,7 +1444,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         }
     }
 
-    float distance_between_points(float lat1, float long1, float lat2, float long2)
+    private float distance_between_points(float lat1, float long1, float lat2, float long2)
     {
         float half_dlat;
         float half_dlong;

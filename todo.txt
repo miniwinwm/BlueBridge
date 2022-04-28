@@ -1,5 +1,7 @@
 Todo hardware
 -------------
+Build new hw when pcb's arrive
+New version of pcb with minor bugs fixed and name changed back to blue bridge
 
 
 Todo bugs
@@ -11,6 +13,8 @@ Todo functional
 ---------------
 Add test data on/off sms command
 Make buffer handling safe in nmea.c
+Add time since last publish in android app when connected by mqtt
+Send publish period in mqtt message and adjust no data alarm period in android app
 
 
 Todo tidy up
@@ -18,8 +22,9 @@ Todo tidy up
 Tidy up javascript code
 Create a new website with BlueThing name
 In android app change settingsConnection from integer to enum type
-Move settings code in android app to separate class
 Rename everything back to blue bridge and delete the existing blue bridge repo
+In android app create a utilities class and move non-app specific code into it
+
 
 Todo testing
 ------------
@@ -151,3 +156,4 @@ Default mqtt port in android app is incorrect
 Backlight goes dark when watching is started - remove this feature
 Connecting to wrong port via mqtt causes crash
 App icon not showing in older android version
+Move settings code in android app to separate class
