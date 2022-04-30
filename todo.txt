@@ -157,3 +157,4 @@ Backlight goes dark when watching is started - remove this feature
 Connecting to wrong port via mqtt causes crash
 App icon not showing in older android version
 Move settings code in android app to separate class
+Add defaults to broker/port prompt dialogs in webpage

@@ -492,7 +492,7 @@
 				}			
 				
 				while(true) {
-					broker = prompt("Please enter broker:","");
+					broker = prompt("Please enter broker:","broker.emqx.io");
 					if (broker != "" && broker != null) {
 						document.getElementById('broker').value = broker;							
 						break;
@@ -502,7 +502,7 @@
 				}			
 
 				while(true) {
-					port = prompt("Please enter port:","");
+					port = prompt("Please enter port:","8083");
 					if (port != "" && port != null) {
 						document.getElementById('port').value = port;							
 						break;
