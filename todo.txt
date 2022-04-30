@@ -1,7 +1,5 @@
 Todo hardware
 -------------
-Build new hw on new pcb's.
-New version of pcb with minor bugs fixed and name changed back to blue bridge
 
 
 Todo bugs
@@ -155,7 +153,9 @@ Connecting to wrong port via mqtt causes crash
 App icon not showing in older android version
 Move settings code in android app to separate class
 Add defaults to broker/port prompt dialogs in webpage
-Label Windspeed in android app is not aligned correctly
 Add time since last publish in android app when connected by mqtt
 In android app create a utilities class and move non-app specific code into it
 Add test data on/off sms command
+Build new hw on new pcb's
+New version of pcb with minor bugs fixed and name changed back to blue bridge
+Swap 12V and GND spade connectors around on PCB
