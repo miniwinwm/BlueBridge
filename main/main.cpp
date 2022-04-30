@@ -101,7 +101,7 @@ static void wind_handler(const tN2kMsg &N2kMsg);
 static void log_handler(const tN2kMsg &N2kMsg);
 static void environmental_handler(const tN2kMsg &N2kMsg);
 static void HandleNMEA2000Msg(const tN2kMsg &N2kMsg);
-#ifdef TEST_DATA
+#ifdef CREATE_TEST_DATA_CODE
 static void test_data(void);
 #endif
 
@@ -576,6 +576,8 @@ static void VDM_transmit_callback(void)
 static void RMC_receive_callback(const char *data)
 {
 	uint32_t time_ms = timer_get_time_ms();	
+	float int_part;
+	float frac_part;
 	
 	if (nmea_decode_RMC(data, &nmea_message_data_RMC) == nmea_error_none)
 	{		
@@ -599,45 +601,60 @@ static void RMC_receive_callback(const char *data)
 
 			if (nmea_message_data_RMC.data_available & NMEA_RMC_SOG_PRESENT)
 			{
-#ifndef TEST_DATA				
-				speed_over_ground_data = nmea_message_data_RMC.SOG;
-				boat_data_reception_time.speed_over_ground_received_time = time_ms;				
-#endif				
+#ifdef CREATE_TEST_DATA_CODE					
+				if (!settings_get_create_test_data())
+#endif					
+				{
+					speed_over_ground_data = nmea_message_data_RMC.SOG;
+					boat_data_reception_time.speed_over_ground_received_time = time_ms;			
+				}	
 			}
 
 			if (nmea_message_data_RMC.data_available & NMEA_RMC_COG_PRESENT)
 			{
-#ifndef TEST_DATA								
-				course_over_ground_data = nmea_message_data_RMC.COG;
-				boat_data_reception_time.course_over_ground_received_time = time_ms;	
-#endif				
+#ifdef CREATE_TEST_DATA_CODE					
+				if (!settings_get_create_test_data())
+#endif					
+				{
+					course_over_ground_data = nmea_message_data_RMC.COG;
+					boat_data_reception_time.course_over_ground_received_time = time_ms;	
+				}				
 			}
 			else		// horrible hack because COG is not present when sog = 0
 			{
-#ifndef TEST_DATA								
-				course_over_ground_data = 0;
-				boat_data_reception_time.course_over_ground_received_time = time_ms;
-#endif				
+#ifdef CREATE_TEST_DATA_CODE					
+				if (!settings_get_create_test_data())
+#endif					
+				{
+					course_over_ground_data = 0;
+					boat_data_reception_time.course_over_ground_received_time = time_ms;
+				}
 			}
 
 			if (nmea_message_data_RMC.data_available & NMEA_RMC_LATITUDE_PRESENT)
 			{
-#ifndef TEST_DATA					
-				frac_part = modff(nmea_message_data_RMC.latitude / 100.0f, &int_part);
-				latitude_data = int_part;
-				latitude_data += frac_part / 0.6f;
-				boat_data_reception_time.latitude_received_time = time_ms;		
-#endif
+#ifdef CREATE_TEST_DATA_CODE					
+				if (!settings_get_create_test_data())
+#endif					
+				{
+					frac_part = modff(nmea_message_data_RMC.latitude / 100.0f, &int_part);
+					latitude_data = int_part;
+					latitude_data += frac_part / 0.6f;
+					boat_data_reception_time.latitude_received_time = time_ms;		
+				}
 			}
 
 			if (nmea_message_data_RMC.data_available & NMEA_RMC_LONGITUDE_PRESENT)
 			{
-#ifndef TEST_DATA								
-				frac_part = modff(nmea_message_data_RMC.longitude / 100.0f, &int_part);
-				longitude_data = int_part;
-				longitude_data += frac_part / 0.6f;
-				boat_data_reception_time.longitude_received_time = time_ms;		
-#endif			
+#ifdef CREATE_TEST_DATA_CODE					
+				if (!settings_get_create_test_data())
+#endif					
+				{
+					frac_part = modff(nmea_message_data_RMC.longitude / 100.0f, &int_part);
+					longitude_data = int_part;
+					longitude_data += frac_part / 0.6f;
+					boat_data_reception_time.longitude_received_time = time_ms;		
+				}
 			}
 		}
 	}
@@ -1140,16 +1157,35 @@ static void environmental_handler(const tN2kMsg &N2kMsg)
 	}
 }
 
-#ifdef TEST_DATA
+#ifdef CREATE_TEST_DATA_CODE
 /**
  * Create simulated boat data
  */
 static void test_data(void)
 {
 	static uint32_t i;
+	static bool init = false;
+	
+	if (!init)
+	{
+		init = true;
+		depth_data = 3.0f;	
+		heading_true_data = 80.0f;
+		course_over_ground_data = 220.0f;
+		trip_data = 0.1f;
+		total_distance_data = 32445.0;
+		boat_speed_data = 0.0f;
+		speed_over_ground_data = 0.0f;
+		seawater_temeperature_data = 6.5f;
+		latitude_data = 58.251f;
+		longitude_data = -5.227f;	
+		true_wind_speed_data = 18.0f;
+		true_wind_angle_data = 80.0f;
+		apparent_wind_speed_data = 18.0f;
+		apparent_wind_angle_data = 80.0f;
+	}
 
 	i++;
-	
 	if (i % 100UL == 0UL)
 	{
 		depth_data += (0.2f * (float)esp_random() / (float)UINT32_MAX) - 0.1f;
@@ -1261,24 +1297,7 @@ extern "C" void app_main(void)
 	wmm_init();
 	settings_init();
 	sms_init();
-	
-#ifdef TEST_DATA
-	depth_data = 3.0f;	
-	heading_true_data = 80.0f;
-	course_over_ground_data = 220.0f;
-	trip_data = 0.1f;
-	total_distance_data = 32445.0;
-	boat_speed_data = 0.0f;
-	speed_over_ground_data = 0.0f;
-	seawater_temeperature_data = 6.5f;
-	latitude_data = 58.251f;
-	longitude_data = -5.227f;	
-	true_wind_speed_data = 18.0f;
-	true_wind_angle_data = 80.0f;
-	apparent_wind_speed_data = 18.0f;
-	apparent_wind_angle_data = 80.0f;
-#endif	
-	
+		
 	// init all the reception times to some time a long time ago
 	(void)memset((void *)&boat_data_reception_time, 0x7f, sizeof(boat_data_reception_time));
 		
@@ -1360,8 +1379,11 @@ extern "C" void app_main(void)
 		
 		vTaskDelay(10);        
 				
-#ifdef TEST_DATA
-		test_data();
-#endif						
+#ifdef CREATE_TEST_DATA_CODE				
+		if (settings_get_create_test_data())
+		{
+			test_data();
+		}
+#endif
     }		
 }

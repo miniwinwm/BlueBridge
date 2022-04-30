@@ -1,6 +1,6 @@
 Todo hardware
 -------------
-Build new hw when pcb's arrive
+Build new hw on new pcb's.
 New version of pcb with minor bugs fixed and name changed back to blue bridge
 
 
@@ -11,7 +11,6 @@ TCP write size of 99 causes problems - test by making floating point numbers lon
 
 Todo functional
 ---------------
-Add test data on/off sms command
 Make buffer handling safe in nmea.c
 Send publish period in mqtt message and adjust no data alarm period in android app
 
@@ -22,7 +21,6 @@ Tidy up javascript code
 Create a new website with BlueThing name
 In android app change settingsConnection from integer to enum type
 Rename everything back to blue bridge and delete the existing blue bridge repo
-In android app create a utilities class and move non-app specific code into it
 
 
 Todo testing
@@ -159,3 +157,5 @@ Move settings code in android app to separate class
 Add defaults to broker/port prompt dialogs in webpage
 Label Windspeed in android app is not aligned correctly
 Add time since last publish in android app when connected by mqtt
+In android app create a utilities class and move non-app specific code into it
+Add test data on/off sms command

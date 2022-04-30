@@ -42,8 +42,7 @@ SOFTWARE.
 *** DEFINES ***
 **************/
 
-#define TEST_DATA															///< Defined to generate test data for when not connected to real boat data	source
-
+#define CREATE_TEST_DATA_CODE												///< If create test data code is included in build, comment out to remove
 #define NETWORK_REGISTRATION_WAIT_TIME_MS		60000UL						///< Time to wait in millisecondsfor network registration before giving up
 #define PRESSURE_MAX_DATA_AGE_MS				30000UL						///< Maximum age allowed for atmospheric pressure data before it is considered stale in milliseconds
 #define GMT_MAX_DATA_AGE_MS						12000UL						///< Maximum age allowed for time data before it is considered stale in milliseconds

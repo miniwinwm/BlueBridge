@@ -396,6 +396,15 @@ static bool config_parser_callback(char *key, char *value)
 		(void)sms_send("Restarting", settings_get_phone_number());				
 		found = true;		
 	}	
+#ifdef CREATE_TEST_DATA_CODE		
+	else if (strcmp(key, "CREATE TEST DATA") == 0)
+	{
+		ESP_LOGI(pcTaskGetName(NULL), "Create test data");	
+		
+		settings_set_create_test_data(true);
+		found = true;		
+	}	
+#endif	
 	else if (strcmp(key, "POS") == 0)
 	{
 		ESP_LOGI(pcTaskGetName(NULL), "Command position");	

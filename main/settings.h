@@ -36,6 +36,7 @@ extern "C" {
 ***************/
 
 #include <stdint.h>
+#include "main.h"
 
 /**************
 *** DEFINES ***
@@ -84,7 +85,7 @@ uint8_t settings_get_device_address(void);
 /**
  * Save device address non-volatile setting in memory copy.
  *
- * @param  New value of the setting
+ * @param device_address New value of the setting
  * @note This does not save the new setting in flash memory
  */
 void settings_set_device_address(uint8_t device_address);
@@ -99,7 +100,7 @@ void settings_set_device_address(uint8_t device_address);
 /**
  * Save GSM operator APN non-volatile setting in memory copy.
  *
- * @param  New value of the setting
+ * @param apn New value of the setting
  * @note This does not save the new setting in flash memory
  */
 void settings_set_apn(const char *apn);
@@ -114,7 +115,7 @@ const char *settings_get_apn_user_name(void);
 /**
  * Save GSM operator user name non-volatile setting in memory copy.
  *
- * @param  New value of the setting
+ * @param apn_user_name New value of the setting
  * @note This does not save the new setting in flash memory
  */
 void settings_set_apn_user_name(const char *apn_user_name);
@@ -129,7 +130,7 @@ const char *settings_get_apn_password(void);
 /**
  * Save GSM operator password non-volatile setting in memory copy.
  *
- * @param  New value of the setting
+ * @param apn_password New value of the setting
  * @note This does not save the new setting in flash memory
  */
 void settings_set_apn_password(const char *apn_password);
@@ -144,7 +145,7 @@ const char *settings_get_mqtt_broker_address(void);
 /**
  * Save MQTT broker IP address non-volatile setting in memory copy.
  *
- * @param  New value of the setting
+ * @param mqtt_broker_address New value of the setting
  * @note This does not save the new setting in flash memory
  */
 void settings_set_mqtt_broker_address(const char *mqtt_broker_address);
@@ -159,7 +160,7 @@ uint16_t settings_get_mqtt_broker_port(void);
 /**
  * Save MQTT broker port non-volatile setting in memory copy.
  *
- * @param  New value of the setting
+ * @param mqtt_broker_port New value of the setting
  * @note This does not save the new setting in flash memory
  */
 void settings_set_mqtt_broker_port(uint16_t mqtt_broker_port);
@@ -174,7 +175,7 @@ uint32_t settings_get_hashed_imei(void);
 /**
  * Save hashed IMEI volatile setting in memory.
  *
- * @param  New value of the setting
+ * @param code New value of the setting
  * @note This settings is never saved in flash memory
  */
  void settings_set_hashed_imei(uint32_t code);
@@ -189,7 +190,7 @@ uint32_t settings_get_hashed_imei(void);
 /**
  * Save SMS sender's phone number volatile setting in memory.
  *
- * @param  New value of the setting
+ * @param phone_number New value of the setting
  * @note This settings is never saved in flash memory
  */
 void settings_set_phone_number(const char *phone_number);
@@ -204,7 +205,7 @@ bool settings_get_publishing_started(void);
 /**
  * Save if MQTT publishing has been started volatile setting in memory.
  *
- * @param  New value of the setting
+ * @param boat_iot_started New value of the setting
  * @note This settings is never saved in flash memory
  */
 void settings_set_publishing_started(bool boat_iot_started);
@@ -219,7 +220,7 @@ bool settings_get_reboot_needed(void);
 /**
  * Save if a device reboot is needed volatile setting in memory.
  *
- * @param  New value of the setting
+ * @param restart_needed New value of the setting
  * @note This settings is never saved in flash memory
  */
 void settings_set_reboot_needed(bool restart_needed);
@@ -234,7 +235,7 @@ uint32_t settings_get_publishing_period_s(void);
 /**
  * Save MQTT publishing period non-volatile setting in memory copy.
  *
- * @param  New value of the setting
+ * @param period_s New value of the setting
  * @note This does not save the new setting in flash memory
  */
 void settings_set_publishing_period_s(uint32_t period_s);
@@ -247,12 +248,29 @@ void settings_set_publishing_period_s(uint32_t period_s);
 bool settings_get_publishing_start_needed(void);
 
 /**
- * Save if a publisghing start is needed volatile setting in memory.
+ * Save if a publishing start is needed volatile setting in memory.
  *
- * @param  New value of the setting
+ * @param publishing_start_needed New value of the setting
  * @note This settings is never saved in flash memory
  */
 void settings_set_publishing_start_needed(bool publishing_start_needed);
+
+#ifdef CREATE_TEST_DATA_CODE	
+/**
+ * Read create test data volatile setting from memory
+ *
+ * @return The setting's value
+ */
+bool settings_get_create_test_data(void);
+
+/**
+ * Save create test data volatile setting in memory.
+ *
+ * @param create_test_data New value of the setting
+ * @note This settings is never saved in flash memory
+ */
+void settings_set_create_test_data(bool create_test_data);
+#endif
 
 #ifdef __cplusplus
 }
