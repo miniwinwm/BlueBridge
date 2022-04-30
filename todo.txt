@@ -1,5 +1,6 @@
 Todo hardware
 -------------
+Update pdf hw printout files
 
 
 Todo bugs
@@ -11,6 +12,9 @@ Todo functional
 ---------------
 Make buffer handling safe in nmea.c
 Send publish period in mqtt message and adjust no data alarm period in android app
+Remove sms command for test data and add gpio read from jumper
+Add n2k gps data read
+Add selection between gps data sources
 
 
 Todo tidy up
@@ -159,3 +163,6 @@ Add test data on/off sms command
 Build new hw on new pcb's
 New version of pcb with minor bugs fixed and name changed back to blue bridge
 Swap 12V and GND spade connectors around on PCB
+Add labels to existing jumpers - test data and gps source
+Add 3 pins for testing data to/from modem
+Add test points for 3.3V, 4.2V, 5V, 12V
