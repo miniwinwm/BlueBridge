@@ -17,4 +17,5 @@ idf_component_register(SRCS "main.cpp"
 							"sms.c"
 							"util.c"
 							"led.c"
+							"gpio.c"
                     INCLUDE_DIRS ".")

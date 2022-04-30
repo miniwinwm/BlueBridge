@@ -45,6 +45,7 @@ SOFTWARE.
 #include "settings.h"
 #include "sms.h"
 #include "led.h"
+#include "gpio.h"
 
 /**************
 *** DEFINES ***
@@ -1377,7 +1378,7 @@ extern "C" void app_main(void)
 			settings_save();
         }	
 		
-		vTaskDelay(10);        
+		vTaskDelay(10);        		
 				
 #ifdef CREATE_TEST_DATA_CODE				
 		if (settings_get_create_test_data())

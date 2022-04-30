@@ -1,5 +1,6 @@
 Todo hardware
 -------------
+Get hardware version 1.1 board made
 
 
 Todo bugs
@@ -11,15 +12,16 @@ Todo functional
 ---------------
 Make buffer handling safe in nmea.c
 Send publish period in mqtt message and adjust no data alarm period in android app
-Remove sms command for test data and add gpio read from jumper
+When period is changed send a publish immediately to update clients on new period
 Add n2k gps data read
-Add selection between gps data sources
+Remove sms command for test data and add gpio read from jumper - needs hw version 1.1
+Add selection between gps data sources using jumper - needs hw version 1.1
 
 
 Todo tidy up
 ------------
 Tidy up javascript code
-Create a new website with BlueThing name
+Create a new website with BlueBridge name
 In android app change settingsConnection from integer to enum type
 Rename everything back to blue bridge and delete the existing blue bridge repo
 
