@@ -1,6 +1,5 @@
 Todo hardware
 -------------
-Update pdf hw printout files
 
 
 Todo bugs
@@ -166,3 +165,4 @@ Swap 12V and GND spade connectors around on PCB
 Add labels to existing jumpers - test data and gps source
 Add 3 pins for testing data to/from modem
 Add test points for 3.3V, 4.2V, 5V, 12V
+Update pdf hw printout files
