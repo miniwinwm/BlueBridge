@@ -28,7 +28,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -42,9 +41,7 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -81,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     private TextView textViewPressureChange;
     private TextView textViewHeadingChange;
     private TextView textViewDepth;
+    private TextView mqttUpdateTimeTextView;
 
     private EditText depthMinEditText;
     private EditText depthMaxEditText;
@@ -137,8 +135,6 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     private Settings settings;
 
     private SharedPreferences preferences;
-    private boolean keyboardListenersAttached = false;
-    private ViewGroup rootLayout;
     private volatile boolean isConnected = false;
     private volatile boolean isWatching = false;
     private MediaPlayer mediaPlayer;
@@ -153,6 +149,8 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     private AlertDialog alert;
     private long lastAlarmTime = 0;
     private long lastPingTime = 0;
+    private long mqttUpdateTimeSecondCounter;
+    private long mqttTimeSinceLastUpdateReceived;
     private boolean dataLossAlarmActive = false;
     private boolean watchingAlarmActive = false;
     private Mqtt3AsyncClient client;
@@ -393,6 +391,18 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                     } else if (settings.getConnectionType() == 1) {
                         runOnUiThread(new Runnable() {
                             public void run() {
+                                if (System.currentTimeMillis() - mqttUpdateTimeSecondCounter > 1000) {
+                                    mqttUpdateTimeSecondCounter = System.currentTimeMillis();
+                                    mqttTimeSinceLastUpdateReceived++;
+                                    if (mqttTimeSinceLastUpdateReceived >= 3600) {
+                                        mqttTimeSinceLastUpdateReceived = 3600;
+                                    }
+                                    long minutes = mqttTimeSinceLastUpdateReceived / 60;
+                                    long seconds = mqttTimeSinceLastUpdateReceived % 60;
+                                    String formattedTime = String.format("%02d:%02d", minutes, seconds);
+                                    mqttUpdateTimeTextView.setText(formattedTime);
+                                }
+
                                 if (System.currentTimeMillis() - depthReceivedTime < maxDepthDataAge) {
                                     textViewDepth.setText(Float.toString(depth) + " m");
                                 } else {
@@ -429,7 +439,6 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
 
                 if (System.currentTimeMillis() - lastUpdateTime > 1000 && isWatching) {
                     lastUpdateTime = System.currentTimeMillis();
-
                     runOnUiThread(new Runnable() {
                         public void run() {
                             float headingChange;
@@ -885,6 +894,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         strength3ImageView = (ImageView)findViewById(R.id.strength3ImageView);
         strength4ImageView = (ImageView)findViewById(R.id.strength4ImageView);
         strength5ImageView = (ImageView)findViewById(R.id.strength5ImageView);
+        mqttUpdateTimeTextView = (TextView)findViewById(R.id.mqttUpdateTimeTextView);
     }
 
     private void setupWatchingParametersTextEdits(boolean enabled) {
@@ -1214,6 +1224,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             resetAllCurrentReadingsTexts();
             settingsButton.setEnabled(true);
             settingsButton.setVisibility(View.VISIBLE);
+            mqttUpdateTimeTextView.setVisibility(View.INVISIBLE);
             client.disconnect();
             setSignalStrengthIcon(-1);
         } else {
@@ -1242,6 +1253,13 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                 client.subscribeWith()
                                         .topicFilter(settings.getCodeHexString() + "/all")
                                         .callback(publish -> {
+                                            mqttTimeSinceLastUpdateReceived = 0;
+                                            mqttUpdateTimeSecondCounter = System.currentTimeMillis();
+                                            runOnUiThread(new Runnable() {
+                                                  public void run() {
+                                                      mqttUpdateTimeTextView.setText("00:00");
+                                                  }
+                                            });
                                             String payload = new String(publish.getPayloadAsBytes());
 
                                             String[] split = payload.split(",");
@@ -1322,12 +1340,16 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                                             watchingButton.setBackgroundColor(Color.GREEN);
                                                             watchingButton.setEnabled(true);
                                                             nmeaMessageStarted = false;
+                                                            mqttUpdateTimeTextView.setVisibility(View.VISIBLE);
+                                                            mqttTimeSinceLastUpdateReceived = 0;
+                                                            mqttUpdateTimeSecondCounter = System.currentTimeMillis();
                                                         } else {
                                                             connectButton.setEnabled(true);
                                                             connectButton.setBackgroundColor(Color.GREEN);
                                                             connectButton.setText("CONNECT");
                                                             settingsButton.setEnabled(true);
                                                             settingsButton.setVisibility(View.VISIBLE);
+                                                            mqttUpdateTimeTextView.setVisibility(View.INVISIBLE);
                                                             setSignalStrengthIcon(-1);
                                                         }
                                                     }
