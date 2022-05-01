@@ -329,6 +329,7 @@ static bool config_parser_callback(char *key, char *value)
 			if (period >= 5UL)
 			{
 				settings_set_publishing_period_s(period);		
+				settings_set_publishing_start_needed(true);
 				settings_save();
 			}
 		}
@@ -771,9 +772,13 @@ void publisher_task(void *parameters)
 				if (time_ms - boat_data_reception_time.pressure_received_time < PRESSURE_MAX_DATA_AGE_MS || boat_data_reception_time.pressure_received_time > time_ms)
 				{
 					(void)snprintf(number_buf, sizeof(number_buf), "%.1f", pressure_data);
-					
 					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
-				}				
+				}			
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");		
+
+				// period
+				(void)snprintf(number_buf, sizeof(number_buf), "%u", settings_get_publishing_period_s());
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);				
 
 				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);									
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish %s %s %s", mqtt_topic, mqtt_data_buf, MqttStatusToText(mqtt_status));		

@@ -79,7 +79,7 @@ void gpio_init(void)
 
 bool gpio_get_test_data_enabled(void)
 {
-	if (gpio_get_level(GPIO_TEST_DATA) == 0)
+	if (gpio_get_level(GPIO_TEST_DATA) == 1)
 	{
 		return false;
 	}
@@ -89,7 +89,7 @@ bool gpio_get_test_data_enabled(void)
 	
 bool gpio_get_gps_data_source(void)
 {
-	if (gpio_get_level(GPIO_GPS_SELECT) == 0)
+	if (gpio_get_level(GPIO_GPS_SELECT) == 1)
 	{
 		return false;
 	}

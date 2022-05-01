@@ -1384,7 +1384,6 @@ extern "C" void app_main(void)
 #ifdef CREATE_TEST_DATA_CODE				
 		if (gpio_get_test_data_enabled())
 		{
-			ESP_LOGI(pcTaskGetName(NULL), "Running test data");
 			test_data();
 		}
 #endif

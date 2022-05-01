@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     private TextView textViewHeadingChange;
     private TextView textViewDepth;
     private TextView mqttUpdateTimeTextView;
+    private TextView mqttUpdatePeriodTextView;
 
     private EditText depthMinEditText;
     private EditText depthMaxEditText;
@@ -134,6 +135,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
 
     private Settings settings;
 
+    private int mqttUpdatePeriod;
     private SharedPreferences preferences;
     private volatile boolean isConnected = false;
     private volatile boolean isWatching = false;
@@ -895,6 +897,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         strength4ImageView = (ImageView)findViewById(R.id.strength4ImageView);
         strength5ImageView = (ImageView)findViewById(R.id.strength5ImageView);
         mqttUpdateTimeTextView = (TextView)findViewById(R.id.mqttUpdateTimeTextView);
+        mqttUpdatePeriodTextView = (TextView)findViewById(R.id.mqttUpdatePeriodTextView);
     }
 
     private void setupWatchingParametersTextEdits(boolean enabled) {
@@ -1225,6 +1228,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             settingsButton.setEnabled(true);
             settingsButton.setVisibility(View.VISIBLE);
             mqttUpdateTimeTextView.setVisibility(View.INVISIBLE);
+            mqttUpdatePeriodTextView.setVisibility(View.INVISIBLE);
             client.disconnect();
             setSignalStrengthIcon(-1);
         } else {
@@ -1258,6 +1262,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                             runOnUiThread(new Runnable() {
                                                   public void run() {
                                                       mqttUpdateTimeTextView.setText("00:00");
+                                                      mqttUpdatePeriodTextView.setText("00:00:00");
                                                   }
                                             });
                                             String payload = new String(publish.getPayloadAsBytes());
@@ -1306,6 +1311,20 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                             }
 
                                             try {
+                                                mqttUpdatePeriod = Integer.parseInt(split[16], 10);
+                                                int hours = mqttUpdatePeriod / 3600;
+                                                int minutes = (mqttUpdatePeriod % 3600) / 60;
+                                                int seconds = mqttUpdatePeriod % 60;
+                                                String periodString = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+                                                runOnUiThread(new Runnable() {
+                                                    public void run() {
+                                                        mqttUpdatePeriodTextView.setText(periodString);
+                                                    }
+                                                });
+                                            } catch (Exception e) {
+                                            }
+
+                                            try {
                                                 int signalStrength = Integer.parseInt(split[0]);
                                                 if (signalStrength < 1) {
                                                     setSignalStrengthIcon(0);
@@ -1341,6 +1360,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                                             watchingButton.setEnabled(true);
                                                             nmeaMessageStarted = false;
                                                             mqttUpdateTimeTextView.setVisibility(View.VISIBLE);
+                                                            mqttUpdatePeriodTextView.setVisibility(View.VISIBLE);
                                                             mqttTimeSinceLastUpdateReceived = 0;
                                                             mqttUpdateTimeSecondCounter = System.currentTimeMillis();
                                                         } else {
@@ -1350,6 +1370,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                                             settingsButton.setEnabled(true);
                                                             settingsButton.setVisibility(View.VISIBLE);
                                                             mqttUpdateTimeTextView.setVisibility(View.INVISIBLE);
+                                                            mqttUpdatePeriodTextView.setVisibility(View.VISIBLE);
                                                             setSignalStrengthIcon(-1);
                                                         }
                                                     }
