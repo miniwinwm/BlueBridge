@@ -63,7 +63,9 @@ public class AnchorView extends View {
         canvas.drawLine(width / 2 - 10, height / 2 - 10, width / 2 + 10, height / 2 + 10, paint);
         canvas.drawLine(width / 2 + 10, height / 2 - 10, width / 2 - 10, height / 2 + 10, paint);
 
-        for (int i = 0; i < posDiffsMetresCount; i++) {
+        int i;
+        paint.setColor(Color.BLACK);
+        for (i = 0; i < posDiffsMetresCount - 1; i++) {
             canvas.drawPoint(width / 2 + xPosDiffsMetres[i] * pixelsPerMetre,
                     height / 2 + yPosDiffsMetres[i] * pixelsPerMetre, paint);
             canvas.drawPoint(width / 2 + xPosDiffsMetres[i] * pixelsPerMetre - 1,
@@ -75,6 +77,18 @@ public class AnchorView extends View {
             canvas.drawPoint(width / 2 + xPosDiffsMetres[i] * pixelsPerMetre + 1,
                     height / 2 + yPosDiffsMetres[i] * pixelsPerMetre - 1, paint);
         }
+
+        paint.setColor(Color.YELLOW);
+        canvas.drawPoint(width / 2 + xPosDiffsMetres[i] * pixelsPerMetre,
+                height / 2 + yPosDiffsMetres[i] * pixelsPerMetre, paint);
+        canvas.drawPoint(width / 2 + xPosDiffsMetres[i] * pixelsPerMetre - 1,
+                height / 2 + yPosDiffsMetres[i] * pixelsPerMetre -1, paint);
+        canvas.drawPoint(width / 2 + xPosDiffsMetres[i] * pixelsPerMetre + 1,
+                height / 2 + yPosDiffsMetres[i] * pixelsPerMetre + 1, paint);
+        canvas.drawPoint(width / 2 + xPosDiffsMetres[i] * pixelsPerMetre - 1,
+                height / 2 + yPosDiffsMetres[i] * pixelsPerMetre + 1, paint);
+        canvas.drawPoint(width / 2 + xPosDiffsMetres[i] * pixelsPerMetre + 1,
+                height / 2 + yPosDiffsMetres[i] * pixelsPerMetre - 1, paint);
     }
 
     public void drawAnchorView() {
