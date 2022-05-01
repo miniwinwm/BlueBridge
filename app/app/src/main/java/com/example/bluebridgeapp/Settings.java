@@ -9,7 +9,6 @@ public class Settings {
     private String broker;
     private short port;
     private boolean watchingPing;
-    private int connectionType;
     private boolean depthWatching;
     private boolean windWatching;
     private boolean pressureChangeWatching;
@@ -23,13 +22,14 @@ public class Settings {
     private float headingChangeMax;
     private float sogMax;
     private float positionChangeMax;
+    private ConnectionType connectionType;
 
     Settings(SharedPreferences preferences) {
         this.preferences = preferences;
         editor = preferences.edit();
 
         watchingPing = (preferences.getInt("ping", 0) == 0) ? false : true;
-        connectionType = preferences.getInt("connection", 0);
+        connectionType = ConnectionType.values()[preferences.getInt("connection", 0)];
         port = (short)preferences.getInt("port", 1883);
         broker = preferences.getString("broker", "broker.emqx.io");
         codeHexString = String.format("%08X", preferences.getLong("code", 0));
@@ -85,7 +85,7 @@ public class Settings {
     }
 
     float getPressureChangeMax() {
-        return headingChangeMax;
+        return pressureChangeMax;
     }
 
     void setHeadingChangeMax(float headingChangeMax) {
@@ -168,13 +168,13 @@ public class Settings {
         return port;
     }
 
-    void setConnectionType(int connectionType) {
+    void setConnectionType(ConnectionType connectionType) {
         this.connectionType = connectionType;
-        editor.putInt("connection", connectionType);
+        editor.putInt("connection", connectionType.ordinal());
         editor.commit();
     }
 
-    int getConnectionType() {
+    ConnectionType getConnectionType() {
         return connectionType;
     }
 

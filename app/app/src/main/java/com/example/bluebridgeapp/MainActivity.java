@@ -62,6 +62,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+enum ConnectionType {
+    BLUETOOTH,
+    INTERNET
+}
+
 public class MainActivity extends AppCompatActivity implements MqttSettingsDialogFragment.MqttSettingsDialogListener {
     private final long alarmRearmTime = 60000;
     private final long maxBluetoothDataAge = 10000;
@@ -131,16 +136,22 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     private float positionChange;
 
     private Settings settings;
-
-    private int mqttUpdatePeriod;
     private SharedPreferences preferences;
-    private volatile boolean isConnected = false;
-    private volatile boolean isWatching = false;
-    private MediaPlayer mediaPlayer;
+
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private BluetoothSocket bluetoothSocket;
     private static final UUID MY_UUID_SECURE = UUID.fromString(("00001101-0000-1000-8000-00805F9B34FB"));
     private InputStream bluetoothInputStream;
+
+    private Mqtt3AsyncClient client;
+    private long mqttUpdateTimeSecondCounter;
+    private long mqttTimeSinceLastUpdateReceived;
+    private int mqttUpdatePeriod;
+
+    ConnectionType connectionType;
+    private volatile boolean isConnected = false;
+    private volatile boolean isWatching = false;
+    private MediaPlayer mediaPlayer;
     private boolean nmeaMessageStarted = false;
     private volatile boolean connectionCloseRequest = false;
     private AnchorView anchorView;
@@ -148,11 +159,8 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     private AlertDialog alert;
     private long lastAlarmTime = 0;
     private long lastPingTime = 0;
-    private long mqttUpdateTimeSecondCounter;
-    private long mqttTimeSinceLastUpdateReceived;
     private boolean dataLossAlarmActive = false;
     private boolean watchingAlarmActive = false;
-    private Mqtt3AsyncClient client;
     private long maxDataAge;
 
     Thread thread = new Thread() {
@@ -164,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
 
             while (true) {
                 if (isConnected) {
-                    if (settings.getConnectionType() == 0) {
+                    if (settings.getConnectionType() == ConnectionType.BLUETOOTH) {
                         try {
                             int bytesRead = bluetoothInputStream.read(bluetoothBytes, 0, 20);
                             for (int i = 0; i < bytesRead; i++) {
@@ -388,7 +396,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                 }
                             }
                         });
-                    } else if (settings.getConnectionType() == 1) {
+                    } else if (settings.getConnectionType() == ConnectionType.INTERNET) {
                         runOnUiThread(new Runnable() {
                             public void run() {
                                 if (System.currentTimeMillis() - mqttUpdateTimeSecondCounter > 1000) {
@@ -1406,7 +1414,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
 
     public void connectButtonOnClick(View view) {
         saveAllTextEdits();
-        if (settings.getConnectionType() == 0) {
+        if (settings.getConnectionType() == ConnectionType.BLUETOOTH) {
             connectBluetooth(view);
         } else {
             connectInternet(view);

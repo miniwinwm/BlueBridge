@@ -20,7 +20,6 @@ Todo tidy up
 ------------
 Tidy up javascript code
 Create a new website with BlueBridge name
-In android app change settingsConnection from integer to enum type
 Rename everything back to blue bridge and delete the existing blue bridge repo
 
 
@@ -174,3 +173,4 @@ Send publish period in mqtt message
 Adjust no data alarm period in android app depending on received period
 Plotted boat point in android app too small, amke it bigger
 North is down in android app plot, make it up
+In android app change settingsConnection from integer to enum type

@@ -99,7 +99,7 @@ public class MqttSettingsDialogFragment extends DialogFragment {
         codeEditText.setText(settings.getCodeHexString());
         brokerEditText.setText(settings.getBroker());
         portEditText.setText(String.format("%d", settings.getPort()));
-        if (settings.getConnectionType() == 0) {
+        if (settings.getConnectionType() == ConnectionType.BLUETOOTH) {
             bluetoothRadioButton.setChecked(true);
             internetRadioButton.setChecked(false);
             codeEditText.setEnabled(false);
@@ -126,7 +126,7 @@ public class MqttSettingsDialogFragment extends DialogFragment {
                         settings.setCodeHexString(codeEditText.getText().toString());
                         settings.setBroker(brokerEditText.getText().toString());
                         settings.setPort(portEditText.getText().toString());
-                        settings.setConnectionType(bluetoothRadioButton.isChecked() ? 0 : 1);
+                        settings.setConnectionType(bluetoothRadioButton.isChecked() ? ConnectionType.BLUETOOTH : ConnectionType.INTERNET);
                         settings.setWatchingPing(watchingPingCheckBox.isChecked());
                         listener.onDialogPositiveClick(MqttSettingsDialogFragment.this);
                     }
