@@ -1,6 +1,7 @@
 package com.example.bluebridgeapp;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -8,16 +9,49 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
+import androidx.appcompat.app.AlertDialog;
+
 public class AnchorView extends View {
     private static final int maxPosDiffMetresCount = 250;
     float[] xPosDiffsMetres;
     float[] yPosDiffsMetres;
     int posDiffsMetresCount;
     int nextPosDiffMetresPos;
+    AlertDialog alert;
 
-    public AnchorView(Context context) {
-        super(context);
+    public AnchorView(Context context, AttributeSet attrs) {
+        super(context, attrs);
         Reset();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage("Delete all existing points?");
+        builder.setCancelable(true);
+
+        builder.setPositiveButton(
+                "Yes",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                        Reset();
+                        drawAnchorView();
+                    }
+                });
+
+        builder.setNegativeButton(
+                "No",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+
+        alert = builder.create();
+
+        setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                alert.show();
+            }
+        });
     }
 
     public void Reset() {
@@ -38,11 +72,6 @@ public class AnchorView extends View {
         if (nextPosDiffMetresPos == maxPosDiffMetresCount) {
             nextPosDiffMetresPos = 0;
         }
-    }
-
-    public AnchorView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        Reset();
     }
 
     protected void onDraw(Canvas canvas) {
