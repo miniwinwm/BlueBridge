@@ -63,12 +63,9 @@ import java.util.Set;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements MqttSettingsDialogFragment.MqttSettingsDialogListener {
-    private final long maxDepthDataAge = 40000;
-    private final long maxGpsDataAge = 40000;
-    private final long maxWindDataAge = 40000;
-    private final long maxHeadingDataAge = 40000;
-    private final long maxPressureDataAge = 60000;
     private final long alarmRearmTime = 60000;
+    private final long maxBluetoothDataAge = 10000;
+    private final long maxMqttDataAgeDefault = 300000;
 
     private TextView textViewPressure;
     private TextView textViewHeading;
@@ -156,6 +153,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     private boolean dataLossAlarmActive = false;
     private boolean watchingAlarmActive = false;
     private Mqtt3AsyncClient client;
+    private long maxDataAge;
 
     Thread thread = new Thread() {
         byte[] nmeaMessageArray = new byte[101];
@@ -369,23 +367,23 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
 
                         runOnUiThread(new Runnable() {
                             public void run() {
-                                if (System.currentTimeMillis() - depthReceivedTime > maxDepthDataAge) {
+                                if (System.currentTimeMillis() - depthReceivedTime > maxDataAge) {
                                     textViewDepth.setText("----");
                                 }
 
-                                if (System.currentTimeMillis() - sogReceivedTime > maxGpsDataAge) {
+                                if (System.currentTimeMillis() - sogReceivedTime > maxDataAge) {
                                     textViewSog.setText("----");
                                 }
 
-                                if (System.currentTimeMillis() - windspeedReceivedTime > maxWindDataAge) {
+                                if (System.currentTimeMillis() - windspeedReceivedTime > maxDataAge) {
                                     textViewWindspeed.setText("----");
                                 }
 
-                                if (System.currentTimeMillis() - headingReceivedTime > maxWindDataAge) {
+                                if (System.currentTimeMillis() - headingReceivedTime > maxDataAge) {
                                     textViewHeading.setText("----");
                                 }
 
-                                if (System.currentTimeMillis() - pressureReceivedTime > maxPressureDataAge) {
+                                if (System.currentTimeMillis() - pressureReceivedTime > maxDataAge) {
                                     textViewPressure.setText("----");
                                 }
                             }
@@ -405,31 +403,31 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                     mqttUpdateTimeTextView.setText(formattedTime);
                                 }
 
-                                if (System.currentTimeMillis() - depthReceivedTime < maxDepthDataAge) {
+                                if (System.currentTimeMillis() - depthReceivedTime < maxDataAge) {
                                     textViewDepth.setText(Float.toString(depth) + " m");
                                 } else {
                                     textViewDepth.setText("----");
                                 }
 
-                                if (System.currentTimeMillis() - sogReceivedTime < maxGpsDataAge) {
+                                if (System.currentTimeMillis() - sogReceivedTime < maxDataAge) {
                                     textViewSog.setText(Float.toString(sog) + " Kts");
                                 } else {
                                     textViewSog.setText("----");
                                 }
 
-                                if (System.currentTimeMillis() - windspeedReceivedTime < maxWindDataAge) {
+                                if (System.currentTimeMillis() - windspeedReceivedTime < maxDataAge) {
                                     textViewWindspeed.setText(Float.toString(windspeed) + " Kts");
                                 } else {
                                     textViewWindspeed.setText("----");
                                 }
 
-                                if (System.currentTimeMillis() - headingReceivedTime < maxWindDataAge) {
+                                if (System.currentTimeMillis() - headingReceivedTime < maxDataAge) {
                                     textViewHeading.setText(Integer.toString(Math.round(heading)) + "°");
                                 } else {
                                     textViewHeading.setText("----");
                                 }
 
-                                if (System.currentTimeMillis() - pressureReceivedTime < maxPressureDataAge) {
+                                if (System.currentTimeMillis() - pressureReceivedTime < maxDataAge) {
                                     textViewPressure.setText(Integer.toString(Math.round(pressure)) + " mb");
                                 } else {
                                     textViewPressure.setText("----");
@@ -443,8 +441,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                     lastUpdateTime = System.currentTimeMillis();
                     runOnUiThread(new Runnable() {
                         public void run() {
-                            float headingChange;
-                            if (System.currentTimeMillis() - headingReceivedTime < maxHeadingDataAge) {
+                            if (System.currentTimeMillis() - headingReceivedTime < maxDataAge) {
                                 headingChange = heading - startHeading;
                                 if (headingChange > 180.0f) {
                                     headingChange -= 180.0f;
@@ -459,8 +456,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                 textViewHeadingChange.setText("----");
                             }
 
-                            float pressureChange;
-                            if (System.currentTimeMillis() - pressureReceivedTime < maxPressureDataAge) {
+                            if (System.currentTimeMillis() - pressureReceivedTime < maxDataAge) {
                                 pressureChange = pressure - startPressure;
                                 if (settings.getPressureChangeWatching()) {
                                     textViewPressureChange.setText(Integer.toString(Math.round(pressureChange)) + " mb");
@@ -469,8 +465,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                 textViewPressureChange.setText("----");
                             }
 
-                            float positionChange;
-                            if (System.currentTimeMillis() - latitudeReceivedTime < maxGpsDataAge && System.currentTimeMillis() - longitudeReceivedTime < maxGpsDataAge) {
+                            if (System.currentTimeMillis() - latitudeReceivedTime < maxDataAge && System.currentTimeMillis() - longitudeReceivedTime < maxDataAge) {
                                 positionChange = Utils.DistanceBetweenPoints(latitude, longitude, startLatitude, startLongitude);
 
                                 if (System.currentTimeMillis() - lastAnchorPlotUpdateTime > 5000 && isWatching) {
@@ -509,7 +504,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                 // do data available checking
                 if (System.currentTimeMillis() - lastAlarmTime > alarmRearmTime && isWatching && !watchingAlarmActive) {
                     if (settings.getDepthWatching()) {
-                        if (System.currentTimeMillis() - depthReceivedTime > maxDepthDataAge)
+                        if (System.currentTimeMillis() - depthReceivedTime > maxDataAge)
                         {
                             if (!alert.isShowing()) {
                                 messageBoxThread("No depth data received");
@@ -526,7 +521,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                     }
 
                     if (settings.getWindWatching()) {
-                        if (System.currentTimeMillis() - windspeedReceivedTime > maxWindDataAge)
+                        if (System.currentTimeMillis() - windspeedReceivedTime > maxDataAge)
                         {
                             if (!alert.isShowing()) {
                                 messageBoxThread("No windspeed data received");
@@ -543,7 +538,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                     }
 
                     if (settings.getHeadingChangeWatching()) {
-                        if (System.currentTimeMillis() - headingReceivedTime > maxHeadingDataAge)
+                        if (System.currentTimeMillis() - headingReceivedTime > maxDataAge)
                         {
                             if (!alert.isShowing()) {
                                 messageBoxThread("No heading data received");
@@ -560,7 +555,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                     }
 
                     if (settings.getPressureChangeWatching()) {
-                        if (System.currentTimeMillis() - pressureReceivedTime > maxPressureDataAge)
+                        if (System.currentTimeMillis() - pressureReceivedTime > maxDataAge)
                         {
                             if (!alert.isShowing()) {
                                 messageBoxThread("No pressure data received");
@@ -577,7 +572,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                     }
 
                     if (settings.getSogWatching()) {
-                        if (System.currentTimeMillis() - sogReceivedTime > maxGpsDataAge)
+                        if (System.currentTimeMillis() - sogReceivedTime > maxDataAge)
                         {
                             if (!alert.isShowing()) {
                                 messageBoxThread("No SOG data received");
@@ -594,7 +589,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                     }
 
                     if (settings.getPositionChangeWatching()) {
-                        if (System.currentTimeMillis() - latitudeReceivedTime > maxGpsDataAge || System.currentTimeMillis() - longitudeReceivedTime > maxGpsDataAge)
+                        if (System.currentTimeMillis() - latitudeReceivedTime > maxDataAge || System.currentTimeMillis() - longitudeReceivedTime > maxDataAge)
                         {
                             if (!alert.isShowing()) {
                                 messageBoxThread("No position data received");
@@ -1147,9 +1142,9 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
         } else {
             // connect
             if (bluetoothAdapter == null) {
-                messageBox("Bluetooth is not supported");
+                messageBox("Bluetooth is not supported.");
             } else if (!bluetoothAdapter.isEnabled()) {
-                messageBox("Bluetooth is not enabled");
+                messageBox("Bluetooth is not enabled.");
             } else {
                 connectButton.setEnabled(false);
                 settingsButton.setEnabled(false);
@@ -1173,11 +1168,12 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                         if (bluetoothSocket.isConnected()) {
                                             bluetoothInputStream = bluetoothSocket.getInputStream();
                                             isConnected = true;
+                                            maxDataAge = maxBluetoothDataAge;
                                         } else {
-                                            messageBoxThread("Could not connect to BlueBridge");
+                                            messageBoxThread("Could not connect to BlueBridge. Is it paired?");
                                         }
                                     } catch (IOException e) {
-                                        messageBoxThread("Connection error");
+                                        messageBoxThread("Connection error.");
                                     }
                                     break;
                                 }
@@ -1312,6 +1308,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
 
                                             try {
                                                 mqttUpdatePeriod = Integer.parseInt(split[16], 10);
+                                                maxDataAge = (long)(mqttUpdatePeriod) * 3000 + 10000;
                                                 int hours = mqttUpdatePeriod / 3600;
                                                 int minutes = (mqttUpdatePeriod % 3600) / 60;
                                                 int seconds = mqttUpdatePeriod % 60;
@@ -1347,7 +1344,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                         .whenComplete((subAck, throwable) -> {
                                             if (throwable != null) {
                                                 // Handle failure to subscribe
-                                                messageBoxThread("Connection failure");
+                                                messageBoxThread("Connection failure.");
                                             } else {
                                                 // subscribe success
                                                 runOnUiThread(new Runnable() {
@@ -1377,6 +1374,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                                 });
 
                                                 isConnected = true;
+                                                maxDataAge = maxMqttDataAgeDefault;
                                             }
                                         });
                             }
@@ -1446,12 +1444,12 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                 return;
             }
 
-            if ((!settings.getDepthWatching() || System.currentTimeMillis() - depthReceivedTime < maxDepthDataAge) &&
-                    (!settings.getWindWatching() || System.currentTimeMillis() - windspeedReceivedTime < maxWindDataAge) &&
-                    (!settings.getHeadingChangeWatching() || System.currentTimeMillis() - headingReceivedTime < maxHeadingDataAge) &&
-                    (!settings.getPressureChangeWatching() || System.currentTimeMillis() - pressureReceivedTime < maxPressureDataAge) &&
-                    (!settings.getSogWatching() || System.currentTimeMillis() - sogReceivedTime < maxGpsDataAge) &&
-                    (!settings.getPositionChangeWatching() || (System.currentTimeMillis() - latitudeReceivedTime < maxGpsDataAge && System.currentTimeMillis() - longitudeReceivedTime < maxGpsDataAge))) {
+            if ((!settings.getDepthWatching() || System.currentTimeMillis() - depthReceivedTime < maxDataAge) &&
+                    (!settings.getWindWatching() || System.currentTimeMillis() - windspeedReceivedTime < maxDataAge) &&
+                    (!settings.getHeadingChangeWatching() || System.currentTimeMillis() - headingReceivedTime < maxDataAge) &&
+                    (!settings.getPressureChangeWatching() || System.currentTimeMillis() - pressureReceivedTime < maxDataAge) &&
+                    (!settings.getSogWatching() || System.currentTimeMillis() - sogReceivedTime < maxDataAge) &&
+                    (!settings.getPositionChangeWatching() || (System.currentTimeMillis() - latitudeReceivedTime < maxDataAge && System.currentTimeMillis() - longitudeReceivedTime < maxDataAge))) {
                 if (settings.getHeadingChangeWatching()) {
                     startHeading = heading;
                 }

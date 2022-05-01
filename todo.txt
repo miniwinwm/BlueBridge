@@ -11,9 +11,9 @@ TCP write size of 99 causes problems - test by making floating point numbers lon
 Todo functional
 ---------------
 Make buffer handling safe in nmea.c
-Adjust no data alarm period in android app depending on received period
 Add n2k gps data read
 Add selection between gps data sources using jumper - needs hw version 1.1 or modified 1.0
+Add option to clear boat plot points chart in android app
 
 
 Todo tidy up
@@ -171,3 +171,6 @@ Add RF module to hw design, leave as do not fit for now
 When period is changed send a publish immediately to update clients on new period
 Display publish period in android app when connected by internet
 Send publish period in mqtt message 
+Adjust no data alarm period in android app depending on received period
+Plotted boat point in android app too small, amke it bigger
+North is down in android app plot, make it up

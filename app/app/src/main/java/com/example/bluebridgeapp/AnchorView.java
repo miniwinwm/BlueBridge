@@ -29,7 +29,7 @@ public class AnchorView extends View {
 
     public void AddPosDiffMetres(float xDiffMetres, float yDiffMetres) {
         xPosDiffsMetres[nextPosDiffMetresPos] = xDiffMetres;
-        yPosDiffsMetres[nextPosDiffMetresPos] = yDiffMetres;
+        yPosDiffsMetres[nextPosDiffMetresPos] = -yDiffMetres;
         posDiffsMetresCount++;
         if (posDiffsMetresCount == maxPosDiffMetresCount) {
             posDiffsMetresCount = maxPosDiffMetresCount;
@@ -38,7 +38,6 @@ public class AnchorView extends View {
         if (nextPosDiffMetresPos == maxPosDiffMetresCount) {
             nextPosDiffMetresPos = 0;
         }
-        Log.i("AWPOS","Add pos=" + Float.toString(xDiffMetres) +","+Float.toString(yDiffMetres));
     }
 
     public AnchorView(Context context, AttributeSet attrs) {
@@ -67,6 +66,14 @@ public class AnchorView extends View {
         for (int i = 0; i < posDiffsMetresCount; i++) {
             canvas.drawPoint(width / 2 + xPosDiffsMetres[i] * pixelsPerMetre,
                     height / 2 + yPosDiffsMetres[i] * pixelsPerMetre, paint);
+            canvas.drawPoint(width / 2 + xPosDiffsMetres[i] * pixelsPerMetre - 1,
+                    height / 2 + yPosDiffsMetres[i] * pixelsPerMetre -1, paint);
+            canvas.drawPoint(width / 2 + xPosDiffsMetres[i] * pixelsPerMetre + 1,
+                    height / 2 + yPosDiffsMetres[i] * pixelsPerMetre + 1, paint);
+            canvas.drawPoint(width / 2 + xPosDiffsMetres[i] * pixelsPerMetre - 1,
+                    height / 2 + yPosDiffsMetres[i] * pixelsPerMetre + 1, paint);
+            canvas.drawPoint(width / 2 + xPosDiffsMetres[i] * pixelsPerMetre + 1,
+                    height / 2 + yPosDiffsMetres[i] * pixelsPerMetre - 1, paint);
         }
     }
 
