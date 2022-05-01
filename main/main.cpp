@@ -603,7 +603,7 @@ static void RMC_receive_callback(const char *data)
 			if (nmea_message_data_RMC.data_available & NMEA_RMC_SOG_PRESENT)
 			{
 #ifdef CREATE_TEST_DATA_CODE					
-				if (!settings_get_create_test_data())
+				if (!gpio_get_test_data_enabled())
 #endif					
 				{
 					speed_over_ground_data = nmea_message_data_RMC.SOG;
@@ -614,7 +614,7 @@ static void RMC_receive_callback(const char *data)
 			if (nmea_message_data_RMC.data_available & NMEA_RMC_COG_PRESENT)
 			{
 #ifdef CREATE_TEST_DATA_CODE					
-				if (!settings_get_create_test_data())
+				if (!gpio_get_test_data_enabled())
 #endif					
 				{
 					course_over_ground_data = nmea_message_data_RMC.COG;
@@ -624,7 +624,7 @@ static void RMC_receive_callback(const char *data)
 			else		// horrible hack because COG is not present when sog = 0
 			{
 #ifdef CREATE_TEST_DATA_CODE					
-				if (!settings_get_create_test_data())
+				if (!gpio_get_test_data_enabled())
 #endif					
 				{
 					course_over_ground_data = 0;
@@ -635,7 +635,7 @@ static void RMC_receive_callback(const char *data)
 			if (nmea_message_data_RMC.data_available & NMEA_RMC_LATITUDE_PRESENT)
 			{
 #ifdef CREATE_TEST_DATA_CODE					
-				if (!settings_get_create_test_data())
+				if (!gpio_get_test_data_enabled())
 #endif					
 				{
 					frac_part = modff(nmea_message_data_RMC.latitude / 100.0f, &int_part);
@@ -648,7 +648,7 @@ static void RMC_receive_callback(const char *data)
 			if (nmea_message_data_RMC.data_available & NMEA_RMC_LONGITUDE_PRESENT)
 			{
 #ifdef CREATE_TEST_DATA_CODE					
-				if (!settings_get_create_test_data())
+				if (!gpio_get_test_data_enabled())
 #endif					
 				{
 					frac_part = modff(nmea_message_data_RMC.longitude / 100.0f, &int_part);
@@ -1298,6 +1298,7 @@ extern "C" void app_main(void)
 	wmm_init();
 	settings_init();
 	sms_init();
+	gpio_init();
 		
 	// init all the reception times to some time a long time ago
 	(void)memset((void *)&boat_data_reception_time, 0x7f, sizeof(boat_data_reception_time));
@@ -1381,8 +1382,9 @@ extern "C" void app_main(void)
 		vTaskDelay(10);        		
 				
 #ifdef CREATE_TEST_DATA_CODE				
-		if (settings_get_create_test_data())
+		if (gpio_get_test_data_enabled())
 		{
+			ESP_LOGI(pcTaskGetName(NULL), "Running test data");
 			test_data();
 		}
 #endif

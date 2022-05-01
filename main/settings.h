@@ -36,7 +36,6 @@ extern "C" {
 ***************/
 
 #include <stdint.h>
-#include "main.h"
 
 /**************
 *** DEFINES ***
@@ -254,23 +253,6 @@ bool settings_get_publishing_start_needed(void);
  * @note This settings is never saved in flash memory
  */
 void settings_set_publishing_start_needed(bool publishing_start_needed);
-
-#ifdef CREATE_TEST_DATA_CODE	
-/**
- * Read create test data volatile setting from memory
- *
- * @return The setting's value
- */
-bool settings_get_create_test_data(void);
-
-/**
- * Save create test data volatile setting in memory.
- *
- * @param create_test_data New value of the setting
- * @note This settings is never saved in flash memory
- */
-void settings_set_create_test_data(bool create_test_data);
-#endif
 
 #ifdef __cplusplus
 }

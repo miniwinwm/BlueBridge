@@ -35,7 +35,6 @@ SOFTWARE.
 #include "flash.h"
 #include "modem.h"
 #include "util.h"
-#include "main.h"
 
 /**************
 *** DEFINES ***
@@ -82,9 +81,6 @@ typedef struct
 	bool boat_iot_started;															///< If MQTT publishing has started
 	bool restart_needed;															///< If the device needs rebooting
 	bool publishing_start_needed;													///< If MQTT publishing needs starting
-#ifdef CREATE_TEST_DATA_CODE	
-	bool create_test_data;															///< If to create test data
-#endif	
 } settings_volatile_t;
 
 /********************************
@@ -420,23 +416,3 @@ void settings_set_publishing_start_needed(bool publishing_start_needed)
 	settings_volatile.publishing_start_needed = publishing_start_needed;
 	xSemaphoreGive(settings_mutex_handle);	
 }
-
-#ifdef CREATE_TEST_DATA_CODE	
-bool settings_get_create_test_data(void)
-{
-	bool create_test_data;
-	
-	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
-	create_test_data = settings_volatile.create_test_data;
-	xSemaphoreGive(settings_mutex_handle);	
-	
-	return create_test_data;
-}
-
-void settings_set_create_test_data(bool create_test_data)
-{
-	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
-	settings_volatile.create_test_data = create_test_data;
-	xSemaphoreGive(settings_mutex_handle);	
-}
-#endif

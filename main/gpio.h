@@ -36,13 +36,23 @@ extern "C" {
 ***************/
 
 #include <stdbool.h>
+#include "main.h"
 
 /**************
 *** DEFINES ***
 **************/
 
+#ifdef HW_VARIANT_V1_0
+#define GPIO_TEST_DATA					GPIO_NUM_35			///< GPIO pin attached to jumper to enable test data (jumper on = test data enabled, jumper off = test data disabled)
+#define GPIO_GPS_SELECT					GPIO_NUM_34			///< GPIO pin attached to jumper for GPS source selection (jumper on = NMEA2000, jumper off = NMEA0183)
+#else
+#ifdef HW_VARIANT_V1_1
 #define GPIO_TEST_DATA					GPIO_NUM_33			///< GPIO pin attached to jumper to enable test data (jumper on = test data enabled, jumper off = test data disabled)
 #define GPIO_GPS_SELECT					GPIO_NUM_32			///< GPIO pin attached to jumper for GPS source selection (jumper on = NMEA2000, jumper off = NMEA0183)
+#else
+#error No hardware variant defined
+#endif
+#endif
 
 /************
 *** TYPES ***
@@ -58,8 +68,6 @@ extern "C" {
 
 /**
  * Initialize the GPIO driver. Call once before using other functions
- *
- * @note Currently not used 
  */
 void gpio_init(void);
 
@@ -67,7 +75,7 @@ void gpio_init(void);
  * Get test data enabled state
  *
  * @return If test data enabled, true else false
- * @note Currently not used
+ * @note Depends on hardware variant defined in main.h
  */
 bool gpio_get_test_data_enabled(void);
 
@@ -75,7 +83,7 @@ bool gpio_get_test_data_enabled(void);
  * Get GPS source 
  *
  * @return For NMEA2000 false, for NMEA0183 true
- * @note Currently not used
+ * @note Depends on hardware variant defined in main.h
  */
 bool gpio_get_gps_data_source(void);
 
