@@ -18,7 +18,6 @@ Todo tidy up
 ------------
 Tidy up javascript code
 Create a new website with BlueBridge name
-Rename everything back to blue bridge in source
 Delete the old blue bridge repo
 
 
@@ -177,3 +176,4 @@ Add n2k gps data read
 If a mqtt publish fails, delay for 1s and try again
 Increase mqtt publish timeout from 5s to 10s
 Rename repo to bluebridge
+Rename everything back to blue bridge in source
