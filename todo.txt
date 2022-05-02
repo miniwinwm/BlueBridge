@@ -11,7 +11,6 @@ TCP write size of 99 causes problems - test by making floating point numbers lon
 Todo functional
 ---------------
 Make buffer handling safe in nmea.c
-Add n2k gps data read
 Add selection between gps data sources using jumper - needs hw version 1.1 or modified 1.0
 
 
@@ -27,7 +26,6 @@ Todo testing
 Test on boat
 Test local MQTT broker
 Test full functionality of anchor watching by mqtt
-Regression test bluetooth anchor watching functionality/pressure sensor/NMEA2000
 Check for internet connection loss in android app when watching by mqtt
 
 
@@ -174,3 +172,7 @@ Plotted boat point in android app too small, amke it bigger
 North is down in android app plot, make it up
 In android app change settingsConnection from integer to enum type
 Add option to clear boat plot points chart in android app
+Regression test bluetooth anchor watching functionality/pressure sensor/NMEA2000
+Add n2k gps data read
+If a mqtt publish fails, delay for 1s and try again
+Increase mqtt publish timeout from 5s to 10s

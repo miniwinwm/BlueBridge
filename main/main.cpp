@@ -101,6 +101,8 @@ static void boat_speed_handler(const tN2kMsg &N2kMsg);
 static void wind_handler(const tN2kMsg &N2kMsg);
 static void log_handler(const tN2kMsg &N2kMsg);
 static void environmental_handler(const tN2kMsg &N2kMsg);
+static void latlong_handler(const tN2kMsg &N2kMsg);
+static void sogcog_handler(const tN2kMsg &N2kMsg);
 static void HandleNMEA2000Msg(const tN2kMsg &N2kMsg);
 #ifdef CREATE_TEST_DATA_CODE
 static void test_data(void);
@@ -171,6 +173,8 @@ static const unsigned long n2k_receive_messages[] = {127250UL, 	// heading
 													 130306UL,	// wind
 													 128275UL,	// log
 													 130310UL,	// environmental
+													 129025UL,	// lat/long
+													 129026UL,	// sog/cog
 													 0UL};
 									
 /** 
@@ -183,7 +187,9 @@ static const tNMEA2000Handler NMEA2000Handlers[] =
 	{128259UL, &boat_speed_handler},	
 	{130306UL, &wind_handler},
 	{128275UL, &log_handler},
-	{130310UL, &environmental_handler}
+	{130310UL, &environmental_handler},
+	{129025UL, &latlong_handler},
+	{129026UL, &sogcog_handler},
 };
 
 /**
@@ -580,76 +586,56 @@ static void RMC_receive_callback(const char *data)
 	float int_part;
 	float frac_part;
 	
-	if (nmea_decode_RMC(data, &nmea_message_data_RMC) == nmea_error_none)
-	{		
-		if (nmea_message_data_RMC.status == 'A')
-		{
-			if (nmea_message_data_RMC.data_available & NMEA_RMC_UTC_PRESENT)
-			{
-				gmt_data.hour = nmea_message_data_RMC.utc.hours;
-				gmt_data.minute = nmea_message_data_RMC.utc.minutes;
-				gmt_data.second = (uint8_t)nmea_message_data_RMC.utc.seconds;
-				boat_data_reception_time.gmt_received_time = time_ms;
-			}
-
-			if (nmea_message_data_RMC.data_available & NMEA_RMC_DATE_PRESENT)
-			{
-				date_data.year = (uint8_t)(nmea_message_data_RMC.date.year - 2000U);
-				date_data.month = nmea_message_data_RMC.date.month;
-				date_data.date = nmea_message_data_RMC.date.date;
-				boat_data_reception_time.date_received_time = time_ms;
-			}
-
-			if (nmea_message_data_RMC.data_available & NMEA_RMC_SOG_PRESENT)
-			{
 #ifdef CREATE_TEST_DATA_CODE					
-				if (!gpio_get_test_data_enabled())
-#endif					
+	if (!gpio_get_test_data_enabled())
+#endif			
+	{
+		if (nmea_decode_RMC(data, &nmea_message_data_RMC) == nmea_error_none)
+		{		
+			if (nmea_message_data_RMC.status == 'A')
+			{
+				if (nmea_message_data_RMC.data_available & NMEA_RMC_UTC_PRESENT)
+				{
+					gmt_data.hour = nmea_message_data_RMC.utc.hours;
+					gmt_data.minute = nmea_message_data_RMC.utc.minutes;
+					gmt_data.second = (uint8_t)nmea_message_data_RMC.utc.seconds;
+					boat_data_reception_time.gmt_received_time = time_ms;
+				}
+
+				if (nmea_message_data_RMC.data_available & NMEA_RMC_DATE_PRESENT)
+				{
+					date_data.year = (uint8_t)(nmea_message_data_RMC.date.year - 2000U);
+					date_data.month = nmea_message_data_RMC.date.month;
+					date_data.date = nmea_message_data_RMC.date.date;
+					boat_data_reception_time.date_received_time = time_ms;
+				}
+
+				if (nmea_message_data_RMC.data_available & NMEA_RMC_SOG_PRESENT)
 				{
 					speed_over_ground_data = nmea_message_data_RMC.SOG;
 					boat_data_reception_time.speed_over_ground_received_time = time_ms;			
-				}	
-			}
+				}
 
-			if (nmea_message_data_RMC.data_available & NMEA_RMC_COG_PRESENT)
-			{
-#ifdef CREATE_TEST_DATA_CODE					
-				if (!gpio_get_test_data_enabled())
-#endif					
+				if (nmea_message_data_RMC.data_available & NMEA_RMC_COG_PRESENT)
 				{
 					course_over_ground_data = nmea_message_data_RMC.COG;
 					boat_data_reception_time.course_over_ground_received_time = time_ms;	
-				}				
-			}
-			else		// horrible hack because COG is not present when sog = 0
-			{
-#ifdef CREATE_TEST_DATA_CODE					
-				if (!gpio_get_test_data_enabled())
-#endif					
+				}
+				else		// same horrible hack as PGN129026 message as emtrak devices do not put out cog when sog is very small
 				{
 					course_over_ground_data = 0;
 					boat_data_reception_time.course_over_ground_received_time = time_ms;
 				}
-			}
 
-			if (nmea_message_data_RMC.data_available & NMEA_RMC_LATITUDE_PRESENT)
-			{
-#ifdef CREATE_TEST_DATA_CODE					
-				if (!gpio_get_test_data_enabled())
-#endif					
+				if (nmea_message_data_RMC.data_available & NMEA_RMC_LATITUDE_PRESENT)
 				{
 					frac_part = modff(nmea_message_data_RMC.latitude / 100.0f, &int_part);
 					latitude_data = int_part;
 					latitude_data += frac_part / 0.6f;
 					boat_data_reception_time.latitude_received_time = time_ms;		
 				}
-			}
 
-			if (nmea_message_data_RMC.data_available & NMEA_RMC_LONGITUDE_PRESENT)
-			{
-#ifdef CREATE_TEST_DATA_CODE					
-				if (!gpio_get_test_data_enabled())
-#endif					
+				if (nmea_message_data_RMC.data_available & NMEA_RMC_LONGITUDE_PRESENT)
 				{
 					frac_part = modff(nmea_message_data_RMC.longitude / 100.0f, &int_part);
 					longitude_data = int_part;
@@ -1158,6 +1144,83 @@ static void environmental_handler(const tN2kMsg &N2kMsg)
 	}
 }
 
+/**
+ * Handle an incoming NMEA2000 lat/long message
+ *
+ * @param N2kMsg Reference to the incoming message
+ */
+static void latlong_handler(const tN2kMsg &N2kMsg) 
+{
+	double latitude;
+	double longitude;
+	
+#ifdef CREATE_TEST_DATA_CODE					
+	if (!gpio_get_test_data_enabled())
+#endif		
+	{
+		if (ParseN2kPositionRapid(N2kMsg, latitude, longitude)) 
+		{
+			if (!N2kIsNA(latitude))
+			{
+				latitude_data = (float)latitude;
+				boat_data_reception_time.latitude_received_time = timer_get_time_ms();				
+			}
+			
+			if (!N2kIsNA(longitude))
+			{
+				longitude_data = (float)longitude;
+				boat_data_reception_time.longitude_received_time = timer_get_time_ms();				
+			}		
+		}
+	}
+}
+
+/**
+ * Handle an incoming NMEA2000 SOG/COG message
+ *
+ * @param N2kMsg Reference to the incoming message
+ */
+static void sogcog_handler(const tN2kMsg &N2kMsg) 
+{
+    unsigned char SID;
+	double sog;
+	double cog;
+	tN2kHeadingReference ref;
+	
+#ifdef CREATE_TEST_DATA_CODE					
+	if (!gpio_get_test_data_enabled())
+#endif		
+	{
+		if (ParseN2kCOGSOGRapid(N2kMsg, SID, ref, cog, sog)) 
+		{
+			if (!N2kIsNA(sog))
+			{
+				speed_over_ground_data = (float)msToKnots(sog);
+				boat_data_reception_time.speed_over_ground_received_time = timer_get_time_ms();					
+			}
+			
+			if (!N2kIsNA(cog))
+			{
+				if (ref == N2khr_true)
+				{
+					course_over_ground_data = (int16_t)RadToDeg(cog);
+					boat_data_reception_time.course_over_ground_received_time = timer_get_time_ms();
+				}
+				else if (ref == N2khr_magnetic && timer_get_time_ms() - boat_data_reception_time.wmm_calculation_time < WMM_CALCULATION_MAX_DATA_AGE)
+				{
+					course_over_ground_data = (int16_t)RadToDeg(cog) + variation_wmm_data;
+					boat_data_reception_time.course_over_ground_received_time = timer_get_time_ms();
+				}					
+			}	
+			else
+			{
+				course_over_ground_data = 0;		// same horrible hack as RMC message as emtrak devices do not put out cog when sog is very small
+				boat_data_reception_time.course_over_ground_received_time = timer_get_time_ms();
+			}
+		}
+	}
+}
+
 #ifdef CREATE_TEST_DATA_CODE
 /**
  * Create simulated boat data
@@ -1172,7 +1235,7 @@ static void test_data(void)
 		init = true;
 		depth_data = 3.0f;	
 		heading_true_data = 80.0f;
-		course_over_ground_data = 220.0f;
+		course_over_ground_data = 220;
 		trip_data = 0.1f;
 		total_distance_data = 32445.0;
 		boat_speed_data = 0.0f;
@@ -1211,14 +1274,14 @@ static void test_data(void)
 		}		
 		boat_data_reception_time.heading_true_received_time = timer_get_time_ms();		
 		
-		course_over_ground_data += (90.0f * (float)esp_random() / (float)UINT32_MAX) - 45.0f;
-		if (course_over_ground_data < 0.0f)
+		course_over_ground_data += (int16_t)(90.0f * (float)esp_random() / (float)UINT32_MAX) - 45;
+		if (course_over_ground_data < 0)
 		{
-			course_over_ground_data += 360.0f;
+			course_over_ground_data += 360;
 		}
-		if (course_over_ground_data >= 360.0f)
+		if (course_over_ground_data >= 360)
 		{
-			course_over_ground_data -= 360.0f;
+			course_over_ground_data -= 360;
 		}		
 		boat_data_reception_time.course_over_ground_received_time = timer_get_time_ms();				
 		

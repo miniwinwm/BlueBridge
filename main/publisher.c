@@ -780,7 +780,7 @@ void publisher_task(void *parameters)
 				(void)snprintf(number_buf, sizeof(number_buf), "%u", settings_get_publishing_period_s());
 				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);				
 
-				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 5000UL);									
+				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 10000UL);									
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish %s %s %s", mqtt_topic, mqtt_data_buf, MqttStatusToText(mqtt_status));		
 				
 				if (mqtt_status == MQTT_OK)
@@ -834,7 +834,11 @@ void publisher_task(void *parameters)
 				}
 			}
 
-			vTaskDelay(1000UL);											
+			vTaskDelay(1000UL);		
+			if (publish_failed_count > 0U)
+			{
+				break;
+			}
 		}		
 	}
 }
