@@ -25,7 +25,6 @@ Delete the old blue bridge repo
 Todo testing
 ------------
 Test on boat
-Test local MQTT broker
 Test full functionality of anchor watching by mqtt
 Check for internet connection loss in android app when watching by mqtt
 
