@@ -2,7 +2,7 @@
 
 MIT License
 
-Copyright (c) John Blaiklock 2022 BlueThing
+Copyright (c) John Blaiklock 2022 BlueBridge
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -67,8 +67,6 @@ SOFTWARE.
 
 bool util_safe_strcpy(char *dest, size_t size, const char *src)
 {
-    size_t i;
-
     if (dest == NULL || src == NULL || strlen(src) + (size_t)1 > size)
     {
     	return false;
