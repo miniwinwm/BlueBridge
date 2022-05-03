@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                             nmeaMessageStarted = false;
 
                                             String nmeaMessageString = new String(nmeaMessageArray, StandardCharsets.US_ASCII).substring(0, nextBytePosition - 1);
-                                            //Log.d("nmea", nmeaMessageString);
+                                            Log.d("nmea", nmeaMessageString);
 
                                             List<String> fieldList = Arrays.asList(nmeaMessageString.split(","));
                                             if (fieldList.size() > 0) {
@@ -511,7 +511,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
 
                             if (System.currentTimeMillis() - trueWindAngleReceivedTime < maxDataAge &&
                                     System.currentTimeMillis() - headingReceivedTime < maxDataAge) {
-                                anchorView.AddTrueWindAngle(trueWindAngle + heading);
+                                anchorView.AddGroundWindAngle(trueWindAngle + heading);
                                 drawAnchorViewRequired = true;
                             }
 

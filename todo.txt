@@ -179,3 +179,4 @@ RMC message data not arriving by Bluetooth in test mode
 GGA message transmitting real GPS data not test GPS data in test mode
 Add wind direction to andoid app
 Test full functionality of anchor watching by mqtt
+Rename truewindangle to groundwindangle in android app anchor view
