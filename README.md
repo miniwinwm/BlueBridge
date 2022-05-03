@@ -6,7 +6,7 @@
 <img width=820 height=600 src="https://static.wixstatic.com/media/850cc4_febccf9a46cb411f876876ded8a68677~mv2.png">
 </p>
 
-The Blue Bridge project is a hardware device, an Android application and a webpage for sharing of boat data to allow remote monitoring and anchor watching. Boat data are received from the boat's instruments via NMEA2000 and NMEA0183 connections and are then distributed via Bluetooth to local recipients or via the internet for remote recipients with internet access. Also included in the hardware is an atmospheric pressure sensor which is shared both with the data recipients via Bluetooth and the internet and also the boat's NMEA2000 data network.
+The Blue Bridge project is a hardware device, embedded software, an Android application and a webpage for sharing of boat data to allow remote monitoring and anchor watching. Boat data are received from the boat's instruments via NMEA2000 and NMEA0183 connections and are then distributed via Bluetooth to local recipients or via the internet for remote recipients with internet access. Also included in the hardware is an atmospheric pressure sensor which is shared both with the data recipients via Bluetooth and the internet and also the boat's NMEA2000 data network.
 
 For local recipients the boat data are converted to NMEA0183 format and sent via a Bluetooth link to a local device. This could be a laptop, tablet or phone running a navigation software package (the format of the data are tailored for OpenCPN but will work with other navigation packages). Another recipient of the boat data over Bluetooth can be the Android anchor watching app that is part of this project.
 
@@ -28,6 +28,8 @@ This project using custom hardware running an ESP32 based DevKitC board. In addi
 <p align="center">
 <img width=520 height=600 src="https://static.wixstatic.com/media/850cc4_b6b30b905b334b57aa9830c94b619491~mv2.jpg">
 </p>
-Software development for the ESP32 is done using the Espressif ESP-IDF development environment.
+Software development for the ESP32 is done using the Espressif ESP-IDF development environment. Currently the following data items are received by the NMEA2000 connection: depth, log, trip, boatspeed, wind direction, wind speed, GPS position, SoG, CoG, water temperature. The following data items are recived by the NMEA0183 connection: GPS position, SoG, CoG, AIS data. Either interface could be extended to receive further data items.
 <br><br>
 This project has now reached beta. Bug fixing and minor changes and feature additions will still occur. To see a list of outstanding work and changes to come see todo.txt.
+<br><br>
+Future additions: The latest hardware design has the option of fitting a RF transceiver module. This could be used to implement communication with a wireless remote control for an autopilot.
