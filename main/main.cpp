@@ -542,7 +542,12 @@ static void GGA_receive_callback(const char *data)
 {
 	if (nmea_decode_GGA(data, &nmea_message_data_GGA) == nmea_error_none)
 	{
-		nmea_transmit_message_now(PORT_BLUETOOTH, nmea_message_GGA);
+#ifdef CREATE_TEST_DATA_CODE					
+		if (!gpio_get_test_data_enabled())
+#endif	
+		{		
+			nmea_transmit_message_now(PORT_BLUETOOTH, nmea_message_GGA);
+		}
 	}
 }
 
@@ -653,7 +658,7 @@ static void RMC_receive_callback(const char *data)
 static void RMC_transmit_callback(void)
 {
 	float int_part;
-	float frac_part;
+	float frac_part;	
 
 	nmea_message_data_RMC.status = 'A';
 	nmea_message_data_RMC.utc.seconds = (float)gmt_data.second;
@@ -853,11 +858,11 @@ static void vTimerCallback1s(TimerHandle_t xTimer)
 			time_ms - boat_data_reception_time.course_over_ground_received_time < COG_MAX_DATA_AGE_MS &&
 			time_ms - boat_data_reception_time.latitude_received_time < LATITUDE_MAX_DATA_AGE_MS &&
 			time_ms - boat_data_reception_time.longitude_received_time < LONGITUDE_MAX_DATA_AGE_MS)
-	{
+	{		
 		nmea_enable_transmit_message(&nmea_transmit_message_details_RMC_bluetooth);
 	}
 	else
-	{
+	{		
 		nmea_disable_transmit_message(PORT_BLUETOOTH, nmea_message_RMC);
 	}	
 	
@@ -1244,9 +1249,9 @@ static void test_data(void)
 		latitude_data = 58.251f;
 		longitude_data = -5.227f;	
 		true_wind_speed_data = 18.0f;
-		true_wind_angle_data = 80.0f;
+		true_wind_angle_data = 0.0f;
 		apparent_wind_speed_data = 18.0f;
-		apparent_wind_angle_data = 80.0f;
+		apparent_wind_angle_data = 0.0f;
 	}
 
 	i++;
@@ -1327,21 +1332,38 @@ static void test_data(void)
 		{
 			true_wind_speed_data = 25.1f;
 		}		
-		boat_data_reception_time.true_wind_speed_received_time = timer_get_time_ms();			
-		
+		boat_data_reception_time.true_wind_speed_received_time = timer_get_time_ms();		
+
+		true_wind_angle_data += (5.0f * (float)esp_random() / (float)UINT32_MAX) - 2.5f;	
+		if (true_wind_angle_data > 10.0f)
+		{
+			true_wind_angle_data = 10.0f;
+		}
+		if (true_wind_angle_data < -10.0f)
+		{
+			true_wind_angle_data = -10.0f;
+		}		
+		boat_data_reception_time.true_wind_angle_received_time = timer_get_time_ms();	
+
 		apparent_wind_speed_data = true_wind_speed_data + (1.0f * (float)esp_random() / (float)UINT32_MAX) - 0.5f;		
 		boat_data_reception_time.apparent_wind_speed_received_time = timer_get_time_ms();			
-				
-		true_wind_angle_data = heading_true_data + (5.1f * (float)esp_random() / (float)UINT32_MAX) - 2.5f;	
-		boat_data_reception_time.apparent_wind_angle_received_time = timer_get_time_ms();			
 		
 		apparent_wind_angle_data = true_wind_angle_data + (8.0f * (float)esp_random() / (float)UINT32_MAX) - 4.0f;		
-		boat_data_reception_time.apparent_wind_angle_received_time = timer_get_time_ms();				
+		boat_data_reception_time.apparent_wind_angle_received_time = timer_get_time_ms();		
+
+		gmt_data.hour = 12U;
+		gmt_data.minute = 33U;
+		gmt_data.second = 44U;
+		date_data.date = 3U;
+		date_data.month = 5U;
+		date_data.year = 22U;
 
 		boat_data_reception_time.trip_received_time = timer_get_time_ms();
 		boat_data_reception_time.total_distance_received_time = timer_get_time_ms();	
 		boat_data_reception_time.latitude_received_time = timer_get_time_ms();
 		boat_data_reception_time.longitude_received_time = timer_get_time_ms();		
+		boat_data_reception_time.date_received_time = timer_get_time_ms();		
+		boat_data_reception_time.gmt_received_time = timer_get_time_ms();		
 	}
 }
 #endif

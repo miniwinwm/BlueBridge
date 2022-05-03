@@ -23,7 +23,6 @@ Delete the old blue bridge repo
 Todo testing
 ------------
 Test on boat
-Test full functionality of anchor watching by mqtt
 Check for internet connection loss in android app when watching by mqtt
 
 
@@ -176,3 +175,7 @@ Increase mqtt publish timeout from 5s to 10s
 Rename repo to bluebridge
 Rename everything back to blue bridge in source
 TCP write size over 99 causes problems - test by making floating point numbers longer in mqtt publish in boat_iot.c
+RMC message data not arriving by Bluetooth in test mode
+GGA message transmitting real GPS data not test GPS data in test mode
+Add wind direction to andoid app
+Test full functionality of anchor watching by mqtt

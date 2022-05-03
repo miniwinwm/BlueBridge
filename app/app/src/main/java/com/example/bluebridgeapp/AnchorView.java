@@ -39,9 +39,11 @@ public class AnchorView extends View {
     private static final int maxPosDiffMetresCount = 250;
     float[] xPosDiffsMetres;
     float[] yPosDiffsMetres;
+    float trueWindAngle;
     int posDiffsMetresCount;
     int nextPosDiffMetresPos;
     AlertDialog alert;
+    boolean drawTrueWindAngleRequired;
 
     public AnchorView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -83,6 +85,11 @@ public class AnchorView extends View {
         yPosDiffsMetres = new float[maxPosDiffMetresCount];
         posDiffsMetresCount = 0;
         nextPosDiffMetresPos = 0;
+    }
+
+    public void AddTrueWindAngle(float trueWindAngle) {
+        this.trueWindAngle = trueWindAngle;
+        drawTrueWindAngleRequired = true;
     }
 
     public void AddPosDiffMetres(float xDiffMetres, float yDiffMetres) {
@@ -142,6 +149,27 @@ public class AnchorView extends View {
                 height / 2 + yPosDiffsMetres[i] * pixelsPerMetre + 1, paint);
         canvas.drawPoint(width / 2 + xPosDiffsMetres[i] * pixelsPerMetre + 1,
                 height / 2 + yPosDiffsMetres[i] * pixelsPerMetre - 1, paint);
+
+        if (drawTrueWindAngleRequired) {
+            drawTrueWindAngleRequired = false;
+
+            paint.setAntiAlias(true);
+            paint.setStrokeWidth(4f);
+            paint.setStyle(Paint.Style.STROKE);
+
+            float startX = width - 60.0f;
+            float startY = height - 60.0f;
+            float endX = startX + (float) (40.0 * Math.sin(Math.toRadians(trueWindAngle)));
+            float endY = startY - (float) (40.0 * Math.cos(Math.toRadians(trueWindAngle)));
+            canvas.drawLine(startX, startY, endX, endY, paint);
+
+            float endX2 = startX + (float) (25.0 * Math.sin(Math.toRadians(trueWindAngle - 10.0f)));
+            float endY2 = startY - (float) (25.0 * Math.cos(Math.toRadians(trueWindAngle - 10.0f)));
+            canvas.drawLine(endX2, endY2, endX, endY, paint);
+            float endX3 = startX + (float) (25.0 * Math.sin(Math.toRadians(trueWindAngle + 10.0f)));
+            float endY3 = startY - (float) (25.0 * Math.cos(Math.toRadians(trueWindAngle + 10.0f)));
+            canvas.drawLine(endX3, endY3, endX, endY, paint);
+        }
     }
 
     public void drawAnchorView() {

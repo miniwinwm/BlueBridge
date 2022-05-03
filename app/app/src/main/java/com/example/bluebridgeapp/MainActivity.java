@@ -118,6 +118,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     private float sog;
     private float latitude;
     private float longitude;
+    private float trueWindAngle;
 
     private long depthReceivedTime = 0L;
     private long pressureReceivedTime = 0L;
@@ -126,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     private long sogReceivedTime = 0L;
     private long latitudeReceivedTime = 0L;
     private long longitudeReceivedTime = 0L;
+    private long trueWindAngleReceivedTime = 0L;
 
     private float startPressure;
     private float startHeading;
@@ -191,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                             nmeaMessageStarted = false;
 
                                             String nmeaMessageString = new String(nmeaMessageArray, StandardCharsets.US_ASCII).substring(0, nextBytePosition - 1);
-                                            Log.d("nmea", nmeaMessageString);
+                                            //Log.d("nmea", nmeaMessageString);
 
                                             List<String> fieldList = Arrays.asList(nmeaMessageString.split(","));
                                             if (fieldList.size() > 0) {
@@ -256,6 +258,16 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                                                 }
                                                             });
                                                         } catch (Exception e) {
+                                                        }
+
+                                                        fieldString = fieldList.get(2);
+                                                        if (fieldString.equals("T")) {
+                                                            fieldString = fieldList.get(1);
+                                                            try {
+                                                                trueWindAngle = Float.parseFloat(fieldString);
+                                                                trueWindAngleReceivedTime = System.currentTimeMillis();
+                                                            } catch (Exception e) {
+                                                            }
                                                         }
                                                     }
                                                 } else if (nmeaHeader.equals("RMC")) {
@@ -473,6 +485,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                 textViewPressureChange.setText("----");
                             }
 
+                            boolean drawAnchorViewRequired = false;
                             if (System.currentTimeMillis() - latitudeReceivedTime < maxDataAge && System.currentTimeMillis() - longitudeReceivedTime < maxDataAge) {
                                 positionChange = Utils.DistanceBetweenPoints(latitude, longitude, startLatitude, startLongitude);
 
@@ -486,7 +499,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                     float positionChangeDistance_x = (float) ((longitudeRads - startLongitudeRads) * Math.cos((startLatitudeRads + latitudeRads) / 2)) * 6371000.0f;
                                     float positionChangeDistance_y = (latitudeRads - startLatitudeRads) * 6371000.0f;
                                     anchorView.AddPosDiffMetres(positionChangeDistance_x, positionChangeDistance_y);
-                                    anchorView.drawAnchorView();
+                                    drawAnchorViewRequired = true;
                                 }
 
                                 if (settings.getPositionChangeWatching()) {
@@ -494,6 +507,16 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                 }
                             } else {
                                 textViewPositionChange.setText("----");
+                            }
+
+                            if (System.currentTimeMillis() - trueWindAngleReceivedTime < maxDataAge &&
+                                    System.currentTimeMillis() - headingReceivedTime < maxDataAge) {
+                                anchorView.AddTrueWindAngle(trueWindAngle + heading);
+                                drawAnchorViewRequired = true;
+                            }
+
+                            if (drawAnchorViewRequired) {
+                                anchorView.drawAnchorView();
                             }
                         }
                     });
@@ -1287,6 +1310,12 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                             try {
                                                 latitude = Float.parseFloat(split[13]);
                                                 latitudeReceivedTime = System.currentTimeMillis();
+                                            } catch (Exception e) {
+                                            }
+
+                                            try {
+                                                trueWindAngle = Float.parseFloat(split[10]);
+                                                trueWindAngleReceivedTime = System.currentTimeMillis();
                                             } catch (Exception e) {
                                             }
 
