@@ -5,7 +5,6 @@ Get hardware version 1.1 board made
 
 Todo bugs
 ---------
-TCP write size of 99 causes problems - test by making floating point numbers longer in mqtt publish in boat_iot.c
 
 
 Todo functional
@@ -30,8 +29,7 @@ Check for internet connection loss in android app when watching by mqtt
 
 Todo documentation
 ------------------
-Create main documentation 
-Create hardware build instructions document
+Create documentation 
 
 
 Done
@@ -177,3 +175,4 @@ If a mqtt publish fails, delay for 1s and try again
 Increase mqtt publish timeout from 5s to 10s
 Rename repo to bluebridge
 Rename everything back to blue bridge in source
+TCP write size over 99 causes problems - test by making floating point numbers longer in mqtt publish in boat_iot.c

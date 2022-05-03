@@ -2094,13 +2094,13 @@ ModemStatus_t ModemTcpWrite(const uint8_t *data, size_t length, uint32_t timeout
 
 	while (lengthWritten < length)
 	{
-		if (length > (size_t)MODEM_MAX_TCP_WRITE_SIZE)
+		if (length - lengthWritten > (size_t)MODEM_MAX_TCP_WRITE_SIZE)
 		{
 			sectionLengthToWrite = MODEM_MAX_TCP_WRITE_SIZE;
 		}
 		else
 		{
-			sectionLengthToWrite = length;
+			sectionLengthToWrite = length - lengthWritten;
 		}
 
 		modemStatus = ClientTcpWriteSection(data + (unsigned int)lengthWritten, sectionLengthToWrite, timeoutMs);
@@ -2232,22 +2232,21 @@ ModemStatus_t ModemTcpRead(size_t lengthToRead, size_t *lengthRead, uint8_t *buf
 		return MODEM_BAD_PARAMETER;
 	}
 
+	*lengthRead = (size_t)0;
 	if (lengthToRead == (size_t)0)
 	{
-		*lengthRead = (size_t)0;
 		return MODEM_OK;
 	}
 
-	*lengthRead = (size_t)0;
 	while (*lengthRead < lengthToRead)
 	{
-		if (lengthToRead >= (size_t)MODEM_MAX_TCP_READ_SIZE)
+		if (lengthToRead - *lengthRead >= (size_t)MODEM_MAX_TCP_READ_SIZE)
 		{
 			sectionLengthToRead = MODEM_MAX_TCP_READ_SIZE;
 		}
 		else
 		{
-			sectionLengthToRead = (size_t)lengthToRead;
+			sectionLengthToRead = (size_t)lengthToRead - *lengthRead;
 		}
 		modemStatus = ClientTcpReadSection(sectionLengthToRead, &sectionLengthRead, buffer + *lengthRead, timeoutMs);
 

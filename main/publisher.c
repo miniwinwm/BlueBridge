@@ -782,7 +782,7 @@ void publisher_task(void *parameters)
 
 				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 10000UL);									
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish %s %s %s", mqtt_topic, mqtt_data_buf, MqttStatusToText(mqtt_status));		
-				
+								
 				if (mqtt_status == MQTT_OK)
 				{
 					publish_failed_count = 0U;
