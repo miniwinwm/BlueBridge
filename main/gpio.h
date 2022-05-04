@@ -44,11 +44,9 @@ extern "C" {
 
 #ifdef HW_VARIANT_V1_0
 #define GPIO_TEST_DATA					GPIO_NUM_35			///< GPIO pin attached to jumper to enable test data (jumper on = test data enabled, jumper off = test data disabled)
-#define GPIO_GPS_SELECT					GPIO_NUM_34			///< GPIO pin attached to jumper for GPS source selection (jumper on = NMEA2000, jumper off = NMEA0183)
 #else
 #ifdef HW_VARIANT_V1_1
 #define GPIO_TEST_DATA					GPIO_NUM_33			///< GPIO pin attached to jumper to enable test data (jumper on = test data enabled, jumper off = test data disabled)
-#define GPIO_GPS_SELECT					GPIO_NUM_32			///< GPIO pin attached to jumper for GPS source selection (jumper on = NMEA2000, jumper off = NMEA0183)
 #else
 #error No hardware variant defined
 #endif

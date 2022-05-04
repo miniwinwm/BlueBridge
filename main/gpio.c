@@ -68,12 +68,9 @@ void gpio_init(void)
     gpio_config_t io_conf = {};
     io_conf.intr_type = GPIO_INTR_DISABLE;
     io_conf.mode = GPIO_MODE_INPUT;
-    io_conf.pin_bit_mask = 1ULL << GPIO_GPS_SELECT;
+    io_conf.pin_bit_mask = 1ULL << GPIO_TEST_DATA;
     io_conf.pull_down_en = 0;
     io_conf.pull_up_en = 1;
-    gpio_config(&io_conf);	
-	
-    io_conf.pin_bit_mask = 1ULL << GPIO_TEST_DATA;
     gpio_config(&io_conf);		
 }
 
@@ -85,14 +82,4 @@ bool gpio_get_test_data_enabled(void)
 	}
 	
 	return true;
-}
-	
-bool gpio_get_gps_data_source(void)
-{
-	if (gpio_get_level(GPIO_GPS_SELECT) == 1)
-	{
-		return false;
-	}
-	
-	return true;	
 }

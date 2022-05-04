@@ -10,14 +10,12 @@ Todo bugs
 Todo functional
 ---------------
 Make buffer handling safe in nmea.c
-Add selection between gps data sources using jumper - needs hw version 1.1 or modified 1.0
 
 
 Todo tidy up
 ------------
 Tidy up javascript code
 Create a new website with BlueBridge name
-Delete the old blue bridge repo
 
 
 Todo testing
@@ -180,3 +178,4 @@ GGA message transmitting real GPS data not test GPS data in test mode
 Add wind direction to andoid app
 Test full functionality of anchor watching by mqtt
 Rename truewindangle to groundwindangle in android app anchor view
+Delete the old blue bridge repo
