@@ -210,13 +210,13 @@
 				// boatspeed
 				var boatspeedData = google.visualization.arrayToDataTable([
           			['Label', 'Value'],
-          			['Boat Speed', 0.0]
+          			['', 0.0]
         		]);
 
 	        	var optionsBoatspeed = {
 	          		width: 120, height: 120,
-	          		minorTicks: 4,
-	          		max: 20
+	          		minorTicks: 3,
+	          		max: 15
 	        	};     	
 	
 	        	var boatspeedChart = new google.visualization.Gauge(document.getElementById('boatspeedGauge'));
@@ -229,13 +229,13 @@
 				// sog
 				var sogData = google.visualization.arrayToDataTable([
           			['Label', 'Value'],
-          			['SOG', 0.0]
+          			['', 0.0]
         		]);
 
 	        	var optionsSog = {
 	          		width: 120, height: 120,
-	          		minorTicks: 4,
-	          		max: 20
+	          		minorTicks: 3,
+	          		max: 15
 	        	};     	
 	
 	        	var sogChart = new google.visualization.Gauge(document.getElementById('sogGauge'));
@@ -248,7 +248,7 @@
 	        	// tws      		
 				var twsData = google.visualization.arrayToDataTable([
           			['Label', 'Value'],
-          			['TWS', 0.0]
+          			['', 0.0]
         		]);
 
 	        	var optionsTws = {
@@ -269,7 +269,7 @@
 	        	// aws	        		
 				var awsData = google.visualization.arrayToDataTable([
           			['Label', 'Value'],
-          			['AWS', 0.0]
+          			['', 0.0]
         		]);
 
 	        	var optionsAws = {
@@ -592,10 +592,18 @@
             <div class="box">  
             	<!-- first row -->
                 <div class="box-row">  
-                    <div div id = "boatspeedGauge" class="box-cell box1"></div>  
-                    <div div id = "sogGauge" class="box-cell box2"></div>  
-                    <div div id = "twsGauge" class="box-cell box3"></div>  
-                    <div div id = "awsGauge" class="box-cell box4"></div>                      
+                    <div class="box-cell box1">
+						BOAT SPEED<div div id="boatspeedGauge" height=120 width=120></div>	                    
+                    </div>           
+                    <div class="box-cell box2">
+						SOG<div div id="sogGauge" height=120 width=120></div>	                    
+                    </div>   	
+                    <div class="box-cell box3">
+						TWS<div div id="twsGauge" height=120 width=120></div>	                    
+                    </div>           
+                    <div class="box-cell box4">
+						AWS<div div id="awsGauge" height=120 width=120></div>	                    
+                    </div>   
                 </div>   		
                 
             	<!-- second row -->      
