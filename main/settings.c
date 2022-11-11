@@ -51,6 +51,7 @@ SOFTWARE.
 #define SETTINGS_DEFAULT_MQTT_PUBLISH_PERIOD				30UL					///< Default MQTT publish period in seconds
 #define SETTINGS_DEFAULT_MQTT_PUBLISH_START_ON_BOOT			true					///< Default if to start publishing on boot without receiving a start message
 #define SETTINGS_DEFAULT_CREATE_TEST_DATA					false					///< Default of if to create test 
+#define SETTINGS_DEFAULT_EXHAUST_ALARM_TEMPERATURE			90U						///< Default exhaust alarm temperature
 
 /************
 *** TYPES ***
@@ -69,6 +70,7 @@ typedef struct
 	char mqtt_broker_address[SETTINGS_MQTT_BROKER_ADDRESS_MAX_LENGTH + 1];			///< MQTT broker address - do not add http://, see default above
 	uint16_t mqtt_broker_port;														///< MQTT broker port for plain unencrypted TCP access, not websockets or TLS
 	uint32_t period_s;																///< MQTT publish period in seconds
+	uint8_t exhaust_alarm_temperature;												///< Maximum exhaust temperature above which alarm is raised 
 } settings_non_volatile_t;
 
 /**
@@ -117,6 +119,7 @@ void settings_reset(void)
 	(void)memset(&settings_non_volatile, 0, sizeof(settings_non_volatile_t));
 	settings_non_volatile.signature = SIGNATURE;
 	settings_non_volatile.device_address = SETTINGS_DEFAULT_CAN_DEVICE_ADDRESS;
+	settings_non_volatile.exhaust_alarm_temperature = SETTINGS_DEFAULT_EXHAUST_ALARM_TEMPERATURE;
 	(void)util_safe_strcpy(settings_non_volatile.apn, sizeof(settings_non_volatile.apn), SETTINGS_DEFAULT_APN);
 	(void)util_safe_strcpy(settings_non_volatile.apn_user_name, sizeof(settings_non_volatile.apn_user_name), SETTINGS_DEFAULT_APN_USER_NAME);
 	(void)util_safe_strcpy(settings_non_volatile.apn_password, sizeof(settings_non_volatile.apn_password), SETTINGS_DEFAULT_APN_PASSWORD);		
@@ -296,6 +299,24 @@ void settings_set_mqtt_broker_port(uint16_t mqtt_broker_port)
 {
 	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
 	settings_non_volatile.mqtt_broker_port = mqtt_broker_port;
+	xSemaphoreGive(settings_mutex_handle);	
+}
+
+uint8_t settings_get_exhaust_alarm_temperature(void)
+{
+	uint8_t exhaust_alarm_temperature;
+	
+	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
+	exhaust_alarm_temperature = settings_non_volatile.exhaust_alarm_temperature;
+	xSemaphoreGive(settings_mutex_handle);	
+	
+	return exhaust_alarm_temperature;
+}
+
+void settings_set_exhaust_alarm_temperature(uint8_t exhaust_alarm_temperature)
+{
+	xSemaphoreTake(settings_mutex_handle, WAIT_FOREVER);			
+	settings_non_volatile.exhaust_alarm_temperature = exhaust_alarm_temperature;
 	xSemaphoreGive(settings_mutex_handle);	
 }
 

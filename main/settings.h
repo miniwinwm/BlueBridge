@@ -165,6 +165,21 @@ uint16_t settings_get_mqtt_broker_port(void);
 void settings_set_mqtt_broker_port(uint16_t mqtt_broker_port);
 
 /**
+ * Read exhaust alarm temperature non-volatile setting from memory copy
+ *
+ * @return The setting's value
+ */
+uint8_t settings_get_exhaust_alarm_temperature(void);
+
+/**
+ * Save exhaust alarm temperature non-volatile setting in memory copy.
+ *
+ * @param exhaust_alarm_temperature New value of the setting
+ * @note This does not save the new setting in flash memory
+ */
+void settings_set_exhaust_alarm_temperature(uint8_t exhaust_alarm_temperature);
+
+/**
  * Read hashed IMEI volatile setting from memory
  *
  * @return The setting's value
@@ -240,7 +255,7 @@ uint32_t settings_get_publishing_period_s(void);
 void settings_set_publishing_period_s(uint32_t period_s);
 
 /**
- * Read if a publisghing start is needed volatile setting from memory
+ * Read if a publishing start is needed volatile setting from memory
  *
  * @return The setting's value
  */

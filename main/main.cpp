@@ -36,6 +36,7 @@ SOFTWARE.
 #include "NMEA2000_CAN.h"  
 #include "N2kMessages.h"
 #include "pressure_sensor.h"
+#include "temperature_sensor.h"
 #include "esp_log.h"
 #include "serial.h"
 #include "nmea.h"
@@ -58,6 +59,7 @@ SOFTWARE.
 #define SW_TIMER_25_MS							0				///< Corresponds to 25 millisecond period FreeRTOS timer
 #define SW_TIMER_1_S							1				///< Corresponds to 1 second period FreeRTOS timer
 #define SW_TIMER_8_S							2				///< Corresponds to 8 second period FreeRTOS timer
+#define KELVIN_TO_C								273.0			///< Kelvin degrees to Centigrade degrees
 
 /************
 *** TYPES ***
@@ -162,6 +164,7 @@ volatile boat_data_reception_time_t boat_data_reception_time;		///< struct that 
  * Array of PGN's of NMEA2000 messages that are transmitted 
  */
 static const unsigned long n2k_transmit_messages[] = {130310UL, // atmospheric pressure
+													  127489UL,	// engine data
 													  0UL};
 													  
 /**
@@ -742,10 +745,52 @@ static void vTimerCallback25ms(TimerHandle_t xTimer)
  * @param xTimer Unused
  */
 static void vTimerCallback1s(TimerHandle_t xTimer)
-{
+{	
+	tN2kMsg N2kMsg;
+	tN2kEngineDiscreteStatus1 Status1;
+	float port_temperature;
+	float starboard_temperature;
+	uint32_t time_ms;
+
 	(void)xTimer;
 	
-	uint32_t time_ms = timer_get_time_ms();
+	// read and check against alarm setting port engine exhaust temperature
+	port_temperature = temperature_sensor_read_port();
+	if (port_temperature > (float)settings_get_exhaust_alarm_temperature())
+	{
+		Status1.Bits.WaterFlow = true;
+	}
+	else
+	{
+		Status1 = (tN2kEngineDiscreteStatus1)0;
+	}
+
+	// send nmea2000 message for port engine
+	SetN2kEngineDynamicParam(N2kMsg, 0U, N2kDoubleNA, N2kDoubleNA, KELVIN_TO_C + (double)port_temperature, N2kDoubleNA,
+						   N2kDoubleNA, N2kDoubleNA, N2kDoubleNA, N2kDoubleNA,
+						   N2kInt8NA, N2kInt8NA,
+						   Status1, (tN2kEngineDiscreteStatus2)0);
+	NMEA2000.SendMsg(N2kMsg);	
+	
+	// read and check against alarm setting port engine exhaust temperature
+	starboard_temperature = temperature_sensor_read_starboard();
+	if (starboard_temperature > (float)settings_get_exhaust_alarm_temperature())
+	{
+		Status1.Bits.WaterFlow = true;
+	}
+	else
+	{
+		Status1 = (tN2kEngineDiscreteStatus1)0;
+	}
+
+	// send nmea2000 message for starboard engine
+	SetN2kEngineDynamicParam(N2kMsg, 1U, N2kDoubleNA, N2kDoubleNA, KELVIN_TO_C + (double)starboard_temperature, N2kDoubleNA,
+						   N2kDoubleNA, N2kDoubleNA, N2kDoubleNA, N2kDoubleNA,
+						   N2kInt8NA, N2kInt8NA,
+						   Status1, (tN2kEngineDiscreteStatus2)0);
+	NMEA2000.SendMsg(N2kMsg);	
+
+	time_ms = timer_get_time_ms();
 	
 	// update local time by 1 second (unless it's 23:59:59) if latest received time is more than 1 second old
 	if (time_ms - boat_data_reception_time.gmt_received_time > 1000UL)
@@ -903,7 +948,7 @@ static void vTimerCallback8s(TimerHandle_t xTimer)
 		tN2kMsg N2kMsg;
 		SetN2kOutsideEnvironmentalParameters(N2kMsg, 1U, N2kDoubleNA, N2kDoubleNA, mBarToPascal((double)pressure_data));
 		NMEA2000.SendMsg(N2kMsg);
-		boat_data_reception_time.pressure_received_time = timer_get_time_ms();
+		boat_data_reception_time.pressure_received_time = timer_get_time_ms();	
 	}	
 
     // check if it's time to do a wmm calculation and if it is check that required parameters are fresh
@@ -1384,6 +1429,7 @@ extern "C" void app_main(void)
 	settings_init();
 	sms_init();
 	gpio_init();
+	temperature_sensor_init();	
 		
 	// init all the reception times to some time a long time ago
 	(void)memset((void *)&boat_data_reception_time, 0x7f, sizeof(boat_data_reception_time));

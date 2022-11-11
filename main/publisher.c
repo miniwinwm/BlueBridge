@@ -193,7 +193,7 @@ static bool modem_activate_data_connection(void)
 		return false;
 	}		
 
-	// while own IP address is not needed the connection doesn't work unless it is read				// todo retest this
+	// while own IP address is not needed the connection doesn't work unless it is read				
 	modem_status = ModemGetOwnIpAddress(ipAddress, MODEM_MAX_IP_ADDRESS_LENGTH + 1, 250UL);
 	ESP_LOGI(pcTaskGetName(NULL), "Get own IP address %s %s", ModemStatusToText(modem_status), ipAddress);	
 	if (modem_status != MODEM_OK)
@@ -316,11 +316,18 @@ static bool config_parser_callback(char *key, char *value)
 	else if (strcmp(key, "PORT") == 0)
 	{
 		ESP_LOGI(pcTaskGetName(NULL), "Property port=%s", value);	
-		settings_set_mqtt_broker_port(atoi(value));
+		settings_set_mqtt_broker_port((uint16_t)atoi(value));
 		settings_save();
-		settings_set_reboot_needed(false);
+		settings_set_reboot_needed(true);
 		found = true;
 	}	
+	else if (strcmp(key, "ETEMP") == 0)
+	{
+		ESP_LOGI(pcTaskGetName(NULL), "Property temp=%s", value);	
+		settings_set_exhaust_alarm_temperature((uint8_t)atoi(value));
+		settings_save();
+		found = true;
+	}		
 	else if (strcmp(key, "PERIOD") == 0)
 	{
 		ESP_LOGI(pcTaskGetName(NULL), "Property period=%s", value);	

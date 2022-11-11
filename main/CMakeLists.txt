@@ -18,4 +18,5 @@ idf_component_register(SRCS "main.cpp"
 							"util.c"
 							"led.c"
 							"gpio.c"
+							"temperature_sensor.c"
                     INCLUDE_DIRS ".")
