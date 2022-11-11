@@ -1,6 +1,7 @@
 Todo hardware
 -------------
-Get hardware version 1.1 board made
+Get hardware version 2.0 board made
+Build new hw on 2.0 board
 
 
 Todo bugs
@@ -27,6 +28,8 @@ Check for internet connection loss in android app when watching by mqtt
 Todo documentation
 ------------------
 Create documentation 
+Update README.md with exhaust temperature sensors
+Update dataflow.svg with exhaust sensors
 
 
 Done
@@ -179,3 +182,6 @@ Add wind direction to andoid app
 Test full functionality of anchor watching by mqtt
 Rename truewindangle to groundwindangle in android app anchor view
 Delete the old blue bridge repo
+Add HW design for exhaust temperature measurement sensors
+Add software to read exhaust temperature sensors
+Add software to send exhaust temperatures to NMES2000
