@@ -59,11 +59,19 @@ SOFTWARE.
  */
 void temperature_sensor_init(void);
 
-//todo
+/**
+ * Read exhaust temperature sensor from port sensor
+ *
+ * @return temperature in degrees C
+ */
 float temperature_sensor_read_port(void);
 
-//todo
-float temperature_sensor_read_starboard(void);
+/**
+ * Read exhaust temperature sensor from starboard sensor
+ *
+ * @return temperature in degrees C
+ */
+ float temperature_sensor_read_starboard(void);
 
 #ifdef __cplusplus
 }
