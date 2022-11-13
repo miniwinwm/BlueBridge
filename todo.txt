@@ -1,6 +1,5 @@
 Todo hardware
 -------------
-Get hardware version 2.0 board made
 Build new hw on 2.0 board
 
 
@@ -185,3 +184,4 @@ Delete the old blue bridge repo
 Add HW design for exhaust temperature measurement sensors
 Add software to read exhaust temperature sensors
 Add software to send exhaust temperatures to NMES2000
+Get hardware version 2.0 board made
