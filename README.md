@@ -3,7 +3,7 @@
 </p>
 <H1 align="center">Blue Bridge</H1>
 <p align="center">
-<img width=820 height=600 src="https://static.wixstatic.com/media/850cc4_febccf9a46cb411f876876ded8a68677~mv2.png">
+<img width=820 height=600 src="https://static.wixstatic.com/media/850cc4_6fade28fdbbb4405ac01c9e3e6d647bf~mv2.png">
 </p>
 
 The Blue Bridge project is a hardware device, embedded software, an Android application and a webpage for sharing of boat data to allow remote monitoring and anchor watching. Boat data are received from the boat's instruments via NMEA2000 and NMEA0183 connections and are then distributed via Bluetooth to local recipients or via the internet for remote recipients with internet access. Also included in the hardware are: an atmospheric pressure sensor which is shared both with the data recipients via Bluetooth and the internet and also the boat's NMEA2000 data network, and connectiond for a pair of PT-1000 sensors which measure the temperature inside 2 exhaust gas pipes the values of which are distrubted via NMEA2000.
