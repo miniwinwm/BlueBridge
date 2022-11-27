@@ -50,7 +50,6 @@ SOFTWARE.
 #define SETTINGS_DEFAULT_MQTT_BROKER_PORT					1883U					///< Default MQTT broker port
 #define SETTINGS_DEFAULT_MQTT_PUBLISH_PERIOD				30UL					///< Default MQTT publish period in seconds
 #define SETTINGS_DEFAULT_MQTT_PUBLISH_START_ON_BOOT			true					///< Default if to start publishing on boot without receiving a start message
-#define SETTINGS_DEFAULT_CREATE_TEST_DATA					false					///< Default of if to create test 
 #define SETTINGS_DEFAULT_EXHAUST_ALARM_TEMPERATURE			90U						///< Default exhaust alarm temperature
 
 /************
@@ -148,9 +147,6 @@ void settings_init(void)
 	settings_volatile.restart_needed = false;
 	settings_volatile.publishing_start_needed = false;
 	settings_volatile.hashed_imei = 0UL;	
-#ifdef CREATE_TEST_DATA_CODE		
-	settings_volatile.create_test_data = SETTINGS_DEFAULT_CREATE_TEST_DATA;
-#endif
 }
 
 uint8_t settings_get_device_address(void)

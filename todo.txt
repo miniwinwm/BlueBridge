@@ -1,10 +1,10 @@
 Todo hardware
 -------------
-Build new hw on 2.0 board
 
 
 Todo bugs
 ---------
+A no pressure reading available alarm comes up on Android app when switch on watching, but then goes away. Wait longer before sounding this alarm.
 
 
 Todo functional
@@ -27,8 +27,6 @@ Check for internet connection loss in android app when watching by mqtt
 Todo documentation
 ------------------
 Create documentation 
-Update README.md with exhaust temperature sensors
-Update dataflow.svg with exhaust sensors
 
 
 Done
@@ -185,3 +183,6 @@ Add HW design for exhaust temperature measurement sensors
 Add software to read exhaust temperature sensors
 Add software to send exhaust temperatures to NMES2000
 Get hardware version 2.0 board made
+Build new hw on 2.0 board
+Update README.md with exhaust temperature sensors
+Update dataflow.svg with exhaust sensors
