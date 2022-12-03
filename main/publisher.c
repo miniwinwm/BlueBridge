@@ -589,7 +589,7 @@ void publisher_task(void *parameters)
 	uint16_t properties_parsed;
 	uint32_t time_ms;
 	char mqtt_topic[20];
-	char mqtt_data_buf[200];	
+	char mqtt_data_buf[220];	
 	char number_buf[20];
 	uint8_t publish_failed_count = 0U;
 	
@@ -782,10 +782,20 @@ void publisher_task(void *parameters)
 					(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				}			
 				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");		
-
+													
 				// period
 				(void)snprintf(number_buf, sizeof(number_buf), "%u", settings_get_publishing_period_s());
-				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);				
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);	
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");	
+
+				// port exhaust temperature
+				(void)snprintf(number_buf, sizeof(number_buf), "%.1f", exhaust_temperature_port_data);
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");				
+				
+				// starboard exhaust temperature
+				(void)snprintf(number_buf, sizeof(number_buf), "%.1f", exhaust_temperature_stbd_data);
+				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 
 				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 10000UL);									
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish %s %s %s", mqtt_topic, mqtt_data_buf, MqttStatusToText(mqtt_status));		

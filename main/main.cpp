@@ -151,6 +151,8 @@ volatile float total_distance_data;                         ///< Latest value of
 volatile float seawater_temeperature_data;                  ///< Latest value of water temperature data
 volatile float wind_direction_magnetic_data;                ///< Latest value of wind direction magnetic data
 volatile float wind_direction_true_data;                    ///< Latest value of wind direction true data
+volatile float exhaust_temperature_port_data;				///< Latest value pf port engine exhaust temperature;
+volatile float exhaust_temperature_stbd_data;				///< Latest value pf starboard engine exhaust temperature;
 volatile my_time_t gmt_data;                                ///< Latest value of time data
 volatile my_date_t date_data;								///< Latest value of date data
 volatile boat_data_reception_time_t boat_data_reception_time;		///< struct that holds all boat data last received time
@@ -742,15 +744,13 @@ static void vTimerCallback1s(TimerHandle_t xTimer)
 {	
 	tN2kMsg N2kMsg;
 	tN2kEngineDiscreteStatus1 Status1;
-	float port_temperature;
-	float starboard_temperature;
 	uint32_t time_ms;
 
 	(void)xTimer;
 	
 	// read and check against alarm setting port engine exhaust temperature
-	port_temperature = temperature_sensor_read_port();
-	if (port_temperature > (float)settings_get_exhaust_alarm_temperature())
+	exhaust_temperature_port_data = temperature_sensor_read_port();
+	if (exhaust_temperature_port_data > (float)settings_get_exhaust_alarm_temperature())
 	{
 		Status1.Bits.WaterFlow = true;
 	}
@@ -760,15 +760,15 @@ static void vTimerCallback1s(TimerHandle_t xTimer)
 	}
 
 	// send nmea2000 message for port engine
-	SetN2kEngineDynamicParam(N2kMsg, 0U, N2kDoubleNA, N2kDoubleNA, KELVIN_TO_C + (double)port_temperature, N2kDoubleNA,
+	SetN2kEngineDynamicParam(N2kMsg, 0U, N2kDoubleNA, N2kDoubleNA, KELVIN_TO_C + (double)exhaust_temperature_port_data, N2kDoubleNA,
 						   N2kDoubleNA, N2kDoubleNA, N2kDoubleNA, N2kDoubleNA,
 						   N2kInt8NA, N2kInt8NA,
 						   Status1, (tN2kEngineDiscreteStatus2)0);
 	NMEA2000.SendMsg(N2kMsg);	
 	
 	// read and check against alarm setting port engine exhaust temperature
-	starboard_temperature = temperature_sensor_read_starboard();
-	if (starboard_temperature > (float)settings_get_exhaust_alarm_temperature())
+	exhaust_temperature_stbd_data = temperature_sensor_read_starboard();
+	if (exhaust_temperature_stbd_data > (float)settings_get_exhaust_alarm_temperature())
 	{
 		Status1.Bits.WaterFlow = true;
 	}
@@ -778,7 +778,7 @@ static void vTimerCallback1s(TimerHandle_t xTimer)
 	}
 
 	// send nmea2000 message for starboard engine
-	SetN2kEngineDynamicParam(N2kMsg, 1U, N2kDoubleNA, N2kDoubleNA, KELVIN_TO_C + (double)starboard_temperature, N2kDoubleNA,
+	SetN2kEngineDynamicParam(N2kMsg, 1U, N2kDoubleNA, N2kDoubleNA, KELVIN_TO_C + (double)exhaust_temperature_stbd_data, N2kDoubleNA,
 						   N2kDoubleNA, N2kDoubleNA, N2kDoubleNA, N2kDoubleNA,
 						   N2kInt8NA, N2kInt8NA,
 						   Status1, (tN2kEngineDiscreteStatus2)0);

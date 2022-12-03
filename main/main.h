@@ -138,6 +138,8 @@ extern volatile float total_distance_data;				///< Latest value of total distanc
 extern volatile float seawater_temeperature_data;		///< Latest value of water temperature data
 extern volatile float wind_direction_magnetic_data;		///< Latest value of wind direction magnetic data
 extern volatile float wind_direction_true_data;			///< Latest value of wind direction true data
+extern volatile float exhaust_temperature_port_data;	///< Latest value pf port engine exhaust temperature;
+extern volatile float exhaust_temperature_stbd_data;	///< Latest value pf starboard engine exhaust temperature;
 extern volatile my_time_t gmt_data;						///< Latest value of time data
 extern volatile my_date_t date_data;					///< Latest value of date data
 extern volatile boat_data_reception_time_t boat_data_reception_time;		///< struct that holds all boat data last received time

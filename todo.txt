@@ -9,6 +9,10 @@ A no pressure reading available alarm comes up on Android app when switch on wat
 
 Todo functional
 ---------------
+Update android app to cope with extra fields of exhaust temperatures via MQTT
+Add degree symbols to webpage
+Send exhaust temperatures via Bluetooth if OpenCPN supports displaying engine data
+Remove test data creation code
 Make buffer handling safe in nmea.c
 
 
@@ -186,3 +190,6 @@ Get hardware version 2.0 board made
 Build new hw on 2.0 board
 Update README.md with exhaust temperature sensors
 Update dataflow.svg with exhaust sensors
+Send exhaust temperatures via MQTT
+Update webpage to show exhaust temperatures
+Update webpage to show period

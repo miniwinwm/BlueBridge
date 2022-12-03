@@ -2,8 +2,7 @@
 <!--
  * License here... https://github.com/miniwinwm/BlueBridge/blob/master/LICENSE
  -->
-
-
+ 
 	<head>
 		<title></title>	
 		<meta charset="utf-8" />	
@@ -16,8 +15,8 @@
 				background-color: #999;
 				z-index: 10;
 				position: relative;
-				top: 20px; left: 20px;
-			}				
+				top: 20px; left: 10px;
+			}						
 		        
 			#compassHeading {		
   				background: url(http://i.imgur.com/44nyA.jpg);
@@ -96,6 +95,9 @@
 			var strength = 0;
 			var pressure = 0.0;
 			var totalSeconds = 0;	
+			var period = 0.0;
+			var port_exhaust_temp = 0.0;
+			var stbd_exhaust_temp = 0.0;
 			
 			// callback called when the connection to the broker has been established
 	 		function onConnect() {
@@ -128,7 +130,7 @@
 			    if (msg.destinationName == boatCode + "/all") {
 					const payloadArray = msg.payloadString.split(",");
 						
-					if (payloadArray.length == 17)
+					if (payloadArray.length == 19)
 					{
 						if (payloadArray[0] != "") {
 							strength = payloadArray[0];		
@@ -182,7 +184,16 @@
 						}	
 						if (payloadArray[15] != "") {
 							pressure = payloadArray[15];	
-						}						
+						}	
+						if (payloadArray[16] != "") {
+							period = payloadArray[16];	
+						}							
+						if (payloadArray[17] != "") {
+							port_exhaust_temp = payloadArray[17];								
+						}	
+						if (payloadArray[18] != "") {
+							stbd_exhaust_temp = payloadArray[18];	
+						}												
 					}								
 				}					
 			}
@@ -349,7 +360,22 @@
 	    		window.setTimeout('animatePressure()', 1000);
 	  		}
 		</script>   
-
+		
+		<!-- Period -->	
+		<script type="text/javascript">
+			var displayPeriod = new SegmentDisplay("displayPeriod");
+	  		displayPeriod.pattern         = "###";
+	  		displayPeriod.colorOn         = "rgba(0, 0, 0, 0.9)";
+	  		displayPeriod.colorOff        = "rgba(0, 0, 0, 0.1)";
+	
+	  		animatePeriod();
+	
+	  		function animatePeriod() {
+	    		displayPeriod.setValue(Number.parseFloat(period).toFixed(0).padStart(3,'0'));        
+	    		window.setTimeout('animatePeriod()', 1000);
+	  		}
+		</script>  		
+	
 		<!-- Age -->		
 		<script type="text/javascript">
 			var displayAge = new SegmentDisplay("displayAge");
@@ -366,8 +392,38 @@
 				displayAge.setValue(value);			
 	    		window.setTimeout('animateAge()', 1000);
 	  		}
-		</script>   		
-		
+		</script>   
+
+		<!-- Port Engine Temp -->
+		<script type="text/javascript">
+			var displayPortTemp = new SegmentDisplay("displayPortTemp");
+	  		displayPortTemp.pattern         = "###";
+	  		displayPortTemp.colorOn         = "rgba(0, 0, 0, 0.9)";
+	  		displayPortTemp.colorOff        = "rgba(0, 0, 0, 0.1)";
+	
+	  		animatePortTemp();
+	
+	  		function animatePortTemp() {
+	    		displayPortTemp.setValue(Number.parseFloat(port_exhaust_temp).toFixed().padStart(3,'0'));        
+	    		window.setTimeout('animatePortTemp()', 1000);
+	  		}
+		</script>  
+
+		<!-- Starboard Engine Temp -->
+		<script type="text/javascript">
+			var displayStbdTemp = new SegmentDisplay("displayStbdTemp");
+	  		displayStbdTemp.pattern         = "###";
+	  		displayStbdTemp.colorOn         = "rgba(0, 0, 0, 0.9)";
+	  		displayStbdTemp.colorOff        = "rgba(0, 0, 0, 0.1)";
+	
+	  		animateStbdTemp();
+	
+	  		function animateStbdTemp() {
+	    		displayStbdTemp.setValue(Number.parseFloat(stbd_exhaust_temp).toFixed(0).padStart(3,'0'));        
+	    		window.setTimeout('animateStbdTemp()', 1000);
+	  		}
+		</script>  
+
 		<script type="text/javascript">
 			var displayTemp = new SegmentDisplay("displayTemp");
 	  		displayTemp.pattern         = "##.#";
@@ -543,7 +599,6 @@
 				return "";
 			}
 
-
 			function checkCookie() {
 				boatCode = getCookie("boatcode");
 				if (boatCode == "") {
@@ -641,10 +696,10 @@
             	<!-- fourth row -->
                 <div class="box-row">  
                     <div class="box-cell box1">
-						PRESSURE MB<canvas id="displayPressure" width="120" height="34"></canvas>   						
+						PRESSURE mB<canvas id="displayPressure" width="120" height="34"></canvas>   						
                     </div> 		
                     <div class="box-cell box2">
-						AGE<canvas id="displayAge" width="120" height="34"></canvas>   						
+						AGE s<canvas id="displayAge" width="120" height="34"></canvas>   						
                     </div> 					
                     <div class="box-cell box3">
 						SIGNAL<br>
@@ -653,16 +708,31 @@
 						<img id="strength2" src="images/strength2.png">
 						<img id="strength3" src="images/strength3.png">
 						<img id="strength4" src="images/strength4.png">
-						<img id="strength5" src="images/strength5.png">							
-					</div>  											
+						<img id="strength5" src="images/strength5.png">								
+					</div>  
                     <div class="box-cell box4">
-						<button class="button" type = "button" onclick = "refresh()">Refresh</button>
-						<br><br><button class="button" type = "button" onclick = "go()">Show boat</button>                                     
-                    </div> 						
+						PERIOD s<canvas id="displayPeriod" width="120" height="34"></canvas>                                        
+                    </div>  					
                 </div>  
+				
+            	<!-- fifth row -->
+                <div class="box-row">  
+                    <div class="box-cell box1">
+						PORT TEMP C<canvas id="displayPortTemp" width="120" height="34"></canvas>                                        
+                    </div>  
+                    <div class="box-cell box2">
+						STBD TEMP C<canvas id="displayStbdTemp" width="120" height="34"></canvas> 
+                    </div> 
+                    <div class="box-cell box3">
+						<br><button class="button" type = "button" onclick = "refresh()">Refresh</button>
+                    </div> 					
+                    <div class="box-cell box4">
+						<br><button class="button" type = "button" onclick = "go()">Show boat</button>                                     
+                    </div> 					
+                </div>  								
             </div>         
         </div> 
-		
+			
 		<div id="map">
 		</div>
 		
