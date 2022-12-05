@@ -4,14 +4,10 @@ Todo hardware
 
 Todo bugs
 ---------
-A no pressure reading available alarm comes up on Android app when switch on watching, but then goes away. Wait longer before sounding this alarm.
 
 
 Todo functional
 ---------------
-Update android app to cope with extra fields of exhaust temperatures via MQTT
-Add degree symbols to webpage
-Send exhaust temperatures via Bluetooth if OpenCPN supports displaying engine data
 Remove test data creation code
 Make buffer handling safe in nmea.c
 
@@ -193,3 +189,5 @@ Update dataflow.svg with exhaust sensors
 Send exhaust temperatures via MQTT
 Update webpage to show exhaust temperatures
 Update webpage to show period
+Add degree symbols to webpage
+Android app a no pressure reading available alarm sometimes comes up when switching on watching, but then goes away. Wait longer before sounding this alarm.

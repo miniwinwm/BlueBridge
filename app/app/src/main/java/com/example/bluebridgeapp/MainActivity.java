@@ -68,9 +68,10 @@ enum ConnectionType {
 }
 
 public class MainActivity extends AppCompatActivity implements MqttSettingsDialogFragment.MqttSettingsDialogListener {
-    private final long alarmRearmTime = 60000;
-    private final long maxBluetoothDataAge = 10000;
-    private final long maxMqttDataAgeDefault = 300000;
+    private final long alarmRearmTime = 60000L;
+    private final long maxBluetoothDataAge = 10000L;
+    private final long maxPressureDataAge = 20000L;
+    private final long maxMqttDataAgeDefault = 300000L;
 
     private TextView textViewPressure;
     private TextView textViewHeading;
@@ -403,7 +404,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                     textViewHeading.setText("----");
                                 }
 
-                                if (System.currentTimeMillis() - pressureReceivedTime > maxDataAge) {
+                                if (System.currentTimeMillis() - pressureReceivedTime > maxPressureDataAge) {
                                     textViewPressure.setText("----");
                                 }
                             }
@@ -447,7 +448,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                     textViewHeading.setText("----");
                                 }
 
-                                if (System.currentTimeMillis() - pressureReceivedTime < maxDataAge) {
+                                if (System.currentTimeMillis() - pressureReceivedTime < maxPressureDataAge) {
                                     textViewPressure.setText(Integer.toString(Math.round(pressure)) + " mb");
                                 } else {
                                     textViewPressure.setText("----");
@@ -476,7 +477,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                                 textViewHeadingChange.setText("----");
                             }
 
-                            if (System.currentTimeMillis() - pressureReceivedTime < maxDataAge) {
+                            if (System.currentTimeMillis() - pressureReceivedTime < maxPressureDataAge) {
                                 pressureChange = pressure - startPressure;
                                 if (settings.getPressureChangeWatching()) {
                                     textViewPressureChange.setText(Integer.toString(Math.round(pressureChange)) + " mb");
@@ -586,7 +587,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
                     }
 
                     if (settings.getPressureChangeWatching()) {
-                        if (System.currentTimeMillis() - pressureReceivedTime > maxDataAge)
+                        if (System.currentTimeMillis() - pressureReceivedTime > maxPressureDataAge)
                         {
                             if (!alert.isShowing()) {
                                 messageBoxThread("No pressure data received");
@@ -1484,7 +1485,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
             if ((!settings.getDepthWatching() || System.currentTimeMillis() - depthReceivedTime < maxDataAge) &&
                     (!settings.getWindWatching() || System.currentTimeMillis() - windspeedReceivedTime < maxDataAge) &&
                     (!settings.getHeadingChangeWatching() || System.currentTimeMillis() - headingReceivedTime < maxDataAge) &&
-                    (!settings.getPressureChangeWatching() || System.currentTimeMillis() - pressureReceivedTime < maxDataAge) &&
+                    (!settings.getPressureChangeWatching() || System.currentTimeMillis() - pressureReceivedTime < maxPressureDataAge) &&
                     (!settings.getSogWatching() || System.currentTimeMillis() - sogReceivedTime < maxDataAge) &&
                     (!settings.getPositionChangeWatching() || (System.currentTimeMillis() - latitudeReceivedTime < maxDataAge && System.currentTimeMillis() - longitudeReceivedTime < maxDataAge))) {
                 if (settings.getHeadingChangeWatching()) {
