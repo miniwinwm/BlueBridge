@@ -72,9 +72,9 @@ extern const uint8_t wmm_cof_entries_encoded[];		///< the encoded coefficients t
  * Get magnetic declination for a time and location 
  *
  * @param glat Latitude in degrees and fraction degrees, negative for south, 0-90
- * @param glat Longitude in degrees and fraction degrees, negative for west, -180 to 180
- * @param time time in years and fractional years
- * @param pointer to float for result, declination in degrees, west negative
+ * @param glon Longitude in degrees and fraction degrees, negative for west, -180 to 180
+ * @param time_years Time in years and fractional years
+ * @param dec Pointer to float for result, declination in degrees, west negative
  */
 void E0000(float glat, float glon, float time_years, float *dec);
 

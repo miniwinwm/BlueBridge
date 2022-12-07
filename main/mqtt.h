@@ -106,7 +106,6 @@ typedef void (*SubscribeResponseCallback_t)(uint16_t packetIdentifier, bool succ
  * Callback method for when an unsubscribe response message has been received
  *
  * @param packetIdentifier The packet identifier used during the subscribe
- * @param success If the subscribe was successful
  */
 typedef void (*UnsubscribeResponseCallback_t)(uint16_t packetIdentifier);
 
@@ -183,8 +182,8 @@ MqttStatus_t MqttPublish(const char *topic, const uint8_t *payload, size_t paylo
 /**
  * Subscribe to a topic at the broker 
  *
- * @param topic Null terminated tring containing the publish message topic
- * @param payload Packet identifier that will be used in the subscribe acknowledge message
+ * @param topic Null terminated string containing the publish message topic
+ * @param packetIdentifier Packet identifier that will be used in the subscribe acknowledge message
  * @param timeoutMs Timeout in milliseconds to wait for a successful subscribing
  * @return One of the MQTT defined responses or errors
  */
@@ -193,8 +192,8 @@ MqttStatus_t MqttSubscribe(const char *topic, uint16_t packetIdentifier, uint32_
 /**
  * Unsubscribe from a topic at the broker 
  *
- * @param topic Null terminated tring containing the publish message topic
- * @param payload Packet identifier that will be used in the unsubscribe acknowledge message
+ * @param topic Null terminated string containing the publish message topic
+ * @param packetIdentifier Packet identifier that will be used in the unsubscribe acknowledge message
  * @param timeoutMs Timeout in milliseconds to wait for a successful unsubscribing
  * @return One of the MQTT defined responses or errors
  */

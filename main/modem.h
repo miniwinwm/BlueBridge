@@ -276,6 +276,7 @@ ModemStatus_t ModemSetManualDataRead(uint32_t timeoutMs);
  * @param apn Pointer to string of the Access Point Name
  * @param username Pointer to string of the username
  * @param password Pointer to string of the password
+ * @param timeoutMs Time to wait in milliseconds for the command to complete
  * @return A status or error code
  */ 
 ModemStatus_t ModemConfigureDataConnection(const char *apn, const char *username, const char *password, uint32_t timeoutMs);
@@ -331,7 +332,7 @@ ModemStatus_t ModemGetTcpReadDataWaitingLength(size_t *length, uint32_t timeoutM
  * Read received bytes from a TCP connection
  *
  * @param lengthToRead How many bytes to attempt to read
- * @param lengthToRead How many bytes were read
+ * @param lengthRead How many bytes were read
  * @param buffer Buffer to place read bytes into
  * @param timeoutMs Time to wait in milliseconds for the command to complete
  * @return A status or error code

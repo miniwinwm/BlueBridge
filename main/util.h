@@ -68,7 +68,6 @@ uint32_t util_htoi(const char *s);
  * @param s The string to replace characters in
  * @param orig The character to replace
  * @param rep The character to replace with
- * @return Pointer to the modified string
  */
 void util_replace_char(char *s, char orig, char rep);
 

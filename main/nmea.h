@@ -448,61 +448,61 @@ void nmea_process(void);
  *
  * @param message_data The received message
  * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @return Error code from above enum
  */
 nmea_error_t nmea_decode_GGA(const char *message_data, nmea_message_data_GGA_t *result);
 
 /**
  * Encode a GGA message
  *
- * @param message_data The received message
- * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @param message_data The encoded message
+ * @param source The source of the value to encode that is cast to a data specific type
+ * @return Error code from above enum
  */
 nmea_error_t nmea_encode_GGA(char *message_data,  const void *source);
 
 /**
  * Encode a HDM message
  *
- * @param message_data The received message
- * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @param message_data The encoded message
+ * @param source The source of the value to encode that is cast to a data specific type
+ * @return Error code from above enum
  */
 nmea_error_t nmea_encode_HDM(char *message_data, const void *source);
 
 /**
  * Encode a MTW message
  *
- * @param message_data The received message
- * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @param message_data The encoded message
+ * @param source The source of the value to encode that is cast to a data specific type
+ * @return Error code from above enum
  */
 nmea_error_t nmea_encode_MTW(char *message_data, const void *source);
 
 /**
  * Encode a DPT message
  *
- * @param message_data The received message
- * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @param message_data The encoded message
+ * @param source The source of the value to encode that is cast to a data specific type
+ * @return Error code from above enum
  */
 nmea_error_t nmea_encode_DPT(char *message_data, const void *source);
 
 /**
  * Encode a MWD message
  *
- * @param message_data The received message
- * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @param message_data The encoded message
+ * @param source The source of the value to encode that is cast to a data specific type
+ * @return Error code from above enum
  */
 nmea_error_t nmea_encode_MWD(char *message_data, const void *source);
 
 /**
  * Encode a MWV message
  *
- * @param message_data The received message
- * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @param message_data The encoded message
+ * @param source The source of the value to encode that is cast to a data specific type
+ * @return Error code from above enum
  */
 nmea_error_t nmea_encode_MWV(char *message_data, const void *source);
 
@@ -511,16 +511,16 @@ nmea_error_t nmea_encode_MWV(char *message_data, const void *source);
  *
  * @param message_data The received message
  * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @return Error code from above enum
  */
 nmea_error_t nmea_decode_RMC(const char *message_data, nmea_message_data_RMC_t *result);
 
 /**
  * Encode a RMC message
  *
- * @param message_data The received message
- * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @param message_data The encoded message
+ * @param source The source of the value to encode that is cast to a data specific type
+ * @return Error code from above enum
  */
 nmea_error_t nmea_encode_RMC(char *message_data, const void *source);
 
@@ -529,61 +529,61 @@ nmea_error_t nmea_encode_RMC(char *message_data, const void *source);
  *
  * @param message_data The received message
  * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @return Error code from above enum
  */
 nmea_error_t nmea_decode_VDM(const char *message_data, nmea_message_data_VDM_t *result);
 
 /**
  * Encode a VDM message
  *
- * @param message_data The received message
- * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @param message_data The encoded message
+ * @param source The source of the value to encode that is cast to a data specific type
+ * @return Error code from above enum
  */
 nmea_error_t nmea_encode_VDM(char *message_data, const void *source);
 
 /**
  * Encode a VLW message
  *
- * @param message_data The received message
- * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @param message_data The encoded message
+ * @param source The source of the value to encode that is cast to a data specific type
+ * @return Error code from above enum
  */
 nmea_error_t nmea_encode_VLW(char *message_data, const void *source);
 
 /**
  * Encode a VHW message
  *
- * @param message_data The received message
- * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @param message_data The encoded message
+ * @param source The source of the value to encode that is cast to a data specific type
+ * @return Error code from above enum
  */
 nmea_error_t nmea_encode_VHW(char *message_data,  const void *source);
 
 /**
  * Encode a XDR message
  *
- * @param message_data The received message
- * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @param message_data The encoded message
+ * @param source The source of the value to encode that is cast to a data specific type
+ * @return Error code from above enum
  */
 nmea_error_t nmea_encode_XDR(char *message_data, const void *source);
 
 /**
  * Encode a HDT message
  *
- * @param message_data The received message
- * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @param message_data The encoded message
+ * @param source The source of the value to encode that is cast to a data specific type
+ * @return Error code from above enum
  */
 nmea_error_t nmea_encode_HDT(char *message_data, const void *source);
 
 /**
  * Encode a MDA message
  *
- * @param message_data The received message
- * @param result Structure to contain the decoded values
- * @return Error code from above anum
+ * @param message_data The encoded message
+ * @param source The source of the value to encode that is cast to a data specific type
+ * @return Error code from above enum
  */
 nmea_error_t nmea_encode_MDA(char *message_data, const void *source);
 

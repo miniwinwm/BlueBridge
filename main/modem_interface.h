@@ -91,8 +91,8 @@ void modem_interface_serial_close(void);
 /**
  * Initialize modem interface operating system provided objects
  *
- * @param command_queue_packet_size Size in  bytes of packets on the command queue
- * @param command_queue_packet_size Size in  bytes of packets on the response queue
+ * @param command_queue_packet_size Size in bytes of packets on the command queue
+ * @param response_queue_command_size Size in bytes of packets on the response queue
  * @param task Pointer to function that implements the modem task
  */
 void modem_interface_os_init(size_t command_queue_packet_size, size_t response_queue_command_size, modem_task_t task);
@@ -114,7 +114,7 @@ size_t modem_interface_serial_write_data(size_t length, const uint8_t *data);
 /**
  * Read data from UART 0
  *
- * @param length Length of buffer pointed to by data
+ * @param buffer_length Length of buffer pointed to by data
  * @param data Buffer to contain the read data
  * @return How many bytes were transferred into the buffer which may be less than length if there were not enough data available
  */
