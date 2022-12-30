@@ -766,7 +766,7 @@ static void vTimerCallback1s(TimerHandle_t xTimer)
 						   Status1, (tN2kEngineDiscreteStatus2)0);
 	NMEA2000.SendMsg(N2kMsg);	
 	
-	// read and check against alarm setting port engine exhaust temperature
+	// read and check against alarm setting starboard engine exhaust temperature
 	exhaust_temperature_stbd_data = temperature_sensor_read_starboard();
 	if (exhaust_temperature_stbd_data > (float)settings_get_exhaust_alarm_temperature())
 	{

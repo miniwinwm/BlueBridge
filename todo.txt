@@ -4,11 +4,12 @@ Todo hardware
 
 Todo bugs
 ---------
+Line 150 of sms.c should use vPortFree not free
+spp_acceptor.c line 181, 222 should use vPortFree not free
 
 
 Todo functional
 ---------------
-Remove test data creation code
 Make buffer handling safe in nmea.c
 
 
@@ -191,3 +192,8 @@ Update webpage to show exhaust temperatures
 Update webpage to show period
 Add degree symbols to webpage
 Android app a no pressure reading available alarm sometimes comes up when switching on watching, but then goes away. Wait longer before sounding this alarm.
+Remove test data creation code
+main.cpp line 769 says port should say starboard
+spp_acceptor.c line 335 spelling error
+spp_acceptor.c line 170 cast needed
+sms.c use size_t on lines 178, 179, 118

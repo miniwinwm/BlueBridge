@@ -167,8 +167,9 @@ static bool spp_send_buffer()
 static void spp_tx_task(void *arg)
 {
     spp_packet_t *packet = NULL;
-    size_t len = 0, to_send = 0;
-    uint8_t * data = NULL;
+    size_t len = (size_t)0;
+	size_t to_send = (size_t)0;
+    uint8_t *data = NULL;
 
     while (true)
     {
@@ -332,7 +333,7 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
 }
 
 /**
- * Callback funcgtion called from the bluetooth stack when a General Access Protocol event has happened
+ * Callback function called from the bluetooth stack when a General Access Protocol event has happened
  *
  * @param event The event that has happened
  * @param param Data that corresponds to the event

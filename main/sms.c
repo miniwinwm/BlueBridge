@@ -115,7 +115,7 @@ bool sms_receive(uint32_t sms_id, char *phone_number, size_t phone_number_buffer
 	int32_t text_length;
 	size_t i;
 
-	pdu_ascii_hex_buf = pvPortMalloc(SMS_MAX_PDU_LENGTH * 2 + 1);
+	pdu_ascii_hex_buf = pvPortMalloc((size_t)(SMS_MAX_PDU_LENGTH * 2 + 1));
 	if (pdu_ascii_hex_buf == NULL)
 	{
 		return false;
@@ -175,8 +175,8 @@ bool sms_send(const char *message_text, const char *phone_number)
 	
 	if (message_text != NULL && phone_number != NULL)
 	{
-		ascii_hex_pdu = pvPortMalloc(SMS_MAX_PDU_LENGTH * 2 + 1);
-		binary_pdu = pvPortMalloc(SMS_MAX_PDU_LENGTH);	
+		ascii_hex_pdu = pvPortMalloc((size_t)(SMS_MAX_PDU_LENGTH * 2 + 1));
+		binary_pdu = pvPortMalloc((size_t)SMS_MAX_PDU_LENGTH);	
 		
 		if (ascii_hex_pdu != NULL && binary_pdu != NULL)
 		{
