@@ -95,7 +95,7 @@ public class AnchorView extends View {
         xPosDiffsMetres[nextPosDiffMetresPos] = xDiffMetres;
         yPosDiffsMetres[nextPosDiffMetresPos] = -yDiffMetres;
         posDiffsMetresCount++;
-        if (posDiffsMetresCount == maxPosDiffMetresCount) {
+        if (posDiffsMetresCount > maxPosDiffMetresCount) {
             posDiffsMetresCount = maxPosDiffMetresCount;
         }
         nextPosDiffMetresPos++;
