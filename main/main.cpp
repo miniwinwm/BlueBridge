@@ -59,6 +59,9 @@ SOFTWARE.
 #define SW_TIMER_1_S							1				///< Corresponds to 1 second period FreeRTOS timer
 #define SW_TIMER_8_S							2				///< Corresponds to 8 second period FreeRTOS timer
 #define KELVIN_TO_C								273.0			///< Kelvin degrees to Centigrade degrees
+#define M_PI_F 									3.1415926f		///< pi float
+#define M_PI_2_F 								1.5707963f		///< pi/2 float
+#define DEGREES_TO_RADIANS						(180.0f / M_PI_F)		///< pi to radians conversion
 
 /************
 *** TYPES ***
@@ -406,13 +409,13 @@ static void MWD_transmit_callback(void)
 {
 	nmea_message_data_MWD.wind_speed_knots = true_wind_speed_data;
 	nmea_message_data_MWD.data_available = NMEA_MWD_WIND_SPEED_KTS_PRESENT;
-
+	
 	if (timer_get_time_ms() - boat_data_reception_time.wind_direction_magnetic_received_time < WIND_DIRECTION_MAGNETIC_MAX_DATA_AGE_MS)
 	{
 		nmea_message_data_MWD.data_available |= NMEA_MWD_WIND_DIRECTION_MAG_PRESENT;
 		nmea_message_data_MWD.wind_direction_magnetic = wind_direction_magnetic_data;
 	}
-	
+
 	if (timer_get_time_ms() - boat_data_reception_time.wind_direction_true_received_time < WIND_DIRECTION_TRUE_MAX_DATA_AGE_MS)
 	{
 		nmea_message_data_MWD.data_available |= NMEA_MWD_WIND_DIRECTION_TRUE_PRESENT;
@@ -1076,7 +1079,8 @@ static void wind_handler(const tN2kMsg &N2kMsg)
 	double WindSpeed;
 	double WindAngle;
 	tN2kWindReference WindReference;
-	
+	uint32_t time_ms = timer_get_time_ms();
+
     if (ParseN2kWindSpeed(N2kMsg, SID, WindSpeed, WindAngle, WindReference)) 
 	{
 		if (WindReference == N2kWind_Apparent)
@@ -1084,57 +1088,80 @@ static void wind_handler(const tN2kMsg &N2kMsg)
 			if (!N2kIsNA(WindSpeed))
 			{
 				apparent_wind_speed_data = (float)msToKnots(WindSpeed);
-				boat_data_reception_time.apparent_wind_speed_received_time = timer_get_time_ms();
+				boat_data_reception_time.apparent_wind_speed_received_time = time_ms;
 			}
 			
 			if (!N2kIsNA(WindAngle))
 			{
 				apparent_wind_angle_data = (float)RadToDeg(WindAngle);
-				boat_data_reception_time.apparent_wind_angle_received_time = timer_get_time_ms();
+				boat_data_reception_time.apparent_wind_angle_received_time = time_ms;
 			}			
 		}
-		else if (WindReference == N2kWind_True_water)
+		
+		// calculate derived data
+		if (time_ms - boat_data_reception_time.boat_speed_received_time < BOAT_SPEED_MAX_DATA_AGE_MS)
 		{
-			if (!N2kIsNA(WindSpeed))
+			if (boat_speed_data < 0.01f)
 			{
-				true_wind_speed_data = (float)msToKnots(WindSpeed);
-				boat_data_reception_time.true_wind_speed_received_time = timer_get_time_ms();
+				true_wind_speed_data = apparent_wind_speed_data;
+				true_wind_angle_data = apparent_wind_angle_data;
 			}
-			
-			if (!N2kIsNA(WindAngle))
+			else
 			{
-				true_wind_angle_data = (float)RadToDeg(WindAngle);
-				boat_data_reception_time.true_wind_angle_received_time = timer_get_time_ms();
+				float x = boat_speed_data * sinf(apparent_wind_angle_data / DEGREES_TO_RADIANS);
+				float y = boat_speed_data * cosf(apparent_wind_angle_data / DEGREES_TO_RADIANS);
+				float z = apparent_wind_speed_data - y;
+				true_wind_speed_data = sqrtf(z * z + x * x);
+				if (true_wind_speed_data == 0.0f)
+				{
+					true_wind_angle_data = 0.0f;
+				}
+				else
+				{
+					float t = (M_PI_2_F - apparent_wind_angle_data / DEGREES_TO_RADIANS) + acosf(x / true_wind_speed_data);
+					true_wind_angle_data = M_PI_F - t;
+				}
+				true_wind_angle_data *= DEGREES_TO_RADIANS;
+				if (true_wind_angle_data < 0.0f)
+				{
+					true_wind_angle_data += 360.0f;
+				}
+				
+				if (true_wind_angle_data < 0.0f)
+				{
+					true_wind_angle_data += 360.0f;
+				}
+			}
+				
+			boat_data_reception_time.true_wind_speed_received_time = time_ms;
+			boat_data_reception_time.true_wind_angle_received_time = time_ms;
+				
+			if (time_ms - boat_data_reception_time.heading_true_received_time < HEADING_TRUE_MAX_DATA_AGE_MS)
+			{
+				wind_direction_true_data = heading_true_data + true_wind_angle_data;
+				if (wind_direction_true_data >= 360.0f)
+				{
+					wind_direction_true_data -= 360.0f;
+				}
+				
+				boat_data_reception_time.wind_direction_true_received_time = time_ms;
+		
+				if (time_ms - boat_data_reception_time.wmm_calculation_time < WMM_CALCULATION_MAX_DATA_AGE)
+				{
+					wind_direction_magnetic_data = wind_direction_true_data - variation_wmm_data;
+					if (wind_direction_magnetic_data >= 360.0f)
+					{
+						wind_direction_magnetic_data -= 360.0f;
+					}					
+					else if (wind_direction_magnetic_data < 0.0f)
+					{
+						wind_direction_magnetic_data += 360.0f;
+					}	
+					
+					boat_data_reception_time.wind_direction_magnetic_received_time = time_ms;
+				}
 			}			
-		}	
-		else if (WindReference == N2kWind_True_North)
-		{
-			if (!N2kIsNA(WindSpeed))
-			{
-				true_wind_speed_data = (float)msToKnots(WindSpeed);
-				boat_data_reception_time.true_wind_speed_received_time = timer_get_time_ms();
-			}
-			
-			if (!N2kIsNA(WindAngle))
-			{
-				wind_direction_true_data = (float)RadToDeg(WindAngle);
-				boat_data_reception_time.wind_direction_true_received_time = timer_get_time_ms();
-			}				
 		}
-		else if (WindReference == N2kWind_Magnetic)
-		{
-			if (!N2kIsNA(WindSpeed))
-			{
-				true_wind_speed_data = (float)msToKnots(WindSpeed);
-				boat_data_reception_time.true_wind_speed_received_time = timer_get_time_ms();
-			}
-			
-			if (!N2kIsNA(WindAngle))
-			{
-				wind_direction_magnetic_data = (float)RadToDeg(WindAngle);
-				boat_data_reception_time.wind_direction_magnetic_received_time = timer_get_time_ms();
-			}				
-		}			
     }	
 }	
 

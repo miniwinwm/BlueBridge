@@ -65,6 +65,30 @@ SOFTWARE.
 *** GLOBAL FUNCTIONS ***
 ***********************/
 
+void trim_trailing_ws(char *str)
+{
+    int32_t index;
+	int32_t i;
+
+    // set default index
+    index = -1;
+
+    // find last index of non-white space character 
+    i = 0;
+    while (str[i] != '\0')
+    {
+        if (str[i] != ' ' && str[i] != '\t' && str[i] != '\n' && str[i] != '\r')
+        {
+            index = i;
+        }
+
+        i++;
+    }
+
+    // mark next character to last non-white space character as NULL 
+    str[index + 1] = '\0';
+}
+
 bool util_safe_strcpy(char *dest, size_t size, const char *src)
 {
     if (dest == NULL || src == NULL || strlen(src) + (size_t)1 > size)

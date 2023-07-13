@@ -55,6 +55,13 @@ extern "C" {
 ***************************/
 
 /**
+ * Remove traiing whitespace from a string
+ *
+ * @param str The string to remove trailing whitespace from
+ */
+void trim_trailing_ws(char *str);
+
+/**
  * Convert a hex number in upper or lower case to an int. No leading 0x.
  *
  * @param s The string containing the hex number 

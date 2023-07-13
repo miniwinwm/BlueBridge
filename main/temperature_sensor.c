@@ -168,7 +168,6 @@ float temperature_sensor_read_port(void)
 	// convert adc_reading to voltage in mV
 	uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, &adc_chars);
 	float voltagef = ((float)voltage) / 1000.0f;
-	ESP_LOGI(pcTaskGetName(NULL), "Port temperature sensor voltage: %f", voltagef);
 	float resistance = (VOLTAGE_DIVIDER_RESISTANCE * voltagef) / (VOLTAGE_REF - voltagef);
 	
 	port_temperatures[next_port_temperature_position] = temperature_sensor_temp_from_resistance(resistance);
@@ -219,7 +218,6 @@ float temperature_sensor_read_starboard(void)
 	// convert adc_reading to voltage in mV
 	uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, &adc_chars);
 	float voltagef = ((float)voltage) / 1000.0f;
-	ESP_LOGI(pcTaskGetName(NULL), "Starboard temperature sensor voltage: %f", voltagef);
 	float resistance = (VOLTAGE_DIVIDER_RESISTANCE * voltagef) / (VOLTAGE_REF - voltagef);
 	
 	next_starboard_temperature_position++;

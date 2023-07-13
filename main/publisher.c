@@ -287,6 +287,7 @@ static bool config_parser_callback(char *key, char *value)
 		settings_set_apn(value);
 		settings_save();
 		settings_set_reboot_needed(true);
+		(void)sms_send("OK, restarting", settings_get_phone_number());				
 		found = true;
 	}
 	else if (strcmp(key, "USER") == 0)
@@ -295,6 +296,7 @@ static bool config_parser_callback(char *key, char *value)
 		settings_set_apn_user_name(value);
 		settings_save();
 		settings_set_reboot_needed(true);		
+		(void)sms_send("OK, restarting", settings_get_phone_number());				
 		found = true;
 	}
 	else if (strcmp(key, "PASS") == 0)
@@ -303,6 +305,7 @@ static bool config_parser_callback(char *key, char *value)
 		settings_set_apn_password(value);
 		settings_save();
 		settings_set_reboot_needed(true);
+		(void)sms_send("OK, restarting", settings_get_phone_number());				
 		found = true;
 	}	
 	else if (strcmp(key, "BROKER") == 0)
@@ -311,6 +314,7 @@ static bool config_parser_callback(char *key, char *value)
 		settings_set_mqtt_broker_address(value);
 		settings_save();
 		settings_set_reboot_needed(true);
+		(void)sms_send("OK, restarting", settings_get_phone_number());				
 		found = true;
 	}	
 	else if (strcmp(key, "PORT") == 0)
@@ -319,6 +323,7 @@ static bool config_parser_callback(char *key, char *value)
 		settings_set_mqtt_broker_port((uint16_t)atoi(value));
 		settings_save();
 		settings_set_reboot_needed(true);
+		(void)sms_send("OK, restarting", settings_get_phone_number());				
 		found = true;
 	}	
 	else if (strcmp(key, "ETEMP") == 0)
@@ -326,6 +331,7 @@ static bool config_parser_callback(char *key, char *value)
 		ESP_LOGI(pcTaskGetName(NULL), "Property temp=%s", value);	
 		settings_set_exhaust_alarm_temperature((uint8_t)atoi(value));
 		settings_save();
+		(void)sms_send("OK", settings_get_phone_number());		
 		found = true;
 	}		
 	else if (strcmp(key, "PERIOD") == 0)
@@ -333,11 +339,16 @@ static bool config_parser_callback(char *key, char *value)
 		ESP_LOGI(pcTaskGetName(NULL), "Property period=%s", value);	
 		if (util_hms_to_seconds(value, &period))
 		{
-			if (period >= 5UL)
+			if (period >= 30UL)
 			{
 				settings_set_publishing_period_s(period);		
 				settings_set_publishing_start_needed(true);
 				settings_save();
+				(void)sms_send("OK", settings_get_phone_number());		
+			}
+			else
+			{
+				(void)sms_send("Bad value", settings_get_phone_number());		
 			}
 		}
 		found = true;
@@ -831,6 +842,7 @@ void publisher_task(void *parameters)
 				properties_parsed = 0U;
 				if (sms_receive(sms_id, phone_number, SMS_MAX_PHONE_NUMBER_LENGTH + 1, message_text, MODEM_SMS_MAX_TEXT_LENGTH + 1))
 				{
+					trim_trailing_ws(message_text);
 					ESP_LOGI(pcTaskGetName(NULL), "SMS text %s", message_text);						
 					settings_set_phone_number(phone_number);					
 					properties_parsed = property_parse(message_text, config_parser_callback);
