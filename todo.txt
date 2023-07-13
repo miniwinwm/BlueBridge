@@ -4,8 +4,6 @@ Todo hardware
 
 Todo bugs
 ---------
-Line 150 of sms.c should use vPortFree not free
-spp_acceptor.c line 181, 222 should use vPortFree not free
 
 
 Todo functional
@@ -21,7 +19,6 @@ Create a new website with BlueBridge name
 
 Todo testing
 ------------
-Test on boat
 Check for internet connection loss in android app when watching by mqtt
 
 
@@ -163,7 +160,7 @@ When period is changed send a publish immediately to update clients on new perio
 Display publish period in android app when connected by internet
 Send publish period in mqtt message 
 Adjust no data alarm period in android app depending on received period
-Plotted boat point in android app too small, amke it bigger
+Plotted boat point in android app too small, make it bigger
 North is down in android app plot, make it up
 In android app change settingsConnection from integer to enum type
 Add option to clear boat plot points chart in android app
@@ -197,3 +194,7 @@ main.cpp line 769 says port should say starboard
 spp_acceptor.c line 335 spelling error
 spp_acceptor.c line 170 cast needed
 sms.c use size_t on lines 178, 179, 118
+Test on boat
+Fix lack of true wind data on Raymarine system
+Line 150 of sms.c should use vPortFree not free
+spp_acceptor.c line 181, 222 should use vPortFree not free

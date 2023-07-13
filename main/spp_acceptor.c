@@ -179,7 +179,7 @@ static void spp_tx_task(void *arg)
             {
                 (void)memcpy(spp_tx_buffer + spp_tx_buffer_len, packet->data, packet->len);
                 spp_tx_buffer_len += packet->len;
-                free(packet);
+                vPortFree(packet);
                 packet = NULL;
                 if (SPP_TX_MAX == spp_tx_buffer_len || uxQueueMessagesWaiting(spp_tx_queue) == 0)
                 {
@@ -220,7 +220,7 @@ static void spp_tx_task(void *arg)
                         spp_send_buffer();
                     }
                 }
-                free(packet);
+                vPortFree(packet);
                 packet = NULL;
             }
         }

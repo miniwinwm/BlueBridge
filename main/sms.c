@@ -147,7 +147,7 @@ bool sms_receive(uint32_t sms_id, char *phone_number, size_t phone_number_buffer
 		// parse sms text for key/value pairs
 		if (text_length > 0)
 		{			
-			free(pdu_ascii_hex_buf);
+			vPortFree(pdu_ascii_hex_buf);
 			return true;
 		}
 		else
