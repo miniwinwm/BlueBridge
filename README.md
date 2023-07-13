@@ -30,6 +30,6 @@ This project using custom hardware running an ESP32 based DevKitC board. In addi
 </p>
 Software development for the ESP32 is done using the Espressif ESP-IDF development environment. Currently the following data items are received by the NMEA2000 connection: depth, log, trip, boatspeed, wind direction, wind speed, GPS position, SoG, CoG, water temperature. The following data items are recived by the NMEA0183 connection: GPS position, SoG, CoG, AIS data. Either interface could be extended to receive further data items.
 <br><br>
-This project has now reached beta. Bug fixing and minor changes and feature additions will still occur. To see a list of outstanding work and changes to come see todo.txt.
+This project has now reached first release and has been tested on a boat with a Raymarine NMEA2000/STNG based system. Bug fixing and minor changes and feature additions may still occur. To see a list of outstanding work and changes to come see todo.txt.
 <br><br>
 Future additions: The latest hardware design has the option of fitting a RF transceiver module. This could be used to implement communication with a wireless remote control for an autopilot.
