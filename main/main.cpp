@@ -1035,14 +1035,24 @@ static void depth_handler(const tN2kMsg &N2kMsg)
     unsigned char SID;
     double depth_below_transducer;
     double offset;
-
+	
 	if (ParseN2kWaterDepth(N2kMsg, SID, depth_below_transducer, offset)) 
 	{
-		if (!N2kIsNA(depth_below_transducer) && !N2kIsNA(offset))
+		if (!N2kIsNA(depth_below_transducer))
 		{
-			depth_data = (float)(depth_below_transducer + offset);
-			boat_data_reception_time.depth_received_time = timer_get_time_ms();
+			// have a good depth below transducer, check offset
+			if (!N2kIsNA(offset))
+			{
+				// have a good offset as well so use it
+				depth_data = (float)(depth_below_transducer + offset);
+			}
+			else
+			{
+				// don't have offset so ignore
+				depth_data = (float)(depth_below_transducer);
+			}
 		}
+		boat_data_reception_time.depth_received_time = timer_get_time_ms();
 	}
 }
 
