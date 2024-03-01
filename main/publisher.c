@@ -241,7 +241,7 @@ static void close_mqtt_connection(void)
 }
 
 /**
- * Do modem initializations to the point of ready to open TCp connection
+ * Do modem initializations to the point of ready to open TCP connection
  */
 static bool modem_start(void)
 {
@@ -339,7 +339,7 @@ static bool config_parser_callback(char *key, char *value)
 		ESP_LOGI(pcTaskGetName(NULL), "Property period=%s", value);	
 		if (util_hms_to_seconds(value, &period))
 		{
-			if (period >= 30UL)
+			if (period >= 10UL)
 			{
 				settings_set_publishing_period_s(period);		
 				settings_set_publishing_start_needed(true);
@@ -799,14 +799,10 @@ void publisher_task(void *parameters)
 				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);	
 				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");	
 
-				// port exhaust temperature
-				(void)snprintf(number_buf, sizeof(number_buf), "%.1f", exhaust_temperature_port_data);
+				// exhaust temperature
+				(void)snprintf(number_buf, sizeof(number_buf), "%.1f", exhaust_temperature_data);
 				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");				
-				
-				// starboard exhaust temperature
-				(void)snprintf(number_buf, sizeof(number_buf), "%.1f", exhaust_temperature_stbd_data);
-				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);
 
 				mqtt_status = MqttPublish(mqtt_topic, (uint8_t *)mqtt_data_buf, strlen(mqtt_data_buf), false, 10000UL);									
 				ESP_LOGI(pcTaskGetName(NULL), "Mqtt publish %s %s %s", mqtt_topic, mqtt_data_buf, MqttStatusToText(mqtt_status));		

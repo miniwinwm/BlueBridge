@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
     private Settings settings;
     private SharedPreferences preferences;
 
-    private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    private final BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private BluetoothSocket bluetoothSocket;
     private static final UUID MY_UUID_SECURE = UUID.fromString(("00001101-0000-1000-8000-00805F9B34FB"));
     private InputStream bluetoothInputStream;
@@ -168,6 +168,7 @@ public class MainActivity extends AppCompatActivity implements MqttSettingsDialo
 
     Thread thread = new Thread() {
         byte[] nmeaMessageArray = new byte[101];
+
         public void run() {
             byte[] bluetoothBytes = new byte[20];
             int nextBytePosition = 0;

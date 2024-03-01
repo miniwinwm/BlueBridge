@@ -96,8 +96,7 @@
 			var pressure = 0.0;
 			var totalSeconds = 0;	
 			var period = 0.0;
-			var port_exhaust_temp = 0.0;
-			var stbd_exhaust_temp = 0.0;
+			var exhaust_temp = 0.0;
 			
 			// callback called when the connection to the broker has been established
 	 		function onConnect() {
@@ -189,10 +188,7 @@
 							period = payloadArray[16];	
 						}							
 						if (payloadArray[17] != "") {
-							port_exhaust_temp = payloadArray[17];								
-						}	
-						if (payloadArray[18] != "") {
-							stbd_exhaust_temp = payloadArray[18];	
+							exhaust_temp = payloadArray[17];								
 						}												
 					}								
 				}					
@@ -394,35 +390,22 @@
 	  		}
 		</script>   
 
-		<!-- Port Engine Temp -->
+		<!-- Exhaust Temp -->
 		<script type="text/javascript">
-			var displayPortTemp = new SegmentDisplay("displayPortTemp");
-	  		displayPortTemp.pattern         = "###";
-	  		displayPortTemp.colorOn         = "rgba(0, 0, 0, 0.9)";
-	  		displayPortTemp.colorOff        = "rgba(0, 0, 0, 0.1)";
+			var displayExhaustTemp = new SegmentDisplay("displayExhaustTemp");
+	  		displayExhaustTemp.pattern         = "###";
+	  		displayExhaustTemp.colorOn         = "rgba(0, 0, 0, 0.9)";
+	  		displayExhaustTemp.colorOff        = "rgba(0, 0, 0, 0.1)";
 	
-	  		animatePortTemp();
+	  		animateExhaustTemp();
 	
-	  		function animatePortTemp() {
-	    		displayPortTemp.setValue(Number.parseFloat(port_exhaust_temp).toFixed().padStart(3,'0'));        
-	    		window.setTimeout('animatePortTemp()', 1000);
+	  		function animateExhaustTemp() {
+	    		displayExhaustTemp.setValue(Number.parseFloat(exhaust_temp).toFixed().padStart(3,'0'));        
+	    		window.setTimeout('animateExhaustTemp()', 1000);
 	  		}
 		</script>  
-
-		<!-- Starboard Engine Temp -->
-		<script type="text/javascript">
-			var displayStbdTemp = new SegmentDisplay("displayStbdTemp");
-	  		displayStbdTemp.pattern         = "###";
-	  		displayStbdTemp.colorOn         = "rgba(0, 0, 0, 0.9)";
-	  		displayStbdTemp.colorOff        = "rgba(0, 0, 0, 0.1)";
-	
-	  		animateStbdTemp();
-	
-	  		function animateStbdTemp() {
-	    		displayStbdTemp.setValue(Number.parseFloat(stbd_exhaust_temp).toFixed(0).padStart(3,'0'));        
-	    		window.setTimeout('animateStbdTemp()', 1000);
-	  		}
-		</script>  
+		
+		<!-- Water temp -->
 
 		<script type="text/javascript">
 			var displayTemp = new SegmentDisplay("displayTemp");
@@ -718,11 +701,8 @@
             	<!-- fifth row -->
                 <div class="box-row">  
                     <div class="box-cell box1">
-						PORT TEMP &#8451<canvas id="displayPortTemp" width="120" height="34"></canvas>                                        
+						EXHAUST &#8451<canvas id="displayExhaustTemp" width="120" height="34"></canvas>                                        
                     </div>  
-                    <div class="box-cell box2">
-						STBD TEMP &#8451<canvas id="displayStbdTemp" width="120" height="34"></canvas> 
-                    </div> 
                     <div class="box-cell box3">
 						<br><button class="button" type = "button" onclick = "refresh()">Refresh</button>
                     </div> 					

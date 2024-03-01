@@ -65,10 +65,8 @@ static float temperature_sensor_temp_from_resistance(float r);
 **********************/
 
 static esp_adc_cal_characteristics_t adc_chars;
-static float port_temperatures[5];
-static float starboard_temperatures[5];
-static uint8_t next_port_temperature_position;
-static uint8_t next_starboard_temperature_position;
+static float temperatures[5];
+static uint8_t next_temperature_position;
 
 /***********************
 *** GLOBAL VARIABLES ***
@@ -119,7 +117,6 @@ void temperature_sensor_init(void)
 
 	adc1_config_width(ADC_WIDTH_BIT_12);
 	adc1_config_channel_atten(ADC1_CHANNEL_4, ADC_ATTEN_DB_0);
-	adc1_config_channel_atten(ADC1_CHANNEL_5, ADC_ATTEN_DB_0);	
 	esp_adc_cal_value_t val_type = esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_0, ADC_WIDTH_BIT_12, 0, &adc_chars);	
 	
     if (val_type == ESP_ADC_CAL_VAL_EFUSE_TP) 
@@ -136,7 +133,7 @@ void temperature_sensor_init(void)
     }	
 }
 
-float temperature_sensor_read_port(void)
+float temperature_sensor_read(void)
 {
 	uint32_t adc_readings[NO_OF_SAMPLES];
  	bool sorted;
@@ -167,70 +164,28 @@ float temperature_sensor_read_port(void)
 	
 	// convert adc_reading to voltage in mV
 	uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, &adc_chars);
+
 	float voltagef = ((float)voltage) / 1000.0f;
+	voltagef -= 0.036f;		// incorrect ADC reading frig
+	ESP_LOGI(pcTaskGetName(NULL), "Exhaust PT1000 temperature sensor voltage = %f", voltagef);
+
 	float resistance = (VOLTAGE_DIVIDER_RESISTANCE * voltagef) / (VOLTAGE_REF - voltagef);
+	ESP_LOGI(pcTaskGetName(NULL), "Exhaust PT1000 temperature sensor resistance = %f", resistance);
 	
-	port_temperatures[next_port_temperature_position] = temperature_sensor_temp_from_resistance(resistance);
-	next_port_temperature_position++;
-	if (next_port_temperature_position == sizeof(port_temperatures) / sizeof(float))
+	temperatures[next_temperature_position] = temperature_sensor_temp_from_resistance(resistance);
+	ESP_LOGI(pcTaskGetName(NULL), "Exhaust temperature = %f", temperatures[next_temperature_position]);
+
+	next_temperature_position++;
+	if (next_temperature_position == sizeof(temperatures) / sizeof(float))
 	{
-		next_port_temperature_position = 0U;
+		next_temperature_position = 0U;
 	}
 	
 	float mean_temperature = 0.0f;
-	for (uint8_t i = 0U; i < sizeof(port_temperatures) / sizeof(float); i++)
+	for (uint8_t i = 0U; i < sizeof(temperatures) / sizeof(float); i++)
 	{
-		mean_temperature += port_temperatures[i];
+		mean_temperature += temperatures[i];
 	}
 	
-	return mean_temperature / (float)(sizeof(port_temperatures) / sizeof(float));
-}
-
-float temperature_sensor_read_starboard(void)
-{
-	uint32_t adc_readings[NO_OF_SAMPLES];
- 	bool sorted;
-	uint32_t swap_value;
-	uint32_t adc_reading;
-	
-	for (int i = 0; i < NO_OF_SAMPLES; i++) 
-	{
-		adc_readings[i] = adc1_get_raw(ADC1_CHANNEL_5);
-	}
-
-	do
-	{
-		sorted = true;
-		for (int i = 0U; i < (NO_OF_SAMPLES - 1U); i++)
-		{
-			if (adc_readings[i] > adc_readings[i + 1U])
-			{
-				swap_value = adc_readings[i + 1U];
-				adc_readings[i + 1U] = adc_readings[i];
-				adc_readings[i] = swap_value;
-				sorted = false;
-			}
-		}
-	}
-	while (!sorted);	
-	adc_reading = (adc_readings[NO_OF_SAMPLES / 2] + adc_readings[NO_OF_SAMPLES / 2 - 1]) / 2;
-	
-	// convert adc_reading to voltage in mV
-	uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, &adc_chars);
-	float voltagef = ((float)voltage) / 1000.0f;
-	float resistance = (VOLTAGE_DIVIDER_RESISTANCE * voltagef) / (VOLTAGE_REF - voltagef);
-	
-	next_starboard_temperature_position++;
-	if (next_starboard_temperature_position == sizeof(starboard_temperatures) / sizeof(float))
-	{
-		next_starboard_temperature_position = 0U;
-	}
-	
-	float mean_temperature = 0.0f;
-	for (uint8_t i = 0U; i < sizeof(starboard_temperatures) / sizeof(float); i++)
-	{
-		mean_temperature += starboard_temperatures[i];
-	}	
-	
-	return temperature_sensor_temp_from_resistance(resistance);
+	return mean_temperature / (float)(sizeof(temperatures) / sizeof(float));
 }
