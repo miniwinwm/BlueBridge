@@ -754,7 +754,7 @@ static void vTimerCallback1s(TimerHandle_t xTimer)
 	exhaust_temperature_data = temperature_sensor_read();
 	if (exhaust_temperature_data > (float)settings_get_exhaust_alarm_temperature())
 	{	
-		Status1.Bits.CheckEngine = true;
+		Status1.Bits.WaterFlow = true;
 	}
 	else
 	{
@@ -762,7 +762,6 @@ static void vTimerCallback1s(TimerHandle_t xTimer)
 	}
 
 	// send nmea2000 message for engine
-	//SetN2kEngineDynamicParam(N2kMsg, 0U, N2kDoubleNA, N2kDoubleNA, KELVIN_TO_C + (double)exhaust_temperature_data, N2kDoubleNA,		// send data and alarm
 	SetN2kEngineDynamicParam(N2kMsg, 0U, N2kDoubleNA, N2kDoubleNA, N2kDoubleNA, N2kDoubleNA,											// send alarm only
 						   N2kDoubleNA, N2kDoubleNA, N2kDoubleNA, N2kDoubleNA,
 						   N2kInt8NA, N2kInt8NA,

@@ -166,7 +166,7 @@ float temperature_sensor_read(void)
 	uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, &adc_chars);
 
 	float voltagef = ((float)voltage) / 1000.0f;
-	voltagef -= 0.036f;		// incorrect ADC reading frig
+	voltagef -= 0.08f;		// incorrect ADC reading frig
 	ESP_LOGI(pcTaskGetName(NULL), "Exhaust PT1000 temperature sensor voltage = %f", voltagef);
 
 	float resistance = (VOLTAGE_DIVIDER_RESISTANCE * voltagef) / (VOLTAGE_REF - voltagef);
