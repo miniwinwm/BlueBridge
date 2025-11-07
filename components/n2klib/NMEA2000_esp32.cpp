@@ -27,11 +27,16 @@ libraries, I implemented his code directly to the NMEA2000_esp32 to avoid extra
 can.h library, which may cause even naming problem.
 */
 
-#include <cmath>
 #include "driver/periph_ctrl.h"
+#include <rom/gpio.h>
 
 #include "soc/dport_reg.h"
+#include "soc/gpio_periph.h"
 #include "NMEA2000_esp32.h"
+
+#if !defined(round)
+#include <math.h>
+#endif
 
 bool tNMEA2000_esp32::CanInUse=false;
 tNMEA2000_esp32 *pNMEA2000_esp32=0;
@@ -47,10 +52,7 @@ tNMEA2000_esp32::tNMEA2000_esp32(gpio_num_t _TxPin,  gpio_num_t _RxPin) :
 
 //*****************************************************************************
 bool tNMEA2000_esp32::CANSendFrame(unsigned long id, unsigned char len, const unsigned char *buf, bool /*wait_sent*/) {
-  if ( uxQueueSpacesAvailable(TxQueue)==0 ) 
-  {
-	  return false; // can not send to queue
-  }
+  if ( uxQueueSpacesAvailable(TxQueue)==0 ) return false; // can not send to queue
 
   tCANFrame frame;
   frame.id=id;
@@ -58,17 +60,13 @@ bool tNMEA2000_esp32::CANSendFrame(unsigned long id, unsigned char len, const un
   memcpy(frame.buf,buf,len);
 
   xQueueSendToBack(TxQueue,&frame,0);  // Add frame to queue
-  if ( MODULE_CAN->SR.B.TBS==0 ) 
-  {
-	  return true; // Currently sending, ISR takes care of sending
-  }
+  if ( MODULE_CAN->SR.B.TBS==0 ) return true; // Currently sending, ISR takes care of sending
 
-  if ( MODULE_CAN->SR.B.TBS==1 ) 
-  { // Check again and restart send, if is not going on
+  if ( MODULE_CAN->SR.B.TBS==1 ) { // Check again and restart send, if is not going on
     xQueueReceive(TxQueue,&frame,0);
-	
     CAN_send_frame(frame);
   }
+
   return true;
 }
 
@@ -238,7 +236,7 @@ void tNMEA2000_esp32::CAN_read_frame() {
 //*****************************************************************************
 void tNMEA2000_esp32::CAN_send_frame(tCANFrame &frame) {
   CAN_FIR_t FIR;
- 
+
   FIR.U=0;
   FIR.B.DLC=frame.len>8?8:frame.len;
   FIR.B.FF=CAN_frame_ext;

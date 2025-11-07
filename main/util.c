@@ -243,7 +243,7 @@ bool util_hms_to_seconds(const char *hms, uint32_t *result)
 			break;
 		}
 		
-		if (isdigit(*hms))
+		if (isdigit((int)*hms))
 		{
 			field_val *= 10UL;
 			field_val += *hms - '0';

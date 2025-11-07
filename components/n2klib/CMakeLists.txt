@@ -8,4 +8,6 @@ idf_component_register(SRCS "nmea2000_esp32.cpp"
                             "N2kGroupFunction.cpp"
                             "N2kGroupFunctionDefaultHandlers.cpp"
                             "N2kMaretron.cpp"
-                        INCLUDE_DIRS "include")
+                        INCLUDE_DIRS "include"
+						REQUIRES "driver"
+						PRIV_REQUIRES "esp_timer")

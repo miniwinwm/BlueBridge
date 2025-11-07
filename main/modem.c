@@ -260,7 +260,7 @@ static void ServerHandleURC(size_t length)
 	else if (memcmp(echoOrUrc, "+CMTI: \"", 8) == 0)
 	{
 		uint32_t smsId;
-		sscanf((char *)(echoOrUrc + 12), "%u", &smsId);
+		sscanf((char *)(echoOrUrc + 12), "%u", (unsigned int *)&smsId);
 		if (mySmsNotificationCallback != NULL)
 		{
 			mySmsNotificationCallback(smsId);

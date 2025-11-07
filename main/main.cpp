@@ -775,14 +775,14 @@ static void vTimerCallback1s(TimerHandle_t xTimer)
 	{
 		if (!(gmt_data.hour == 23U && gmt_data.minute == 59U && gmt_data.second == 59U))
 		{
-			gmt_data.second++;
+			gmt_data.second += 1U;
 			if (gmt_data.second > 59U)
 			{
 				gmt_data.second = 0U;
-				gmt_data.minute++;
+				gmt_data.minute += 1U;
 				if (gmt_data.minute > 59U)
 				{
-					gmt_data.hour++;
+					gmt_data.hour += 1U;
 				}
 			}
 		}

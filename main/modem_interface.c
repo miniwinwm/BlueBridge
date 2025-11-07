@@ -133,6 +133,7 @@ void modem_interface_serial_init(void)
         .source_clk = UART_SCLK_APB,
     };	
 	
+	modem_interface_serial_close();
     (void)uart_driver_install(UART_NUM_1, uart_buffer_size, uart_buffer_size, 0, NULL, 0);
 	(void)uart_param_config(UART_NUM_1, &uart_config);
 	(void)uart_set_pin(UART_NUM_1, MODEM_TX_GPIO, MODEM_RX_GPIO, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);

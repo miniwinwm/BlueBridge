@@ -366,7 +366,7 @@ static bool config_parser_callback(char *key, char *value)
 			(void)util_safe_strcpy(started_stopped_buf, sizeof(started_stopped_buf), "Stopped");
 		}
 		
-		(void)snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "APN=%s\nUser=%s\nPass=%s\nBroker=%s\nPort=%u\nPeriod=%s\n%s",
+		(void)snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "APN=%s\nUser=%s\nPass=%s\nBroker=%s\nPort=%lu\nPeriod=%s\n%s",
 			settings_get_apn(), settings_get_apn_user_name(), settings_get_apn_password(),
 			settings_get_mqtt_broker_address(), (uint32_t)settings_get_mqtt_broker_port(),
 			util_seconds_to_hms(settings_get_publishing_period_s()), started_stopped_buf);
@@ -377,7 +377,7 @@ static bool config_parser_callback(char *key, char *value)
 	{
 		ESP_LOGI(pcTaskGetName(NULL), "Command code");	
 		
-		(void)snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "Code=%08X", settings_get_hashed_imei());
+		(void)snprintf(message_text, (size_t)MODEM_SMS_MAX_TEXT_LENGTH + 1, "Code=%08X", (unsigned int)settings_get_hashed_imei());
 		(void)sms_send(message_text, settings_get_phone_number());		
 		found = true;
 	}	
@@ -613,7 +613,13 @@ void publisher_task(void *parameters)
 	
 	do
 	{
-		(void)ModemInit();
+		if (ModemInit() != MODEM_OK)
+		{
+			ESP_LOGI(pcTaskGetName(NULL), "Failed to init modem");		
+			modem_start_success = false;
+			continue;
+		}
+
 		modem_start_success = modem_start();	
 		if (!modem_start_success)
 		{
@@ -668,7 +674,7 @@ void publisher_task(void *parameters)
 			if (!loop_failed && ModemGetTcpConnectedState())
 			{				
 				// topic
-				(void)snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/all", settings_get_hashed_imei());							
+				(void)snprintf(mqtt_topic, sizeof(mqtt_topic), "%08X/all", (unsigned int)settings_get_hashed_imei());							
 				time_ms = timer_get_time_ms();			
 				
 				// signal strength
@@ -795,7 +801,7 @@ void publisher_task(void *parameters)
 				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");		
 													
 				// period
-				(void)snprintf(number_buf, sizeof(number_buf), "%u", settings_get_publishing_period_s());
+				(void)snprintf(number_buf, sizeof(number_buf), "%u", (unsigned int)settings_get_publishing_period_s());
 				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), number_buf);	
 				(void)util_safe_strcat(mqtt_data_buf, sizeof(mqtt_data_buf), ",");	
 

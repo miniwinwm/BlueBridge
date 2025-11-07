@@ -430,7 +430,7 @@ MqttStatus_t MqttUnsubscribe(const char *topic, uint16_t packetIdentifier, uint3
 	return MQTT_OK;
 }
 
-MqttStatus_t MqttPublish(const char *topic, const uint8_t *payload, uint32_t payloadLength, bool retain, uint32_t timeoutMs)
+MqttStatus_t MqttPublish(const char *topic, const uint8_t *payload, size_t payloadLength, bool retain, uint32_t timeoutMs)
 {
 	size_t remainingLength;
 	size_t packetLength;
